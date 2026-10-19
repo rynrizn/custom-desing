@@ -49,7 +49,7 @@
             bocaMangaDerY1: 695,
             bocaMangaDerX2: 1575,    // Punto inferior interior de la boca de la manga derecha
             bocaMangaDerY2: 905,
-            factorAlto: 0.77,        // Compresión vertical (corrige elongación fotográfica)
+            factorAlto: 1.0,         // Proporción natural 1:1 de la foto original sin compresión
             offsetXCm: 0,            // Offset horizontal editable para continuidad lateral
             offsetYCm: 0             // Offset vertical editable para continuidad lateral
           },
@@ -72,7 +72,7 @@
             bocaMangaDerY1: 690,
             bocaMangaDerX2: 1580,    // Punto inferior interior de la boca de la manga derecha
             bocaMangaDerY2: 900,
-            factorAlto: 0.79,        // Compresión vertical
+            factorAlto: 1.0,         // Proporción natural 1:1 de la foto original sin compresión
             offsetXCm: 0,
             offsetYCm: 0
           }
@@ -1122,7 +1122,7 @@
      */
     function obtenerTransformacionCamara() {
       const rect = canvas.getBoundingClientRect();
-      const baseScale = Math.min(rect.width - 70, rect.height - 70) / 1750;
+      const baseScale = Math.min(rect.width - 70, rect.height - 70) / 1950;
       const scale = Math.max(0.08, baseScale * state.zoom);
       return {
         width: rect.width,
