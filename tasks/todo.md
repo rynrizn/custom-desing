@@ -101,12 +101,12 @@
 **Descripción:** Eliminar `dise_ador_de_poleras_zairen.html` (ya reemplazado por la estructura separada) y actualizar `README.md` con una breve descripción de la estructura del proyecto.
 
 **Criterios de aceptación:**
-- [ ] `dise_ador_de_poleras_zairen.html` eliminado
-- [ ] `README.md` describe la estructura de archivos y cómo usar el proyecto
+- [x] `dise_ador_de_poleras_zairen.html` eliminado
+- [x] `README.md` describe la estructura de archivos y cómo usar el proyecto
 
 **Verificación:**
-- [ ] La raíz del proyecto solo contiene: `index.html`, `css/`, `js/`, `img/`, `tasks/`, `LICENSE`, `README.md`
-- [ ] `index.html` sigue funcionando correctamente
+- [x] La raíz del proyecto solo contiene: `index.html`, `css/`, `js/`, `img/`, `tasks/`, `LICENSE`, `README.md`
+- [x] `index.html` sigue funcionando correctamente
 
 **Dependencias:** Checkpoint anterior
 
@@ -117,6 +117,6 @@
 ---
 
 ## Checkpoint: Proyecto Finalizado
-- [ ] Estructura limpia y organizada
-- [ ] Todas las funcionalidades del personalizador de poleras funcionan
-- [ ] Imágenes reales cargan sin problemas
+- [x] Estructura limpia y organizada
+- [x] Todas las funcionalidades del personalizador de poleras funcionan
+- [x] Imágenes reales cargan sin problemas
