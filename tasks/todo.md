@@ -25,12 +25,12 @@
 **Descripción:** Copiar todo el contenido dentro de `<style>...</style>` (líneas 14–1010 del HTML original) al archivo `css/styles.css`.
 
 **Criterios de aceptación:**
-- [ ] `css/styles.css` contiene todos los estilos (variables, reset, componentes, responsive)
-- [ ] No se modifica ni omite ninguna regla CSS
+- [x] `css/styles.css` contiene todos los estilos (variables, reset, componentes, responsive)
+- [x] No se modifica ni omite ninguna regla CSS
 
 **Verificación:**
-- [ ] El archivo tiene ~996 líneas de CSS
-- [ ] Contiene `:root`, `[data-theme="dark"]` y el media query `@media (max-width: 960px)`
+- [x] El archivo tiene ~996 líneas de CSS
+- [x] Contiene `:root`, `[data-theme="dark"]` y el media query `@media (max-width: 960px)`
 
 **Dependencias:** Tarea 1
 
