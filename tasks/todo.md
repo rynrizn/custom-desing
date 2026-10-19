@@ -65,19 +65,19 @@
 **Descripción:** Crear un `index.html` que contenga solo el HTML del body del archivo original, con `<link>` a `css/styles.css`, `<script>` para JSZip (CDN) y `<script>` para `js/app.js`. Todo el markup del `<body>` se preserva idéntico.
 
 **Criterios de aceptación:**
-- [ ] `index.html` enlaza correctamente `css/styles.css` y `js/app.js`
-- [ ] Carga JSZip desde el CDN (igual que antes)
-- [ ] El HTML del body es idéntico al original
-- [ ] Las fuentes de Google Fonts cargan correctamente
+- [x] `index.html` enlaza correctamente `css/styles.css` y `js/app.js`
+- [x] Carga JSZip desde el CDN (igual que antes)
+- [x] El HTML del body es idéntico al original
+- [x] Las fuentes de Google Fonts cargan correctamente
 
 **Verificación:**
-- [ ] Abrir `index.html` en Chrome sin servidor local
-- [ ] La polera aparece con la foto real (no fallback gris)
-- [ ] Cambiar color funciona
-- [ ] Subir imagen funciona
-- [ ] Exportar ZIP funciona
-- [ ] Modo oscuro funciona
-- [ ] Responsive funciona en móvil
+- [x] Abrir `index.html` en Chrome sin servidor local
+- [x] La polera aparece con la foto real (no fallback gris)
+- [x] Cambiar color funciona
+- [x] Subir imagen funciona
+- [x] Exportar ZIP funciona
+- [x] Modo oscuro funciona
+- [x] Responsive funciona en móvil
 
 **Dependencias:** Tareas 2, 3
 
@@ -88,10 +88,10 @@
 ---
 
 ## Checkpoint: Estructura Completa
-- [ ] `index.html` abre correctamente en el navegador
-- [ ] Las fotos reales de la polera se muestran (no el fallback sintético)
-- [ ] Personalización completa funciona (color, talla, subir diseño, alinear, rotar, exportar)
-- [ ] No hay errores en consola del navegador
+- [x] `index.html` abre correctamente en el navegador
+- [x] Las fotos reales de la polera se muestran (no el fallback sintético)
+- [x] Personalización completa funciona (color, talla, subir diseño, alinear, rotar, exportar)
+- [x] No hay errores en consola del navegador
 
 ---
 
