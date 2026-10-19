@@ -44,14 +44,14 @@
 **Descripción:** Copiar todo el contenido dentro de `<script>...</script>` (líneas 1336–3663 del HTML original) al archivo `js/app.js`. El JS no necesita modificaciones ya que las rutas de imágenes (`img/polera-anverso.png`) ya están correctas tras mover las imágenes en la Tarea 1.
 
 **Criterios de aceptación:**
-- [ ] `js/app.js` contiene todo el JavaScript (~2327 líneas)
-- [ ] Incluye `CONFIG_PRENDAS`, `state`, `imageCache`, todas las funciones y `window.onload`
-- [ ] Las rutas `img/polera-anverso.png` e `img/polera-reverso.png` en CONFIG_PRENDAS están intactas
+- [x] `js/app.js` contiene todo el JavaScript (~2327 líneas)
+- [x] Incluye `CONFIG_PRENDAS`, `state`, `imageCache`, todas las funciones y `window.onload`
+- [x] Las rutas `img/polera-anverso.png` e `img/polera-reverso.png` en CONFIG_PRENDAS están intactas
 
 **Verificación:**
-- [ ] El archivo empieza con el bloque `CONFIG_PRENDAS`
-- [ ] El archivo termina con el bloque `window.onload`
-- [ ] No hay errores de sintaxis JS
+- [x] El archivo empieza con el bloque `CONFIG_PRENDAS`
+- [x] El archivo termina con el bloque `window.onload`
+- [x] No hay errores de sintaxis JS
 
 **Dependencias:** Tarea 1
 
