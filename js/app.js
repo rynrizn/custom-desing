@@ -113,10 +113,12 @@
       panX: 0,
       panY: 0,
 
-      // Diseños independientes por lado (coordenadas guardadas en CENTÍMETROS respecto al centro del cuerpo)
-      // xCm: distancia horizontal desde el centro del cuerpo (+ derecha, - izquierda)
-      // yCm: distancia vertical desde el punto más alto del hombro (+ hacia abajo)
+      // Diseños independientes por lado (soporta múltiples imágenes por lado)
       disenos: {
+        anverso: [],
+        reverso: []
+      },
+      disenoSeleccionadoId: {
         anverso: null,
         reverso: null
       },
@@ -125,6 +127,29 @@
       historial: [],
       indiceHistorial: -1
     };
+
+    function obtenerDisenosLado(ladoKey = state.ladoActivo) {
+      if (!state.disenos[ladoKey] || !Array.isArray(state.disenos[ladoKey])) {
+        state.disenos[ladoKey] = [];
+      }
+      return state.disenos[ladoKey];
+    }
+
+    function obtenerDisenoSeleccionado(ladoKey = state.ladoActivo) {
+      const list = obtenerDisenosLado(ladoKey);
+      if (!list.length) return null;
+      const selId = state.disenoSeleccionadoId[ladoKey];
+      const encontrado = list.find(d => d.id === selId);
+      return encontrado || list[list.length - 1];
+    }
+
+    function seleccionarDisenoPorId(id, ladoKey = state.ladoActivo) {
+      state.disenoSeleccionadoId[ladoKey] = id;
+      actualizarEstadoBotonesEdicion();
+      sincronizarInputsEdicion();
+      actualizarIndicadoresHUD();
+      solicitarRender();
+    }
 
     // Caché en memoria para teñido instantáneo en celulares y escritorio
     const imageCache = {
@@ -485,11 +510,13 @@
       const tallaBase = prenda.tallas[prenda.tallaBaseFoto]; // M: 53 x 71 cm
       const tallaActual = prenda.tallas[state.talla];
 
-      // Escala base en unidades de foto antes de aplicar talla (con factorAlto aplicado en Y)
+      // Escala base en unidades de foto antes de aplicar talla
       // Ancho de cuerpo (ej. 896 px) equivale a 53 cm -> ~16.905 px/cm en X
       const pxPorCmBaseX = cal.anchoCuerpoPx / tallaBase.ancho;
-      const altoCuerpoComprimidoPx = (cal.bordeInferiorY - cal.hombroAltoY) * cal.factorAlto;
-      const pxPorCmBaseY = altoCuerpoComprimidoPx / tallaBase.largo;
+      // IMPORTANTE: Para que las imágenes y logotipos del usuario se mantengan 100% fieles a su
+      // proporción original (sin deformarse, alargarse ni achicarse verticalmente), 1 cm horizontal
+      // debe tener exactamente la misma cantidad de píxeles que 1 cm vertical.
+      const pxPorCmBaseY = pxPorCmBaseX;
 
       // Factores de reescalado de la prenda al cambiar de talla
       const escalaTallaX = tallaActual.ancho / tallaBase.ancho;
@@ -671,47 +698,50 @@
     }
 
     /**
-     * Dibuja la continuación del diseño envolvente desde el otro lado ("continuar por atrás").
+     * Dibuja la continuación de los diseños envolventes desde el otro lado ("continuar por atrás").
      * Lo que sobresale por el costado izquierdo del anverso entra por el costado derecho
      * del reverso (y viceversa), siguiendo la curva real de la máscara de transparencia.
      */
     function dibujarContinuacionEnvolvente(targetCtx, ladoActualKey) {
       if (!state.envolventeActivo) return;
       const otroLadoKey = ladoActualKey === 'anverso' ? 'reverso' : 'anverso';
-      const disenoOrigen = state.disenos[otroLadoKey];
-      if (!disenoOrigen || !disenoOrigen.imgElement) return;
+      const disenosOrigen = obtenerDisenosLado(otroLadoKey);
+      if (!disenosOrigen.length) return;
 
       const gOrigen = obtenerGeometriaLado(otroLadoKey);
       const gActual = obtenerGeometriaLado(ladoActualKey);
 
-      // Evaluamos los costados reales a la altura del centro del diseño
-      const yRefOrigen = Math.max(0, Math.min(gOrigen.largoTotalCm, disenoOrigen.yCm));
-      const costadosOrigen = gOrigen.obtenerCostadosCmEnY(yRefOrigen);
+      for (const disenoOrigen of disenosOrigen) {
+        if (!disenoOrigen || !disenoOrigen.imgElement) continue;
 
-      const yCmEnActual = disenoOrigen.yCm + (gActual.cal.offsetYCm - gOrigen.cal.offsetYCm);
-      const yRefActual = Math.max(0, Math.min(gActual.largoTotalCm, yCmEnActual));
-      const costadosActual = gActual.obtenerCostadosCmEnY(yRefActual);
+        // Evaluamos los costados reales a la altura del centro del diseño
+        const yRefOrigen = Math.max(0, Math.min(gOrigen.largoTotalCm, disenoOrigen.yCm));
+        const costadosOrigen = gOrigen.obtenerCostadosCmEnY(yRefOrigen);
 
-      // 1. Si el diseño en el lado de origen sobresale por el costado DERECHO (x > derCm):
-      // continúa entrando por el costado IZQUIERDO del lado actual.
-      // Distancia del centro del diseño al borde derecho en origen:
-      const deltaDerCm = disenoOrigen.xCm - costadosOrigen.derCm;
-      if (deltaDerCm > -disenoOrigen.widthCm) {
-        const nuevoXCmIzq = costadosActual.izqCm + deltaDerCm + gActual.cal.offsetXCm;
-        dibujarObjetoDisenoEnMundo(targetCtx, ladoActualKey, disenoOrigen, nuevoXCmIzq, yCmEnActual, 0.96);
-      }
+        const yCmEnActual = disenoOrigen.yCm + (gActual.cal.offsetYCm - gOrigen.cal.offsetYCm);
+        const yRefActual = Math.max(0, Math.min(gActual.largoTotalCm, yCmEnActual));
+        const costadosActual = gActual.obtenerCostadosCmEnY(yRefActual);
 
-      // 2. Si el diseño en el lado de origen sobresale por el costado IZQUIERDO (x < izqCm):
-      // continúa entrando por el costado DERECHO del lado actual.
-      const deltaIzqCm = disenoOrigen.xCm - costadosOrigen.izqCm;
-      if (deltaIzqCm < disenoOrigen.widthCm) {
-        const nuevoXCmDer = costadosActual.derCm + deltaIzqCm + gActual.cal.offsetXCm;
-        dibujarObjetoDisenoEnMundo(targetCtx, ladoActualKey, disenoOrigen, nuevoXCmDer, yCmEnActual, 0.96);
+        // 1. Si el diseño en el lado de origen sobresale por el costado DERECHO (x > derCm):
+        // continúa entrando por el costado IZQUIERDO del lado actual.
+        const deltaDerCm = disenoOrigen.xCm - costadosOrigen.derCm;
+        if (deltaDerCm > -disenoOrigen.widthCm) {
+          const nuevoXCmIzq = costadosActual.izqCm + deltaDerCm + gActual.cal.offsetXCm;
+          dibujarObjetoDisenoEnMundo(targetCtx, ladoActualKey, disenoOrigen, nuevoXCmIzq, yCmEnActual, 0.96);
+        }
+
+        // 2. Si el diseño en el lado de origen sobresale por el costado IZQUIERDO (x < izqCm):
+        // continúa entrando por el costado DERECHO del lado actual.
+        const deltaIzqCm = disenoOrigen.xCm - costadosOrigen.izqCm;
+        if (deltaIzqCm < disenoOrigen.widthCm) {
+          const nuevoXCmDer = costadosActual.derCm + deltaIzqCm + gActual.cal.offsetXCm;
+          dibujarObjetoDisenoEnMundo(targetCtx, ladoActualKey, disenoOrigen, nuevoXCmDer, yCmEnActual, 0.96);
+        }
       }
     }
 
     /**
-     * Renderiza la prenda completa (polera teñida + diseño envolvente + diseño propio recortado
+     * Renderiza la prenda completa (polera teñida + diseño envolvente + diseños propios recortados
      * a la silueta + cuadrícula opcional + cotas). Sirve tanto para la mesa interactiva como
      * para la exportación PNG de alta resolución.
      */
@@ -735,10 +765,12 @@
       targetCtx.save();
       targetCtx.drawImage(poleraTenida, -wMundo / 2, -hMundo / 2, wMundo, hMundo);
 
-      // 2. Componer diseños (envolvente + propio) recortados estrictamente a la silueta de la polera
-      const tieneDisenoPropio = Boolean(state.disenos[ladoKey]);
+      // 2. Componer diseños (envolvente + propios) recortados estrictamente a la silueta de la polera
+      const disenosPropios = obtenerDisenosLado(ladoKey);
       const otroLadoKey = ladoKey === 'anverso' ? 'reverso' : 'anverso';
-      const tieneEnvolvente = state.envolventeActivo && Boolean(state.disenos[otroLadoKey]);
+      const disenosOtroLado = obtenerDisenosLado(otroLadoKey);
+      const tieneDisenoPropio = disenosPropios.length > 0;
+      const tieneEnvolvente = state.envolventeActivo && disenosOtroLado.length > 0;
 
       if (tieneDisenoPropio || tieneEnvolvente) {
         const bufferSize = altaResolucion ? 2000 : SCREEN_BUFFER_SIZE;
@@ -757,10 +789,11 @@
           dibujarContinuacionEnvolvente(designLayerCtx, ladoKey);
         }
 
-        // Luego el diseño propio de este lado
+        // Luego los diseños propios de este lado en su orden
         if (tieneDisenoPropio) {
-          const d = state.disenos[ladoKey];
-          dibujarObjetoDisenoEnMundo(designLayerCtx, ladoKey, d, d.xCm, d.yCm, 1);
+          for (const d of disenosPropios) {
+            dibujarObjetoDisenoEnMundo(designLayerCtx, ladoKey, d, d.xCm, d.yCm, 1);
+          }
         }
         designLayerCtx.restore();
 
@@ -814,8 +847,9 @@
       // 5. Guías magnéticas inteligentes y manijas de edición (solo en pantalla interactiva)
       if (incluirControlesEdicion) {
         dibujarGuiasMagneticas(targetCtx, ladoKey, zoomActual);
-        if (state.disenos[ladoKey]) {
-          dibujarManijasEdicion(targetCtx, ladoKey, state.disenos[ladoKey], zoomActual);
+        const disenoSel = obtenerDisenoSeleccionado(ladoKey);
+        if (disenoSel) {
+          dibujarManijasEdicion(targetCtx, ladoKey, disenoSel, zoomActual);
         }
       }
 
@@ -1193,50 +1227,74 @@
 
     /**
      * Determina si el usuario tocó la manija de rotación, una esquina de redimensionamiento
-     * o el cuerpo del diseño del lado activo.
+     * o el cuerpo de un diseño en el lado activo.
      */
     function detectarZonaTocada(wx, wy) {
-      const diseno = state.disenos[state.ladoActivo];
-      if (!diseno) return null;
+      const disenos = obtenerDisenosLado(state.ladoActivo);
+      if (!disenos.length) return null;
 
       const g = obtenerGeometriaLado(state.ladoActivo);
       const cam = obtenerTransformacionCamara();
-      const centro = cmAMundo(state.ladoActivo, diseno.xCm, diseno.yCm);
-      const wMundo = diseno.widthCm * g.unidadesMundoPorCmX;
-      const hMundo = diseno.heightCm * g.unidadesMundoPorCmY;
-
-      // Pasar el punto (wx, wy) al sistema local rotado del diseño
-      const dx = wx - centro.wx;
-      const dy = wy - centro.wy;
-      const rad = (-diseno.angleDeg * Math.PI) / 180;
-      const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
-      const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
-
       const hitRadius = 18 / cam.scale; // Radio amplio táctil (>= 44px equivalentes)
       const rotOffset = 28 / cam.scale;
 
-      // 1. Manija de rotación superior
-      if (Math.hypot(lx - 0, ly - (-hMundo / 2 - rotOffset)) <= hitRadius) {
-        return 'rotate-design';
-      }
+      const disenoSel = obtenerDisenoSeleccionado(state.ladoActivo);
 
-      // 2. Esquinas de redimensionamiento
-      const corners = [
-        [-wMundo / 2, -hMundo / 2],
-        [wMundo / 2, -hMundo / 2],
-        [wMundo / 2, hMundo / 2],
-        [-wMundo / 2, hMundo / 2]
-      ];
-      for (const [cx, cy] of corners) {
-        if (Math.hypot(lx - cx, ly - cy) <= hitRadius) {
-          return 'resize-design';
+      // 1. Probar manijas de rotación y esquinas del diseño seleccionado actualmente
+      if (disenoSel) {
+        const centro = cmAMundo(state.ladoActivo, disenoSel.xCm, disenoSel.yCm);
+        const wMundo = disenoSel.widthCm * g.unidadesMundoPorCmX;
+        const hMundo = disenoSel.heightCm * g.unidadesMundoPorCmY;
+
+        const dx = wx - centro.wx;
+        const dy = wy - centro.wy;
+        const rad = (-disenoSel.angleDeg * Math.PI) / 180;
+        const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+        const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+        // Manija de rotación superior
+        if (Math.hypot(lx - 0, ly - (-hMundo / 2 - rotOffset)) <= hitRadius) {
+          return { action: 'rotate-design', diseno: disenoSel };
+        }
+
+        // Esquinas de redimensionamiento
+        const corners = [
+          [-wMundo / 2, -hMundo / 2],
+          [wMundo / 2, -hMundo / 2],
+          [wMundo / 2, hMundo / 2],
+          [-wMundo / 2, hMundo / 2]
+        ];
+        for (const [cx, cy] of corners) {
+          if (Math.hypot(lx - cx, ly - cy) <= hitRadius) {
+            return { action: 'resize-design', diseno: disenoSel };
+          }
+        }
+
+        // Interior del seleccionado
+        if (Math.abs(lx) <= wMundo / 2 && Math.abs(ly) <= hMundo / 2) {
+          return { action: 'move-design', diseno: disenoSel };
         }
       }
 
-      // 3. Interior del diseño
-      if (Math.abs(lx) <= wMundo / 2 && Math.abs(ly) <= hMundo / 2) {
-        return 'move-design';
+      // 2. Probar si tocó el interior de algún otro diseño del lado activo (del superior al inferior)
+      for (let i = disenos.length - 1; i >= 0; i--) {
+        const d = disenos[i];
+        if (d === disenoSel) continue;
+        const centro = cmAMundo(state.ladoActivo, d.xCm, d.yCm);
+        const wMundo = d.widthCm * g.unidadesMundoPorCmX;
+        const hMundo = d.heightCm * g.unidadesMundoPorCmY;
+
+        const dx = wx - centro.wx;
+        const dy = wy - centro.wy;
+        const rad = (-d.angleDeg * Math.PI) / 180;
+        const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+        const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+        if (Math.abs(lx) <= wMundo / 2 && Math.abs(ly) <= hMundo / 2) {
+          return { action: 'move-design', diseno: d };
+        }
       }
+
       return null;
     }
 
@@ -1308,13 +1366,20 @@
 
       const { wx, wy } = pantallaAMundo(e.clientX, e.clientY);
       const hit = detectarZonaTocada(wx, wy);
-      const diseno = state.disenos[state.ladoActivo];
 
-      if (hit && diseno) {
-        interactionMode = hit;
+      if (hit && hit.diseno) {
+        state.disenoSeleccionadoId[state.ladoActivo] = hit.diseno.id;
+        actualizarEstadoBotonesEdicion();
+        sincronizarInputsEdicion();
+        actualizarIndicadoresHUD();
+        solicitarRender();
+
+        const diseno = hit.diseno;
+        interactionMode = hit.action;
         canvas.classList.add('dragging-design');
         const centro = cmAMundo(state.ladoActivo, diseno.xCm, diseno.yCm);
         dragStartInfo = {
+          disenoId: diseno.id,
           startWx: wx,
           startWy: wy,
           origXCm: diseno.xCm,
@@ -1357,7 +1422,6 @@
       }
 
       if (!interactionMode || !dragStartInfo) return;
-      const diseno = state.disenos[state.ladoActivo];
 
       if (interactionMode === 'pan-stage') {
         state.panX = dragStartInfo.startPanX + (e.clientX - dragStartInfo.startClientX);
@@ -1366,7 +1430,8 @@
         return;
       }
 
-      if (!diseno) return;
+      const diseno = obtenerDisenoSeleccionado(state.ladoActivo);
+      if (!diseno || (dragStartInfo.disenoId && dragStartInfo.disenoId !== diseno.id)) return;
       const { wx, wy } = pantallaAMundo(e.clientX, e.clientY);
       const g = obtenerGeometriaLado(state.ladoActivo);
 
@@ -1460,7 +1525,7 @@
       }
 
       if (enInput) return;
-      const diseno = state.disenos[state.ladoActivo];
+      const diseno = obtenerDisenoSeleccionado(state.ladoActivo);
       if (!diseno) return;
 
       const pasoCm = e.shiftKey ? 1.0 : 0.2;
@@ -1520,11 +1585,14 @@
         const anchoInicialCm = 24;
         const altoInicialCm = Number((anchoInicialCm / aspect).toFixed(2));
 
-        // Colocar inicialmente centrado en el pecho (a ~12 cm bajo la base del cuello)
-        const yInicialCm = Number((g.cuelloYCm + 10 + altoInicialCm / 2).toFixed(2));
+        const disenosExistentes = obtenerDisenosLado(state.ladoActivo);
+        const offsetExtra = disenosExistentes.length * 3;
+        // Colocar centrado con ligero offset escalonado si ya hay otros diseños
+        const yInicialCm = Number((g.cuelloYCm + 10 + altoInicialCm / 2 + offsetExtra).toFixed(2));
         const ext = (file.name.split('.').pop() || 'png').toLowerCase();
 
-        state.disenos[state.ladoActivo] = {
+        const nuevoDiseno = {
+          id: 'des_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
           imgElement: img,
           originalFile: file,
           fileName: file.name,
@@ -1536,6 +1604,9 @@
           angleDeg: 0,
           aspectRatio: aspect
         };
+
+        state.disenos[state.ladoActivo].push(nuevoDiseno);
+        state.disenoSeleccionadoId[state.ladoActivo] = nuevoDiseno.id;
         state.ladoOrigenEnvolvente = state.ladoActivo;
 
         actualizarEstadoBotonesEdicion();
@@ -1571,9 +1642,9 @@
     /**
      * Historial de Deshacer / Rehacer (Ctrl+Z / Ctrl+Y)
      */
-    function clonarEstadoDiseno(d) {
-      if (!d) return null;
-      return { ...d };
+    function clonarListaDisenos(lista) {
+      if (!Array.isArray(lista)) return [];
+      return lista.map((d) => ({ ...d }));
     }
 
     function guardarEstadoEnHistorial() {
@@ -1581,8 +1652,9 @@
         talla: state.talla,
         colorCuerpo: state.colorCuerpo,
         envolventeActivo: state.envolventeActivo,
-        anverso: clonarEstadoDiseno(state.disenos.anverso),
-        reverso: clonarEstadoDiseno(state.disenos.reverso)
+        anverso: clonarListaDisenos(state.disenos.anverso),
+        reverso: clonarListaDisenos(state.disenos.reverso),
+        disenoSeleccionadoId: { ...state.disenoSeleccionadoId }
       };
 
       state.historial = state.historial.slice(0, state.indiceHistorial + 1);
@@ -1597,8 +1669,11 @@
       state.talla = snap.talla;
       state.colorCuerpo = snap.colorCuerpo;
       state.envolventeActivo = snap.envolventeActivo;
-      state.disenos.anverso = clonarEstadoDiseno(snap.anverso);
-      state.disenos.reverso = clonarEstadoDiseno(snap.reverso);
+      state.disenos.anverso = clonarListaDisenos(snap.anverso);
+      state.disenos.reverso = clonarListaDisenos(snap.reverso);
+      if (snap.disenoSeleccionadoId) {
+        state.disenoSeleccionadoId = { ...snap.disenoSeleccionadoId };
+      }
 
       document.getElementById('sizeSelect').value = state.talla;
       document.getElementById('wrapAroundToggle').checked = state.envolventeActivo;
@@ -1631,17 +1706,17 @@
     }
 
     function actualizarIndicadoresHUD() {
-      const diseno = state.disenos[state.ladoActivo];
+      const diseno = obtenerDisenoSeleccionado(state.ladoActivo);
       const dotAnverso = document.getElementById('dotAnverso');
       const dotReverso = document.getElementById('dotReverso');
 
-      const tieneAnverso = Boolean(state.disenos.anverso) || (state.envolventeActivo && Boolean(state.disenos.reverso));
-      const tieneReverso = Boolean(state.disenos.reverso) || (state.envolventeActivo && Boolean(state.disenos.anverso));
+      const tieneAnverso = state.disenos.anverso.length > 0 || (state.envolventeActivo && state.disenos.reverso.length > 0);
+      const tieneReverso = state.disenos.reverso.length > 0 || (state.envolventeActivo && state.disenos.anverso.length > 0);
       dotAnverso.classList.toggle('has-content', tieneAnverso);
       dotReverso.classList.toggle('has-content', tieneReverso);
 
       if (!diseno) {
-        document.getElementById('hudSizeCm').textContent = 'Sin diseño';
+        document.getElementById('hudSizeCm').textContent = 'Sin diseño seleccionado';
         document.getElementById('hudNeckCm').textContent = '—';
         document.getElementById('hudBottomCm').textContent = '—';
         document.getElementById('hudLeftCm').textContent = '—';
@@ -1658,7 +1733,7 @@
     }
 
     function sincronizarInputsEdicion() {
-      const diseno = state.disenos[state.ladoActivo];
+      const diseno = obtenerDisenoSeleccionado(state.ladoActivo);
       const inputW = document.getElementById('inputWidthCm');
       const inputAng = document.getElementById('inputAngleDeg');
       if (!diseno) {
@@ -1671,7 +1746,7 @@
     }
 
     function actualizarEstadoBotonesEdicion() {
-      const tieneDiseno = Boolean(state.disenos[state.ladoActivo]);
+      const tieneDiseno = Boolean(obtenerDisenoSeleccionado(state.ladoActivo));
       document.getElementById('inputWidthCm').disabled = !tieneDiseno;
       document.getElementById('inputAngleDeg').disabled = !tieneDiseno;
       document.getElementById('centerDesignBtn').disabled = !tieneDiseno;
@@ -1682,8 +1757,17 @@
     }
 
     function eliminarDisenoActivo() {
-      if (!state.disenos[state.ladoActivo]) return;
-      state.disenos[state.ladoActivo] = null;
+      const list = obtenerDisenosLado(state.ladoActivo);
+      const disenoSel = obtenerDisenoSeleccionado(state.ladoActivo);
+      if (!disenoSel || !list.length) return;
+
+      const idx = list.findIndex(d => d.id === disenoSel.id);
+      if (idx !== -1) {
+        list.splice(idx, 1);
+      }
+      const remaining = obtenerDisenosLado(state.ladoActivo);
+      state.disenoSeleccionadoId[state.ladoActivo] = remaining.length ? remaining[remaining.length - 1].id : null;
+
       actualizarEstadoBotonesEdicion();
       sincronizarInputsEdicion();
       guardarEstadoEnHistorial();
@@ -1702,9 +1786,9 @@
      * (ya sea diseño propio o continuación activa del diseño envolvente del otro lado).
      */
     function ladoTieneContenido(ladoKey) {
-      if (state.disenos[ladoKey]) return true;
+      if (state.disenos[ladoKey] && state.disenos[ladoKey].length > 0) return true;
       const otroLado = ladoKey === 'anverso' ? 'reverso' : 'anverso';
-      if (state.envolventeActivo && state.disenos[otroLado]) return true;
+      if (state.envolventeActivo && state.disenos[otroLado] && state.disenos[otroLado].length > 0) return true;
       return false;
     }
 
@@ -1743,9 +1827,9 @@
         zoomActual: exportScale
       });
 
-      // Si tiene diseño propio, dibujamos también las cotas del diseño (tamaño y distancia al cuello)
-      const diseno = state.disenos[ladoKey];
-      if (diseno) {
+      // Si tiene diseños propios, dibujamos cotas de los diseños
+      const disenos = obtenerDisenosLado(ladoKey);
+      for (const diseno of disenos) {
         const m = calcularMetricasDisenoCm(ladoKey, diseno);
         const centro = cmAMundo(ladoKey, diseno.xCm, diseno.yCm);
         const wMundo = diseno.widthCm * g.unidadesMundoPorCmX;
@@ -1829,23 +1913,32 @@
         lineas.push(`LADO: ${ladoKey.toUpperCase()}`);
         lineas.push('--------------------------------------------------------------------');
 
-        const disenoPropio = state.disenos[ladoKey];
+        const disenosPropios = obtenerDisenosLado(ladoKey);
         const otroLado = ladoKey === 'anverso' ? 'reverso' : 'anverso';
-        const recibeEnvolvente = state.envolventeActivo && Boolean(state.disenos[otroLado]);
+        const recibeEnvolvente = state.envolventeActivo && obtenerDisenosLado(otroLado).length > 0;
 
-        if (!disenoPropio && !recibeEnvolvente) {
+        if (disenosPropios.length === 0 && !recibeEnvolvente) {
           lineas.push('Estado: Sin diseño en este lado.');
         } else {
-          if (disenoPropio) {
-            const m = calcularMetricasDisenoCm(ladoKey, disenoPropio);
-            lineas.push(`Archivo original           : diseno_${ladoKey}.${disenoPropio.fileExt}`);
-            lineas.push(`Tamaño del diseño (An×Al)  : ${m.anchoCm.toFixed(2)} cm × ${m.altoCm.toFixed(2)} cm`);
-            lineas.push(`Posición del centro (X, Y) : X = ${disenoPropio.xCm.toFixed(2)} cm (desde centro) | Y = ${disenoPropio.yCm.toFixed(2)} cm (desde hombro alto)`);
-            lineas.push(`Rotación                   : ${disenoPropio.angleDeg}°`);
-            lineas.push(`Distancia a base de cuello : ${m.distCuelloCm.toFixed(2)} cm`);
-            lineas.push(`Distancia a borde inferior : ${m.distBordeInfCm.toFixed(2)} cm`);
-            lineas.push(`Distancia a costado izq.   : ${m.distCostadoIzqCm.toFixed(2)} cm`);
-            lineas.push(`Distancia a costado der.   : ${m.distCostadoDerCm.toFixed(2)} cm`);
+          if (disenosPropios.length > 0) {
+            disenosPropios.forEach((disenoPropio, idx) => {
+              const m = calcularMetricasDisenoCm(ladoKey, disenoPropio);
+              const numStr = disenosPropios.length > 1 ? ` #${idx + 1}` : '';
+              const nombreArchivo = disenosPropios.length > 1
+                ? `diseno_${ladoKey}_${idx + 1}.${disenoPropio.fileExt}`
+                : `diseno_${ladoKey}.${disenoPropio.fileExt}`;
+
+              lineas.push(`[Diseño${numStr}]`);
+              lineas.push(`Archivo original           : ${nombreArchivo}`);
+              lineas.push(`Tamaño del diseño (An×Al)  : ${m.anchoCm.toFixed(2)} cm × ${m.altoCm.toFixed(2)} cm`);
+              lineas.push(`Posición del centro (X, Y) : X = ${disenoPropio.xCm.toFixed(2)} cm (desde centro) | Y = ${disenoPropio.yCm.toFixed(2)} cm (desde hombro alto)`);
+              lineas.push(`Rotación                   : ${disenoPropio.angleDeg}°`);
+              lineas.push(`Distancia a base de cuello : ${m.distCuelloCm.toFixed(2)} cm`);
+              lineas.push(`Distancia a borde inferior : ${m.distBordeInfCm.toFixed(2)} cm`);
+              lineas.push(`Distancia a costado izq.   : ${m.distCostadoIzqCm.toFixed(2)} cm`);
+              lineas.push(`Distancia a costado der.   : ${m.distCostadoDerCm.toFixed(2)} cm`);
+              lineas.push('');
+            });
           }
           if (recibeEnvolvente) {
             lineas.push(`Continuación envolvente    : Incluye continuación plana del diseño ubicado en ${otroLado.toUpperCase()}.`);
@@ -1880,36 +1973,17 @@
         archivos.push({ nombre: 'reverso.png', desc: 'Vista posterior 2000px + reglas y cotas en cm' });
       }
 
-      // Archivos de diseño originales sin modificar:
-      // Con diseño envolvente se incluye un único archivo (el del lado de origen) si solo hay uno o si viene del origen
-      if (state.envolventeActivo) {
-        const origenKey = state.disenos[state.ladoOrigenEnvolvente]
-          ? state.ladoOrigenEnvolvente
-          : (state.disenos.anverso ? 'anverso' : 'reverso');
-        const dOrigen = state.disenos[origenKey];
-        if (dOrigen) {
+      ['anverso', 'reverso'].forEach((ladoKey) => {
+        const disenos = obtenerDisenosLado(ladoKey);
+        disenos.forEach((d, idx) => {
+          const suffix = disenos.length > 1 ? `_${idx + 1}` : '';
           archivos.push({
-            nombre: `diseno_${origenKey}.${dOrigen.fileExt}`,
-            desc: 'Diseño original en calidad nativa (Origen envolvente)',
-            ladoOrigen: origenKey
+            nombre: `diseno_${ladoKey}${suffix}.${d.fileExt}`,
+            desc: `Diseño ${ladoKey.toUpperCase()}${suffix ? ' #' + (idx + 1) : ''} en calidad nativa`,
+            ladoOrigen: ladoKey
           });
-        }
-      } else {
-        if (state.disenos.anverso) {
-          archivos.push({
-            nombre: `diseno_anverso.${state.disenos.anverso.fileExt}`,
-            desc: 'Diseño original anverso sin modificar',
-            ladoOrigen: 'anverso'
-          });
-        }
-        if (state.disenos.reverso) {
-          archivos.push({
-            nombre: `diseno_reverso.${state.disenos.reverso.fileExt}`,
-            desc: 'Diseño original reverso sin modificar',
-            ladoOrigen: 'reverso'
-          });
-        }
-      }
+        });
+      });
 
       if (hayAnverso || hayReverso) {
         archivos.push({ nombre: 'especificaciones.txt', desc: 'Ficha técnica para taller en cm y HEX' });
@@ -1970,22 +2044,15 @@
           if (blobReverso) zip.file('reverso.png', blobReverso);
         }
 
-        if (state.envolventeActivo) {
-          const origenKey = state.disenos[state.ladoOrigenEnvolvente]
-            ? state.ladoOrigenEnvolvente
-            : (state.disenos.anverso ? 'anverso' : 'reverso');
-          const dOrigen = state.disenos[origenKey];
-          if (dOrigen && dOrigen.originalFile) {
-            zip.file(`diseno_${origenKey}.${dOrigen.fileExt}`, dOrigen.originalFile);
-          }
-        } else {
-          if (state.disenos.anverso && state.disenos.anverso.originalFile) {
-            zip.file(`diseno_anverso.${state.disenos.anverso.fileExt}`, state.disenos.anverso.originalFile);
-          }
-          if (state.disenos.reverso && state.disenos.reverso.originalFile) {
-            zip.file(`diseno_reverso.${state.disenos.reverso.fileExt}`, state.disenos.reverso.originalFile);
-          }
-        }
+        ['anverso', 'reverso'].forEach((ladoKey) => {
+          const disenos = obtenerDisenosLado(ladoKey);
+          disenos.forEach((d, idx) => {
+            if (d && d.originalFile) {
+              const suffix = disenos.length > 1 ? `_${idx + 1}` : '';
+              zip.file(`diseno_${ladoKey}${suffix}.${d.fileExt}`, d.originalFile);
+            }
+          });
+        });
 
         zip.file('especificaciones.txt', generarTextoEspecificaciones());
 
@@ -2112,7 +2179,7 @@
     }
 
     function alinearDisenoRespectoAlCuerpo(tipoAlineacion) {
-      const diseno = state.disenos[state.ladoActivo];
+      const diseno = obtenerDisenoSeleccionado(state.ladoActivo);
       if (!diseno) return;
       const g = obtenerGeometriaLado(state.ladoActivo);
       const m = calcularMetricasDisenoCm(state.ladoActivo, diseno);
@@ -2205,7 +2272,7 @@
       document.getElementById('tabAnverso').addEventListener('click', () => cambiarLadoActivo('anverso'));
       document.getElementById('tabReverso').addEventListener('click', () => cambiarLadoActivo('reverso'));
 
-      // Subida de archivos (clic y arrastrar y soltar)
+      // Subida de archivos (clic y arrastrar y soltar con soporte de múltiples imágenes)
       const dropzone = document.getElementById('uploadDropzone');
       const fileInput = document.getElementById('fileInput');
       dropzone.addEventListener('click', () => fileInput.click());
@@ -2216,8 +2283,8 @@
         }
       });
       fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          validarYCargarArchivoDiseno(e.target.files[0]);
+        if (e.target.files && e.target.files.length) {
+          Array.from(e.target.files).forEach((file) => validarYCargarArchivoDiseno(file));
           e.target.value = '';
         }
       });
@@ -2230,8 +2297,8 @@
       dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          validarYCargarArchivoDiseno(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files && e.dataTransfer.files.length) {
+          Array.from(e.dataTransfer.files).forEach((file) => validarYCargarArchivoDiseno(file));
         }
       });
 
@@ -2253,7 +2320,7 @@
 
       // Inputs numéricos de ancho en cm y ángulo
       document.getElementById('inputWidthCm').addEventListener('input', (e) => {
-        const d = state.disenos[state.ladoActivo];
+        const d = obtenerDisenoSeleccionado(state.ladoActivo);
         const val = parseFloat(e.target.value);
         if (!d || isNaN(val) || val < 1 || val > 120) return;
         d.widthCm = Number(val.toFixed(2));
@@ -2265,7 +2332,7 @@
       document.getElementById('inputWidthCm').addEventListener('change', guardarEstadoEnHistorial);
 
       document.getElementById('inputAngleDeg').addEventListener('input', (e) => {
-        const d = state.disenos[state.ladoActivo];
+        const d = obtenerDisenoSeleccionado(state.ladoActivo);
         const val = parseFloat(e.target.value);
         if (!d || isNaN(val)) return;
         d.angleDeg = Math.max(-180, Math.min(180, Math.round(val)));
@@ -2281,7 +2348,7 @@
       });
 
       document.getElementById('resetAngleBtn').addEventListener('click', () => {
-        const d = state.disenos[state.ladoActivo];
+        const d = obtenerDisenoSeleccionado(state.ladoActivo);
         if (!d) return;
         d.angleDeg = 0;
         sincronizarInputsEdicion();
