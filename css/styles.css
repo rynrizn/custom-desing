@@ -750,13 +750,16 @@
       display: inline-block;
     }
 
-    .canvas-viewport {
+    .stage-viewport {
       position: relative;
       flex: 1;
       width: 100%;
       height: 100%;
       overflow: hidden;
       touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background-image:
         linear-gradient(45deg, var(--checker-a) 25%, transparent 25%),
         linear-gradient(-45deg, var(--checker-a) 25%, transparent 25%),
@@ -765,17 +768,211 @@
       background-size: 24px 24px;
       background-position: 0 0, 0 12px, 12px -12px, -12px 0;
       background-color: var(--checker-b);
+      user-select: none;
     }
 
-    #workbenchCanvas {
-      display: block;
+    .tshirt-stage {
+      position: relative;
+      width: min(82vh, 82vw, 640px);
+      height: min(82vh, 82vw, 640px);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      transition: transform 0.15s ease-out;
+    }
+
+    .tshirt-color-backdrop {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
-      cursor: grab;
+      background-color: var(--tshirt-color, #ffffff);
+      -webkit-mask-image: url('../img/polera-anverso.png');
+      mask-image: url('../img/polera-anverso.png');
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease;
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
     }
 
-    #workbenchCanvas.dragging-design {
-      cursor: move;
+    .tshirt-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Área interactiva de diseño sobre la polera */
+    .design-workspace-area {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .design-wrapper {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      width: 160px;
+      height: 160px;
+      transform: translate(-50%, -50%) rotate(0deg);
+      pointer-events: auto;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .design-wrapper:active, .design-wrapper.is-dragging {
+      cursor: grabbing;
+    }
+
+    .design-wrapper img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    /* Borde de selección y manipuladores */
+    .design-gizmo {
+      position: absolute;
+      inset: -4px;
+      border: 1.5px dashed var(--accent-crimson);
+      pointer-events: none;
+    }
+
+    .design-wrapper.selected .design-gizmo {
+      border-style: solid;
+    }
+
+    .rot-line {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      width: 1.5px;
+      height: 24px;
+      background: var(--accent-crimson);
+      transform: translateX(-50%);
+    }
+
+    .rot-handle {
+      position: absolute;
+      top: -34px;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-crimson);
+      border: 2px solid #ffffff;
+      transform: translateX(-50%);
+      cursor: grab;
+      pointer-events: auto;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      border: 1.5px solid #141516;
+      pointer-events: auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+    .handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+
+    /* Cotas técnicas superpuestas en la prenda */
+    .dimension-line {
+      position: absolute;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .line-width {
+      top: 50%;
+      left: 20%;
+      right: 20%;
+      border-top: 1.5px dashed var(--accent-crimson);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .line-width::before, .line-width::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      width: 1.5px;
+      height: 12px;
+      background: var(--accent-crimson);
+    }
+    .line-width::before { left: 0; }
+    .line-width::after { right: 0; }
+
+    .line-height {
+      top: 10%;
+      bottom: 10%;
+      left: 12%;
+      border-left: 1.5px dashed var(--accent-crimson);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .line-height::before, .line-height::after {
+      content: "";
+      position: absolute;
+      left: -6px;
+      width: 12px;
+      height: 1.5px;
+      background: var(--accent-crimson);
+    }
+    .line-height::before { top: 0; }
+    .line-height::after { bottom: 0; }
+
+    .dim-label {
+      background: var(--surface-solid);
+      border: 1px solid var(--border-strong);
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-crimson);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      white-space: nowrap;
+    }
+
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-size: 32px 32px;
+      background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .grid-overlay.active {
+      opacity: 1;
     }
 
     /* HUD de medidas en tiempo real en la parte inferior de la mesa */

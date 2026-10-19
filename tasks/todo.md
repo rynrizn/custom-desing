@@ -116,7 +116,24 @@
 
 ---
 
+## Fase 3: Integración Directa de Imágenes en HTML
+
+### Tarea 6: Visualización directa de las poleras en el DOM
+**Descripción:** Integrar las imágenes de la polera directamente en el HTML mediante etiquetas `<img>` y capas interactivas de diseño, eliminando la dependencia del canvas monolítico para el preview y garantizando que las imágenes y personalizaciones se vean al instante sin bloqueos de seguridad local.
+
+**Criterios de aceptación:**
+- [x] Imagen de la polera presente en el HTML (`#tshirtDisplayImg`)
+- [x] Los diseños se superponen, arrastran, rotan y escalan directamente sobre la polera
+- [x] Disponibles versiones PNG y JPG en `img/`
+- [x] Exportación a ZIP operativa
+
+**Verificación:**
+- [x] Comprobado funcionamiento en navegador local
+- [x] 0 errores en consola o llamadas de ID inexistentes
+
+---
+
 ## Checkpoint: Proyecto Finalizado
 - [x] Estructura limpia y organizada
 - [x] Todas las funcionalidades del personalizador de poleras funcionan
-- [x] Imágenes reales cargan sin problemas
+- [x] Imágenes reales cargan sin problemas directamente en el HTML
