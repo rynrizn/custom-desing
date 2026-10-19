@@ -439,7 +439,10 @@
             procesarYNormalizarImagenBase(fallback, ladoKey);
             resolve();
           };
-          img.src = prenda.lados[ladoKey].src;
+          const assetSrc = (typeof window.POLERA_ASSETS !== 'undefined' && window.POLERA_ASSETS[ladoKey])
+            ? window.POLERA_ASSETS[ladoKey]
+            : prenda.lados[ladoKey].src;
+          img.src = assetSrc;
         });
       });
 
@@ -1793,10 +1796,141 @@
     }
 
     /**
-     * Genera la imagen PNG de alta resolución (base 2000 px + margen de reglas graduadas en cm)
-     * sin manijas de edición ni guías interactivas, con cotas y medidas legibles.
+     * Convierte un canvas a Blob de forma robusta con fallback a toDataURL si toBlob falla o pasa null.
      */
-    function generarImagenExportacionLado(ladoKey) {
+    function exportarCanvasABlob(targetCanvas) {
+      return new Promise((resolve) => {
+        try {
+          targetCanvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              // Fallback toDataURL si el navegador devolvió null
+              try {
+                const dataUrl = targetCanvas.toDataURL('image/png', 1.0);
+                const byteString = atob(dataUrl.split(',')[1]);
+                const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+                for (let i = 0; i < byteString.length; i++) {
+                  ia[i] = byteString.charCodeAt(i);
+                }
+                resolve(new Blob([ab], { type: mimeString }));
+              } catch (errDataUrl) {
+                console.warn('Fallback toDataURL falló:', errDataUrl);
+                resolve(null);
+              }
+            }
+          }, 'image/png', 1.0);
+        } catch (e) {
+          console.warn('toBlob arrojó excepción, intentando toDataURL:', e);
+          try {
+            const dataUrl = targetCanvas.toDataURL('image/png', 1.0);
+            const byteString = atob(dataUrl.split(',')[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+            resolve(new Blob([ab], { type: 'image/png' }));
+          } catch (err2) {
+            console.warn('Error definitivo en toDataURL:', err2);
+            resolve(null);
+          }
+        }
+      });
+    }
+
+    /**
+     * Fallback de ultra-seguridad: genera la ficha técnica y mockup con la silueta vectorial
+     * pura sin ninguna dependencia externa de imágenes que pueda ser restringida por el navegador.
+     */
+    function exportarFichaTecnicaConSiluetaLimpia(ladoKey) {
+      const MARGIN = 120;
+      const EXPORT_SIZE = 2000 + MARGIN * 2;
+      const c = document.createElement('canvas');
+      c.width = EXPORT_SIZE;
+      c.height = EXPORT_SIZE;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#F5F5F7';
+      ctx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
+
+      const g = obtenerGeometriaLado(ladoKey);
+      const maxDimMundo = Math.max(g.fotoAnchoMundo, g.fotoAltoMundo, 2000);
+      const exportScale = 1920 / maxDimMundo;
+      const cx = EXPORT_SIZE / 2;
+      const cy = EXPORT_SIZE / 2;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(exportScale, exportScale);
+
+      // Dibujar polera sintética limpia teñida
+      const synth = crearPoleraSinteticaFallback(ladoKey);
+      const wMundo = g.fotoAnchoMundo;
+      const hMundo = g.fotoAltoMundo;
+
+      const tintCanvas = document.createElement('canvas');
+      tintCanvas.width = 2000;
+      tintCanvas.height = 2000;
+      const tCtx = tintCanvas.getContext('2d');
+      tCtx.drawImage(synth, 0, 0);
+      tCtx.globalCompositeOperation = 'multiply';
+      tCtx.fillStyle = state.colorCuerpo;
+      tCtx.fillRect(0, 0, 2000, 2000);
+      tCtx.globalCompositeOperation = 'destination-in';
+      tCtx.drawImage(synth, 0, 0);
+
+      ctx.drawImage(tintCanvas, -wMundo / 2, -hMundo / 2, wMundo, hMundo);
+
+      // Dibujar diseños del lado
+      const disenos = obtenerDisenosLado(ladoKey);
+      for (const d of disenos) {
+        dibujarObjetoDisenoEnMundo(ctx, ladoKey, d, d.xCm, d.yCm, 1);
+        const m = calcularMetricasDisenoCm(ladoKey, d);
+        const centro = cmAMundo(ladoKey, d.xCm, d.yCm);
+        const wMundoD = d.widthCm * g.unidadesMundoPorCmX;
+        const hMundoD = d.heightCm * g.unidadesMundoPorCmY;
+        const cuelloPt = cmAMundo(ladoKey, d.xCm, g.cuelloYCm);
+
+        dibujarLineaCotaConEtiqueta(
+          ctx,
+          centro.wx - wMundoD / 2, centro.wy + hMundoD / 2 + 28 / exportScale,
+          centro.wx + wMundoD / 2, centro.wy + hMundoD / 2 + 28 / exportScale,
+          `${m.anchoCm.toFixed(1)} × ${m.altoCm.toFixed(1)} cm`,
+          1 / exportScale
+        );
+        dibujarLineaCotaConEtiqueta(
+          ctx,
+          cuelloPt.wx, cuelloPt.wy,
+          centro.wx, centro.wy - hMundoD / 2,
+          `Cuello: ${m.distCuelloCm.toFixed(1)} cm`,
+          1 / exportScale
+        );
+      }
+
+      dibujarCotasTecnicasPrenda(ctx, ladoKey, exportScale);
+      ctx.restore();
+
+      dibujarReglas4Lados(ctx, EXPORT_SIZE, EXPORT_SIZE, ladoKey, { cx, cy, scale: exportScale });
+
+      ctx.fillStyle = '#1A1C1D';
+      ctx.font = '700 20px "JetBrains Mono", monospace';
+      ctx.fillText(
+        `ZAIREN | FICHA ${ladoKey.toUpperCase()} · TALLA ${state.talla} (${g.tallaActual.ancho}×${g.tallaActual.largo} cm) · COLOR ${state.colorCuerpo.toUpperCase()}`,
+        48,
+        54
+      );
+
+      return exportarCanvasABlob(c);
+    }
+
+    /**
+     * Genera la imagen PNG de alta resolución (base 2000 px + margen de reglas graduadas en cm)
+     * de la polera con los diseños puestos, sin manijas interactivas, con cotas y medidas legibles.
+     */
+    async function generarImagenExportacionLado(ladoKey) {
       const MARGIN = 120; // Margen exterior para reglas graduadas en cm (total 2240 x 2240 px)
       const EXPORT_SIZE = 2000 + MARGIN * 2;
       const exportCanvas = document.createElement('canvas');
@@ -1809,7 +1943,6 @@
       eCtx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
 
       const g = obtenerGeometriaLado(ladoKey);
-      // Ajustamos la escala para que quepa holgadamente incluso en talla XXL
       const maxDimMundo = Math.max(g.fotoAnchoMundo, g.fotoAltoMundo, 2000);
       const exportScale = 1920 / maxDimMundo;
       const cx = EXPORT_SIZE / 2;
@@ -1827,7 +1960,7 @@
         zoomActual: exportScale
       });
 
-      // Si tiene diseños propios, dibujamos cotas de los diseños
+      // Dibujar cotas de los diseños
       const disenos = obtenerDisenosLado(ladoKey);
       for (const diseno of disenos) {
         const m = calcularMetricasDisenoCm(ladoKey, diseno);
@@ -1870,14 +2003,13 @@
         54
       );
 
-      return new Promise((resolve) => {
-        try {
-          exportCanvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
-        } catch (e) {
-          console.warn('Advertencia al generar blob de exportación:', e);
-          resolve(null);
-        }
-      });
+      let blob = await exportarCanvasABlob(exportCanvas);
+      if (!blob) {
+        // Si el navegador restringió la lectura directa de la imagen fotográfica,
+        // generar con silueta limpia para que NUNCA falte la polera en el paquete
+        blob = await exportarFichaTecnicaConSiluetaLimpia(ladoKey);
+      }
+      return blob;
     }
 
     /**
@@ -1966,12 +2098,10 @@
       const hayAnverso = ladoTieneContenido('anverso');
       const hayReverso = ladoTieneContenido('reverso');
 
-      if (hayAnverso) {
-        archivos.push({ nombre: 'anverso.png', desc: 'Vista frontal 2000px + reglas y cotas en cm' });
-      }
-      if (hayReverso) {
-        archivos.push({ nombre: 'reverso.png', desc: 'Vista posterior 2000px + reglas y cotas en cm' });
-      }
+      // Siempre se incluyen las vistas completas de la polera con sus diseños para que el taller
+      // y el cliente tengan la visualización exacta de cómo debe quedar confeccionada.
+      archivos.push({ nombre: 'anverso.png', desc: 'Mockup frontal de la polera con diseño, reglas y cotas en cm' });
+      archivos.push({ nombre: 'reverso.png', desc: 'Mockup posterior de la polera con diseño, reglas y cotas en cm' });
 
       ['anverso', 'reverso'].forEach((ladoKey) => {
         const disenos = obtenerDisenosLado(ladoKey);
@@ -1985,9 +2115,7 @@
         });
       });
 
-      if (hayAnverso || hayReverso) {
-        archivos.push({ nombre: 'especificaciones.txt', desc: 'Ficha técnica para taller en cm y HEX' });
-      }
+      archivos.push({ nombre: 'especificaciones.txt', desc: 'Ficha técnica para taller en cm y HEX' });
       return archivos;
     }
 
@@ -2000,15 +2128,17 @@
       const archivos = obtenerResumenArchivosExportacion();
       listEl.innerHTML = '';
 
-      if (archivos.length === 0) {
+      const tieneAlgunDiseno = state.disenos.anverso.length > 0 || state.disenos.reverso.length > 0;
+
+      if (!tieneAlgunDiseno) {
         noticeEl.innerHTML = `<strong style="color:var(--accent-crimson)">Aviso:</strong> Aún no has cargado ningún diseño en el anverso ni en el reverso. Sube una imagen o pulsa "+ Gráfico Demo" en el Paso 2 para poder exportar.`;
         const li = document.createElement('li');
-        li.textContent = 'Ningún archivo disponible para exportar.';
+        li.textContent = 'Ningún diseño cargado todavía.';
         listEl.appendChild(li);
         confirmBtn.disabled = true;
       } else {
         const zipName = `polera-talla-${state.talla}-${obtenerFechaActualISO()}.zip`;
-        noticeEl.innerHTML = `Paquete listo: <strong>${zipName}</strong>. Las vistas se exportan en alta resolución sin manijas de edición.`;
+        noticeEl.innerHTML = `Paquete listo: <strong>${zipName}</strong>. Incluye los mockups de las poleras con tus diseños puestos, cotas en cm y los archivos originales.`;
         for (const item of archivos) {
           const li = document.createElement('li');
           li.innerHTML = `<span><strong>${item.nombre}</strong></span><span class="file-tag">${item.desc}</span>`;
@@ -2032,18 +2162,19 @@
 
       try {
         const zip = new JSZip();
-        const hayAnverso = ladoTieneContenido('anverso');
-        const hayReverso = ladoTieneContenido('reverso');
 
-        if (hayAnverso) {
-          const blobAnverso = await generarImagenExportacionLado('anverso');
-          if (blobAnverso) zip.file('anverso.png', blobAnverso);
-        }
-        if (hayReverso) {
-          const blobReverso = await generarImagenExportacionLado('reverso');
-          if (blobReverso) zip.file('reverso.png', blobReverso);
+        // 1. Exportar la vista de la polera con diseño tanto para anverso como reverso
+        const blobAnverso = await generarImagenExportacionLado('anverso');
+        if (blobAnverso) {
+          zip.file('anverso.png', blobAnverso);
         }
 
+        const blobReverso = await generarImagenExportacionLado('reverso');
+        if (blobReverso) {
+          zip.file('reverso.png', blobReverso);
+        }
+
+        // 2. Exportar los archivos de diseño originales en resolución nativa
         ['anverso', 'reverso'].forEach((ladoKey) => {
           const disenos = obtenerDisenosLado(ladoKey);
           disenos.forEach((d, idx) => {
@@ -2054,6 +2185,7 @@
           });
         });
 
+        // 3. Ficha de especificaciones técnicas para taller
         zip.file('especificaciones.txt', generarTextoEspecificaciones());
 
         const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
@@ -2070,6 +2202,7 @@
         document.getElementById('exportModalBackdrop').classList.remove('open');
         mostrarNotificacion(`¡Descarga completada! (${zipName})`);
       } catch (err) {
+        console.error('Error al generar ZIP:', err);
         mostrarNotificacion('Ocurrió un problema al empaquetar el archivo ZIP.');
       } finally {
         confirmBtn.disabled = false;
