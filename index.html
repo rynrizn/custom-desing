@@ -288,42 +288,9 @@
           </div>
         </div>
 
-        <!-- Mesa de trabajo interactiva con la imagen de la polera directamente en el HTML -->
-        <div class="stage-viewport" id="stageViewport">
-          <!-- Cuadrícula métrica opcional -->
-          <div class="grid-overlay" id="gridOverlay"></div>
-
-          <!-- Mesa de trabajo centrada con la polera -->
-          <div class="tshirt-stage" id="tshirtStage">
-            <!-- Lienzo de la polera con tinte de color y silueta transparente -->
-            <canvas id="tshirtCanvas" class="tshirt-photo" width="2000" height="2000" aria-label="Polera Básica"></canvas>
-
-            <!-- Área de diseño interactiva superpuesta en la polera -->
-            <div class="design-workspace-area" id="designWorkspaceArea">
-              <div class="design-wrapper" id="designWrapper" style="display: none;">
-                <img id="designDisplayImg" src="" alt="Diseño" draggable="false" />
-                <div class="design-gizmo" id="designGizmo">
-                  <div class="rot-line"></div>
-                  <div class="rot-handle" data-handle="rot" title="Girar"></div>
-                  <div class="resize-handle handle-nw" data-handle="nw"></div>
-                  <div class="resize-handle handle-ne" data-handle="ne"></div>
-                  <div class="resize-handle handle-se" data-handle="se"></div>
-                  <div class="resize-handle handle-sw" data-handle="sw"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Cotas técnicas de la prenda -->
-            <div class="dimension-line line-width" id="cotaWidth" style="display: none;">
-              <span class="dim-label" id="cotaWidthLabel">ANCHO 53 cm</span>
-            </div>
-            <div class="dimension-line line-height" id="cotaHeight" style="display: none;">
-              <span class="dim-label" id="cotaHeightLabel">LARGO 71 cm</span>
-            </div>
-          </div>
-
-          <!-- Canvas oculto para exportación en alta resolución -->
-          <canvas id="exportOffscreenCanvas" width="2000" height="2000" style="display: none;"></canvas>
+        <!-- Lienzo interactivo con reglas sutiles en los 4 lados -->
+        <div class="canvas-viewport" id="canvasViewport">
+          <canvas id="workbenchCanvas" tabindex="0" aria-label="Lienzo interactivo de la polera"></canvas>
         </div>
 
         <!-- Barra inferior con indicadores en tiempo real en cm y controles de zoom -->
