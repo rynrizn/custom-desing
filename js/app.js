@@ -53,7 +53,7 @@ const dom = {};
 function inicializarReferenciasDOM() {
   dom.stageViewport = document.getElementById('stageViewport');
   dom.tshirtStage = document.getElementById('tshirtStage');
-  dom.tshirtColorBackdrop = document.getElementById('tshirtColorBackdrop');
+  dom.tshirtColorLayer = document.getElementById('tshirtColorLayer');
   dom.tshirtDisplayImg = document.getElementById('tshirtDisplayImg');
   dom.designWorkspaceArea = document.getElementById('designWorkspaceArea');
   dom.designWrapper = document.getElementById('designWrapper');
@@ -130,11 +130,9 @@ function actualizarVistaPolera() {
     }
   }
 
-  // 2. Máscara y tinte de color de la prenda
-  if (dom.tshirtColorBackdrop) {
-    dom.tshirtColorBackdrop.style.backgroundColor = state.colorCuerpo;
-    dom.tshirtColorBackdrop.style.webkitMaskImage = `url('${imgPath}')`;
-    dom.tshirtColorBackdrop.style.maskImage = `url('${imgPath}')`;
+  // 2. Tinte de color sobre la polera (color layer con mix-blend-mode:multiply)
+  if (dom.tshirtColorLayer) {
+    dom.tshirtColorLayer.style.backgroundColor = state.colorCuerpo;
   }
 
   // 3. Zoom de la mesa

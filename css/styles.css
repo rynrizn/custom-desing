@@ -783,34 +783,28 @@
       transition: transform 0.15s ease-out;
     }
 
-    .tshirt-color-backdrop {
+    .tshirt-photo {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      background-color: var(--tshirt-color, #ffffff);
-      -webkit-mask-image: url('../img/polera-anverso.png');
-      mask-image: url('../img/polera-anverso.png');
-      -webkit-mask-size: contain;
-      mask-size: contain;
-      -webkit-mask-position: center;
-      mask-position: center;
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.15s ease;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+      z-index: 1;
       filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
     }
 
-    .tshirt-photo {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+    /* Capa de tinte de color: usa multiply sobre la polera PNG.
+       No necesita CSS mask → funciona con file:// sin restricciones CORS */
+    .tshirt-color-layer {
+      position: absolute;
+      inset: 0;
+      background-color: #ffffff;
       mix-blend-mode: multiply;
-      display: block;
+      z-index: 2;
       pointer-events: none;
+      transition: background-color 0.15s ease;
     }
 
     /* Área interactiva de diseño sobre la polera */
