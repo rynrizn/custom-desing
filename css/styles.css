@@ -781,6 +781,7 @@
       justify-content: center;
       transform-origin: center center;
       transition: transform 0.15s ease-out;
+      isolation: isolate;
     }
 
     .tshirt-photo {
@@ -793,18 +794,6 @@
       pointer-events: none;
       z-index: 1;
       filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
-    }
-
-    /* Capa de tinte de color: usa multiply sobre la polera PNG.
-       No necesita CSS mask → funciona con file:// sin restricciones CORS */
-    .tshirt-color-layer {
-      position: absolute;
-      inset: 0;
-      background-color: #ffffff;
-      mix-blend-mode: multiply;
-      z-index: 2;
-      pointer-events: none;
-      transition: background-color 0.15s ease;
     }
 
     /* Área interactiva de diseño sobre la polera */

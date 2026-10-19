@@ -53,8 +53,7 @@ const dom = {};
 function inicializarReferenciasDOM() {
   dom.stageViewport = document.getElementById('stageViewport');
   dom.tshirtStage = document.getElementById('tshirtStage');
-  dom.tshirtColorLayer = document.getElementById('tshirtColorLayer');
-  dom.tshirtDisplayImg = document.getElementById('tshirtDisplayImg');
+  dom.tshirtCanvas = document.getElementById('tshirtCanvas');
   dom.designWorkspaceArea = document.getElementById('designWorkspaceArea');
   dom.designWrapper = document.getElementById('designWrapper');
   dom.designDisplayImg = document.getElementById('designDisplayImg');
@@ -118,22 +117,89 @@ function inicializarReferenciasDOM() {
   dom.themeToggleBtn = document.getElementById('themeToggleBtn');
 }
 
-// 4. ACTUALIZACIÓN VISUAL DE LA MESA Y DE LA PRENDA EN EL HTML
+// 4. PRECARGA Y RENDERIZADO DE LA PRENDA EN CANVAS CON RECORTE DE SILUETA
+const poleraImagenes = {
+  anverso: new Image(),
+  reverso: new Image()
+};
+const poleraCargada = {
+  anverso: false,
+  reverso: false
+};
+
+let ultimoLadoRenderizado = null;
+let ultimoColorRenderizado = null;
+
+function iniciarCargaImagenesPolera() {
+  ['anverso', 'reverso'].forEach((lado) => {
+    const img = poleraImagenes[lado];
+    img.onload = () => {
+      poleraCargada[lado] = true;
+      if (state.ladoActivo === lado) {
+        renderizarPoleraEnCanvas(true);
+      }
+    };
+    img.onerror = () => {
+      console.error(`Error al cargar imagen de la polera (${lado})`);
+    };
+    img.src = `img/polera-${lado}.png`;
+    if (img.complete && img.naturalWidth > 0) {
+      poleraCargada[lado] = true;
+    }
+  });
+}
+
+/**
+ * Renderiza la polera en el canvas #tshirtCanvas aplicando el color del cuerpo
+ * mediante composición (multiply + destination-in) para mantener la transparencia
+ * y el sombreado natural de la tela sin teñir el fondo.
+ */
+function renderizarPoleraEnCanvas(forzar = false) {
+  if (!dom.tshirtCanvas) return;
+  const lado = state.ladoActivo;
+  const color = (state.colorCuerpo || '#FFFFFF').toUpperCase();
+
+  // Optimización: si no cambió ni el lado ni el color, no repintar el canvas
+  if (!forzar && ultimoLadoRenderizado === lado && ultimoColorRenderizado === color) {
+    return;
+  }
+
+  const img = poleraImagenes[lado];
+  if (!img || !img.complete || img.naturalWidth === 0) {
+    return;
+  }
+
+  const ctx = dom.tshirtCanvas.getContext('2d');
+  ctx.clearRect(0, 0, 2000, 2000);
+
+  // 1. Dibujar la polera base (PNG con transparencia y sombras originales)
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(img, 0, 0, 2000, 2000);
+
+  // 2. Si el color no es blanco puro, aplicar tinte con multiply recortado a la silueta
+  if (color !== '#FFFFFF') {
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 2000, 2000);
+
+    // 3. destination-in: preserva la transparencia exterior y bordes de la polera original
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.drawImage(img, 0, 0, 2000, 2000);
+
+    // Restaurar a modo estándar
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  ultimoLadoRenderizado = lado;
+  ultimoColorRenderizado = color;
+}
+
+// 5. ACTUALIZACIÓN VISUAL DE LA MESA Y DE LA PRENDA EN EL HTML
 function actualizarVistaPolera() {
   const lado = state.ladoActivo;
-  const imgPath = `img/polera-${lado}.png`;
 
-  // 1. Imagen de la polera en el HTML
-  if (dom.tshirtDisplayImg) {
-    if (!dom.tshirtDisplayImg.src.includes(imgPath)) {
-      dom.tshirtDisplayImg.src = imgPath;
-    }
-  }
-
-  // 2. Tinte de color sobre la polera (color layer con mix-blend-mode:multiply)
-  if (dom.tshirtColorLayer) {
-    dom.tshirtColorLayer.style.backgroundColor = state.colorCuerpo;
-  }
+  // 1 y 2. Renderizar polera y tinte en el lienzo con silueta recortada
+  renderizarPoleraEnCanvas();
 
   // 3. Zoom de la mesa
   if (dom.tshirtStage) {
@@ -538,13 +604,16 @@ async function generarCanvasCompuestoLado(lado) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, 2000, 2000);
 
-  // 1. Cargar imagen de la polera
-  const tshirtImg = new Image();
-  await new Promise((resolve) => {
-    tshirtImg.onload = resolve;
-    tshirtImg.onerror = resolve;
-    tshirtImg.src = `img/polera-${lado}.png`;
-  });
+  // 1. Cargar o reutilizar imagen de la polera
+  let tshirtImg = poleraImagenes[lado];
+  if (!tshirtImg || !tshirtImg.complete || tshirtImg.naturalWidth === 0) {
+    tshirtImg = new Image();
+    await new Promise((resolve) => {
+      tshirtImg.onload = resolve;
+      tshirtImg.onerror = resolve;
+      tshirtImg.src = `img/polera-${lado}.png`;
+    });
+  }
 
   // 2. Teñir polera con el color elegido
   const tintCanvas = document.createElement('canvas');
@@ -595,7 +664,12 @@ async function generarCanvasCompuestoLado(lado) {
   ctx.fillText(`ZAIREN | ${lado.toUpperCase()} · TALLA ${state.talla} · COLOR ${state.colorCuerpo}`, 40, 60);
 
   return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), 'image/png');
+    try {
+      canvas.toBlob((blob) => resolve(blob), 'image/png');
+    } catch (e) {
+      console.warn('No se pudo generar blob de la imagen compuesta:', e);
+      resolve(null);
+    }
   });
 }
 
@@ -879,6 +953,7 @@ function conectarEventos() {
 // INICIALIZACIÓN
 window.onload = function () {
   inicializarReferenciasDOM();
+  iniciarCargaImagenesPolera();
   inicializarTema();
   renderizarPaletaColores();
   actualizarUIInfoTalla();

@@ -295,10 +295,8 @@
 
           <!-- Mesa de trabajo centrada con la polera -->
           <div class="tshirt-stage" id="tshirtStage">
-            <!-- Imagen real de la polera PNG con fondo transparente -->
-            <img id="tshirtDisplayImg" src="img/polera-anverso.png" alt="Polera Básica" class="tshirt-photo" draggable="false" />
-            <!-- Capa de color con mix-blend-mode:multiply (funciona en file://) -->
-            <div class="tshirt-color-layer" id="tshirtColorLayer"></div>
+            <!-- Lienzo de la polera con tinte de color y silueta transparente -->
+            <canvas id="tshirtCanvas" class="tshirt-photo" width="2000" height="2000" aria-label="Polera Básica"></canvas>
 
             <!-- Área de diseño interactiva superpuesta en la polera -->
             <div class="design-workspace-area" id="designWorkspaceArea">
