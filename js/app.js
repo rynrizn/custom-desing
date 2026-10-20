@@ -871,7 +871,7 @@
       targetCtx.strokeStyle = '#ba002c';
       targetCtx.fillStyle = '#ba002c';
       targetCtx.lineWidth = 1.4 * invZoom;
-      targetCtx.font = `600 ${fontPx}px "JetBrains Mono", monospace`;
+      targetCtx.font = `600 ${fontPx}px ui-monospace, Consolas, monospace`;
       targetCtx.textAlign = 'center';
       targetCtx.textBaseline = 'middle';
 
@@ -1075,7 +1075,7 @@
       targetCtx.strokeRect(rulerThick, rulerThick, viewW - rulerThick * 2, viewH - rulerThick * 2);
 
       targetCtx.fillStyle = textColor;
-      targetCtx.font = '500 8.5px "JetBrains Mono", monospace';
+      targetCtx.font = '500 8.5px ui-monospace, Consolas, monospace';
 
       // Marcas horizontales (Arriba y Abajo)
       const halfW = g.anchoCuerpoCm / 2;
@@ -1148,7 +1148,7 @@
       targetCtx.fillRect(viewW - rulerThick, viewH - rulerThick, rulerThick, rulerThick);
 
       targetCtx.fillStyle = textColor;
-      targetCtx.font = '600 8px "JetBrains Mono", monospace';
+      targetCtx.font = '600 8px ui-monospace, Consolas, monospace';
       targetCtx.fillText('cm', rulerThick / 2, rulerThick / 2 + 3);
 
       targetCtx.restore();
@@ -1916,7 +1916,7 @@
       dibujarReglas4Lados(ctx, EXPORT_SIZE, EXPORT_SIZE, ladoKey, { cx, cy, scale: exportScale });
 
       ctx.fillStyle = '#1A1C1D';
-      ctx.font = '700 20px "JetBrains Mono", monospace';
+      ctx.font = '700 20px ui-monospace, Consolas, monospace';
       ctx.fillText(
         `ZAIREN | FICHA ${ladoKey.toUpperCase()} · TALLA ${state.talla} (${g.tallaActual.ancho}×${g.tallaActual.largo} cm) · COLOR ${state.colorCuerpo.toUpperCase()}`,
         48,
@@ -1996,7 +1996,7 @@
 
       // Encabezado técnico discreto
       eCtx.fillStyle = '#1A1C1D';
-      eCtx.font = '700 20px "JetBrains Mono", monospace';
+      eCtx.font = '700 20px ui-monospace, Consolas, monospace';
       eCtx.fillText(
         `ZAIREN | FICHA ${ladoKey.toUpperCase()} · TALLA ${state.talla} (${g.tallaActual.ancho}×${g.tallaActual.largo} cm) · COLOR ${state.colorCuerpo.toUpperCase()}`,
         48,

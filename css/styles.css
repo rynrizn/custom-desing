@@ -3,10 +3,10 @@
        ========================================================================== */
     :root {
       /* Tipografías */
-      --font-display: 'DotGothic16', 'JetBrains Mono', monospace;
-      --font-headline: 'Hanken Grotesk', sans-serif;
-      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: ui-monospace, 'Cascadia Code', Consolas, 'Courier New', monospace;
+      --font-headline: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, 'Cascadia Code', Consolas, 'Courier New', monospace;
 
       /* Estética Recta y Formal (Sin bordes redondeados) */
       --radius-sm: 0px;
