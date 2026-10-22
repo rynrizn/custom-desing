@@ -2,11 +2,19 @@
 <html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Laboratorio de Diseño Zirenlab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ZAIREN — CAD Textil v2</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <!-- JSZip 3.10.1 fijo desde cdnjs.cloudflare.com -->
+
+  <!-- JSZip 3.10.1 fijo desde cdnjs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Driver.js 1.3.1 fijo desde jsDelivr para el Tour Guiado -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+
+  <!-- Tipografías Oficiales y Estilos Zenith Monochrome -->
+  <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -19,319 +27,530 @@
           <span style="opacity:0.35">|</span>
           <span class="kanji">ザイレン</span>
         </div>
-        <span class="tag-chip sub-hide-mobile">CAD TEXTIL v1.2</span>
+        <span class="tag-chip sub-hide-mobile">CAD TEXTIL v2</span>
       </div>
 
-      <!-- Indicador de pasos: 1. Talla y color · 2. Sube tu diseño · 3. Descarga -->
-      <nav class="steps-bar" aria-label="Pasos de personalización">
-        <button type="button" class="step-pill active" data-goto-step="1">
-          <span class="step-num">1</span>
-          <span>Talla y color</span>
+      <!-- Selector de 4 Superficies: Anverso, Reverso, Manga Izq, Manga Der -->
+      <nav class="surface-switcher" id="surfaceSwitcher" role="tablist" aria-label="Superficies de la prenda">
+        <button type="button" role="tab" aria-selected="true" class="surface-pill active" data-surface="anverso">
+          <span class="pill-dot"></span>
+          <span>ANVERSO</span>
         </button>
-        <button type="button" class="step-pill" data-goto-step="2">
-          <span class="step-num">2</span>
-          <span>Sube tu diseño</span>
+        <button type="button" role="tab" aria-selected="false" class="surface-pill" data-surface="reverso">
+          <span class="pill-dot"></span>
+          <span>REVERSO</span>
         </button>
-        <button type="button" class="step-pill" data-goto-step="3">
-          <span class="step-num">3</span>
-          <span>Descarga</span>
+        <button type="button" role="tab" aria-selected="false" class="surface-pill" data-surface="manga_izquierda">
+          <span class="pill-dot"></span>
+          <span>MANGA IZQ</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" class="surface-pill" data-surface="manga_derecha">
+          <span class="pill-dot"></span>
+          <span>MANGA DER</span>
         </button>
       </nav>
 
+      <!-- Acciones de Navegación Rápida -->
       <div class="nav-actions">
-        <button type="button" id="themeToggleBtn" class="btn-icon" aria-label="Cambiar entre modo claro y oscuro" title="Cambiar tema claro/oscuro">
-          <svg id="themeIconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <circle cx="12" cy="12" r="5"></circle>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+        <!-- Deshacer y Rehacer -->
+        <button type="button" id="undoBtn" class="btn-icon" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+        </button>
+        <button type="button" id="redoBtn" class="btn-icon" title="Rehacer (Ctrl+Y)" aria-label="Rehacer" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+        </button>
+
+        <!-- Botón Tour Guiado (?) -->
+        <button type="button" id="startTourBtn" class="btn-icon" title="Ver guía interactiva" aria-label="Tour guiado">
+          <span style="font-weight:700; font-family:var(--font-mono)">?</span>
+        </button>
+
+        <!-- Botón Ajustes Generales -->
+        <button type="button" id="openSettingsBtn" class="btn-icon" title="Configuración y Ajustes" aria-label="Ajustes">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+
+        <!-- Alternador Tema Claro/Oscuro -->
+        <button type="button" id="themeToggleBtn" class="btn-icon" aria-label="Cambiar tema claro/oscuro" title="Tema claro/oscuro">
+          <svg id="themeIconSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
           </svg>
         </button>
-        <button type="button" id="openExportModalBtnTop" class="btn btn-crimson" style="min-height:36px; padding:0 14px;">
-          <span>Descargar ZIP</span>
+
+        <!-- Botón Exportar Pedido -->
+        <button type="button" id="topExportBtn" class="btn btn-crimson" style="min-height:36px; padding:0 14px;">
+          <span>PEDIDO</span>
         </button>
       </div>
     </header>
 
+    <!-- ÁREA DE TRABAJO PRINCIPAL: SIDEBAR + MESA -->
     <main class="workspace-grid">
-      <!-- PANEL LATERAL (EN MÓVIL SE CONVIERTE EN PANEL INFERIOR POR PESTAÑAS) -->
-      <aside class="controls-panel" aria-label="Configuración de prenda y archivos">
-        <!-- Selector de pestañas exclusivo para versión móvil -->
-        <div class="mobile-panel-tabs" role="tablist" aria-label="Secciones de configuración en móvil">
-          <button type="button" class="mobile-tab-btn active" data-mobile-tab="1">1. Talla / Color</button>
-          <button type="button" class="mobile-tab-btn" data-mobile-tab="2">2. Subir Diseño</button>
-          <button type="button" class="mobile-tab-btn" data-mobile-tab="3">3. Exportar ZIP</button>
+      <!-- PANEL LATERAL DE CONTROLES (EN MÓVIL SE CONVIERTE EN HOJA DESLIZABLE) -->
+      <aside class="controls-panel" id="controlsPanel" aria-label="Panel de configuración y diseño">
+        <!-- Pestañas de sección para Escritorio -->
+        <div class="desktop-panel-tabs" role="tablist">
+          <button type="button" class="desktop-tab-btn active" data-tab="prenda">1. PRENDA</button>
+          <button type="button" class="desktop-tab-btn" data-tab="diseno">2. DISEÑO</button>
+          <button type="button" class="desktop-tab-btn" data-tab="capas">3. CAPAS</button>
+          <button type="button" class="desktop-tab-btn" data-tab="pedido">4. PEDIDO</button>
         </div>
 
         <div class="controls-scroll" id="controlsScrollContainer">
-
-          <!-- PASO 1: PRENDA, TALLA Y COLOR -->
-          <section class="bento-section mobile-active" id="stepSection1">
+          <!-- SECCIÓN 1: PRENDA, TALLA Y COLOR -->
+          <section class="panel-section active" id="panelSectionPrenda">
             <div class="section-header">
               <h2 class="section-title">
                 <span class="section-step-badge">01</span>
-                <span>PRENDA, TALLA Y COLOR</span>
+                <span>SILUETA, TALLA Y COLOR</span>
               </h2>
-              <span class="tag-chip">CORTE BÁSICO</span>
+              <span class="tag-chip">CORTE BASE M</span>
+            </div>
+
+            <!-- Selector de Polera en caso de tener varias -->
+            <div class="field-group" style="margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="field-label" for="poleraSelect">Polera en edición</label>
+                <div style="display:flex; gap:4px;">
+                  <button type="button" id="addPoleraBtn" class="btn-micro" title="Añadir otra polera independiente">+ AÑADIR</button>
+                  <button type="button" id="dupPoleraBtn" class="btn-micro" title="Duplicar polera actual">DUPLICAR</button>
+                </div>
+              </div>
+              <select id="poleraSelect" class="select-input" aria-label="Seleccionar polera activa"></select>
             </div>
 
             <div class="form-row">
               <div class="field-group">
                 <label class="field-label" for="garmentSelect">Prenda</label>
-                <select id="garmentSelect" class="select-input" aria-label="Seleccionar tipo de prenda">
-                  <option value="polera">Polera Básica</option>
+                <select id="garmentSelect" class="select-input">
+                  <option value="polera">Polera Vectorial</option>
                 </select>
               </div>
 
               <div class="field-group">
                 <label class="field-label" for="sizeSelect">
-                  <span>Talla</span>
+                  <span>Talla Maqueta</span>
                   <span id="sizeEstBadge" style="font-family:var(--font-mono); font-size:10px; color:var(--accent-crimson);"></span>
                 </label>
-                <select id="sizeSelect" class="select-input" aria-label="Seleccionar talla">
-                  <option value="S">Talla S</option>
-                  <option value="M" selected>Talla M (Base)</option>
-                  <option value="L">Talla L</option>
-                  <option value="XL">Talla XL</option>
-                  <option value="XXL">Talla XXL</option>
+                <select id="sizeSelect" class="select-input" aria-label="Seleccionar talla de maqueta">
+                  <option value="S">Talla S (50 × 69 cm)</option>
+                  <option value="M" selected>Talla M (53 × 71 cm)</option>
+                  <option value="L">Talla L (54 × 72 cm)</option>
+                  <option value="XL">Talla XL (57 × 74 cm)</option>
+                  <option value="XXL">Talla XXL (60 × 76 cm)</option>
                 </select>
               </div>
             </div>
 
-            <!-- Resumen de medidas reales en cm de la talla seleccionada -->
+            <!-- Medidas Reales en cm -->
             <div class="size-specs-pill" id="sizeDimensionsInfo" aria-live="polite">
-              <span>ANCHO: <strong>53 cm</strong></span>
-              <span>LARGO: <strong>71 cm</strong></span>
-              <span>BOCA MANGA: <strong>15 cm</strong></span>
+              <span>ANCHO: <strong id="specAncho">53.0 cm</strong></span>
+              <span>LARGO: <strong id="specLargo">71.0 cm</strong></span>
+              <span>BOCA: <strong id="specBoca">16.5 cm</strong></span>
             </div>
 
-            <!-- Selector de color del cuerpo -->
-            <div class="field-group" style="margin-top:2px;">
+            <!-- Selector de Color de la Prenda -->
+            <div class="field-group" style="margin-top:10px;">
               <div class="field-label">
-                <span>Color del cuerpo</span>
-                <span id="currentColorHexLabel" style="font-family:var(--font-mono); font-size:11px;">#FFFFFF</span>
+                <span>Color de la prenda</span>
+                <span id="currentColorHexLabel" style="font-family:var(--font-mono); font-size:11px;">#FAF9F6</span>
               </div>
-              <div class="swatches-grid" id="colorSwatchesContainer" role="radiogroup" aria-label="Colores predefinidos">
-                <!-- Generado dinámicamente por JS -->
-              </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
+              <div class="swatches-grid" id="colorSwatchesContainer" role="radiogroup" aria-label="Colores oficiales"></div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
                 <label class="color-picker-wrapper" for="customColorPicker">
-                  <input type="color" id="customColorPicker" value="#ffffff" aria-label="Selector libre de color">
+                  <input type="color" id="customColorPicker" value="#FAF9F6" aria-label="Color libre">
                   <span style="font-size:11px; font-family:var(--font-mono); text-transform:uppercase;">Color libre</span>
                 </label>
-                <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted);">NORMALIZADO P98</span>
+                <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted);">ZENITH MONOCHROME</span>
               </div>
             </div>
 
-            <!-- Partes deshabilitadas preparadas para el futuro: Mangas y Cuello -->
-            <div class="disabled-parts-row" aria-label="Partes adicionales bloqueadas al color del cuerpo">
-              <div class="disabled-part-box" title="Próximamente: color independiente de mangas">
+            <!-- Mangas y Cuello vinculados -->
+            <div class="disabled-parts-row" style="margin-top:10px;">
+              <div class="disabled-part-box" title="Mangas vinculadas al color del cuerpo">
                 <span>MANGAS (IGUAL)</span>
                 <span class="mini-swatch-sync" id="sleeveColorPreview"></span>
               </div>
-              <div class="disabled-part-box" title="Próximamente: color independiente de cuello">
+              <div class="disabled-part-box" title="Cuello vinculado al color del cuerpo">
                 <span>CUELLO (IGUAL)</span>
                 <span class="mini-swatch-sync" id="collarColorPreview"></span>
               </div>
             </div>
-          </section>
 
-          <!-- PASO 2: SUBIDA DE ARCHIVO Y MODO ENVOLVENTE -->
-          <section class="bento-section" id="stepSection2">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span class="section-step-badge">02</span>
-                <span>ARCHIVO · <strong id="activeSideLabelText" style="color:var(--text-primary)">ANVERSO</strong></span>
-              </h2>
-              <button type="button" id="loadSampleGraphicBtn" class="tag-chip" style="cursor:pointer;" title="Cargar gráfico de prueba ZAIREN">
-                + GRÁFICO DEMO
-              </button>
-            </div>
-
-            <!-- Zona de arrastrar y soltar -->
-            <div class="dropzone" id="uploadDropzone" role="button" tabindex="0" aria-label="Subir imagen de diseño para el lado activo">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              <div class="dropzone-title" id="dropzoneTitleText">Añade o arrastra tus gráficos</div>
-              <div class="dropzone-sub">PNG, JPG, SVG, WEBP · MÚLTIPLES IMÁGENES (MÁX. 25 MB)</div>
-              <input type="file" id="fileInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" multiple hidden>
-            </div>
-
-            <!-- Diseño Envolvente ("Continuar por atrás") -->
-            <div class="wrap-toggle-card" id="wrapCardContainer">
+            <!-- Opciones Avanzadas de Manga y Continuidad Envolvente -->
+            <div class="wrap-toggle-card" style="margin-top:12px;">
               <div>
-                <div style="font-family:var(--font-headline); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.03em;">
-                  Continuar diseño por atrás (Envolvente)
+                <div style="font-family:var(--font-headline); font-weight:600; font-size:12px; text-transform:uppercase;">
+                  Continuar por atrás (Envolvente)
                 </div>
                 <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
-                  El excedente lateral continúa en el otro lado siguiendo el borde real.
+                  El excedente lateral continúa en el lado opuesto siguiendo el borde SVG.
                 </div>
               </div>
-              <label class="toggle-switch" aria-label="Activar diseño envolvente continuar por atrás">
+              <label class="toggle-switch" aria-label="Activar diseño envolvente">
                 <input type="checkbox" id="wrapAroundToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="wrap-toggle-card" style="margin-top:8px;">
+              <div>
+                <div style="font-family:var(--font-headline); font-weight:600; font-size:12px; text-transform:uppercase;">
+                  Espejo en Mangas
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                  Sincroniza el diseño de una manga a la opuesta en simetría.
+                </div>
+              </div>
+              <label class="toggle-switch" aria-label="Activar modo espejo en mangas">
+                <input type="checkbox" id="mirrorSleevesToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="wrap-toggle-card" style="margin-top:4px;" id="flipSleevesCard">
+              <div>
+                <div style="font-family:var(--font-headline); font-weight:600; font-size:12px; text-transform:uppercase;">
+                  Voltear en Espejo (No invertir texto)
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                  Mantiene el texto legible en la manga reflejada.
+                </div>
+              </div>
+              <label class="toggle-switch" aria-label="Voltear contenido reflejado">
+                <input type="checkbox" id="flipSleevesToggle">
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </section>
 
-          <!-- PASO 3: EXPORTAR PAQUETE TÉCNICO ZIP -->
-          <section class="bento-section" id="stepSection3">
+          <!-- SECCIÓN 2: HERRAMIENTAS DE DISEÑO (IMÁGENES Y TEXTO) -->
+          <section class="panel-section" id="panelSectionDiseno">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="section-step-badge">02</span>
+                <span>SUBIR IMÁGENES Y TEXTO</span>
+              </h2>
+              <span class="tag-chip" id="activeSurfaceLabelChip">ANVERSO</span>
+            </div>
+
+            <!-- Zona Drag and Drop -->
+            <div class="dropzone" id="uploadDropzone" role="button" tabindex="0" aria-label="Subir imágenes de diseño">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <div class="dropzone-title">Añade o arrastra tus imágenes</div>
+              <div class="dropzone-sub">PNG, JPG, SVG, WEBP · MÁX. 25 MB</div>
+              <input type="file" id="fileInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" multiple hidden>
+            </div>
+
+            <!-- Botón Añadir Texto y Demo -->
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button type="button" id="addTextLayerBtn" class="btn btn-primary" style="flex:1;">
+                <span>+ AÑADIR TEXTO</span>
+              </button>
+              <button type="button" id="loadSampleGraphicBtn" class="btn btn-ghost" title="Cargar gráfico demo ZAIREN">
+                <span>+ DEMO</span>
+              </button>
+            </div>
+
+            <!-- Editor de Propiedades de la Capa Seleccionada -->
+            <div class="layer-properties-box" id="layerPropertiesBox" style="margin-top:14px; display:none;">
+              <div class="section-title" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span>PROPIEDADES DEL ELEMENTO</span>
+                <span id="layerTypeBadge" class="tag-chip">IMAGEN</span>
+              </div>
+
+              <!-- Controles específicos de Texto -->
+              <div id="textControlsGroup" style="display:none; flex-direction:column; gap:8px;">
+                <div class="field-group">
+                  <label class="field-label" for="textInputContent">Texto</label>
+                  <textarea id="textInputContent" class="textarea-input" rows="2"></textarea>
+                </div>
+
+                <div class="form-row">
+                  <div class="field-group">
+                    <label class="field-label" for="textFontSelect">Tipografía</label>
+                    <select id="textFontSelect" class="select-input"></select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label" for="textColorPicker">Color</label>
+                    <input type="color" id="textColorPicker" class="color-input-small" value="#0A0A0A">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="field-group">
+                    <label class="field-label" for="textPtInput">Tamaño (pt)</label>
+                    <input type="number" id="textPtInput" class="ribbon-input" min="10" max="200" step="2" value="42">
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Estilo</label>
+                    <div style="display:flex; gap:4px;">
+                      <button type="button" id="textBoldBtn" class="btn-icon" title="Negrita"><strong>B</strong></button>
+                      <button type="button" id="textItalicBtn" class="btn-icon" title="Cursiva"><em>I</em></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alerta de Calidad DPI para Imágenes -->
+              <div id="dpiWarningBanner" class="dpi-warning" style="display:none; margin-top:8px;">
+                ⚠️ <strong>Aviso de calidad:</strong> Esta imagen está a <span id="dpiValueText">120</span> DPI. Para impresión profesional se recomienda al menos 150 DPI.
+              </div>
+
+              <!-- Transformaciones Dimensionales -->
+              <div class="form-row" style="margin-top:8px;">
+                <div class="field-group">
+                  <label class="field-label" for="inputWidthCm">Ancho (<span class="unit-label">cm</span>)</label>
+                  <input type="number" id="inputWidthCm" class="ribbon-input" step="0.5" min="1" max="100">
+                </div>
+                <div class="field-group">
+                  <label class="field-label" for="inputHeightCm">Alto (<span class="unit-label">cm</span>)</label>
+                  <input type="number" id="inputHeightCm" class="ribbon-input" step="0.5" min="1" max="100">
+                </div>
+              </div>
+
+              <div class="form-row" style="margin-top:6px;">
+                <div class="field-group">
+                  <label class="field-label" for="inputAngleDeg">Giro (°)</label>
+                  <input type="number" id="inputAngleDeg" class="ribbon-input" min="-180" max="180" step="1">
+                </div>
+                <div class="field-group">
+                  <label class="field-label" for="inputOpacityRange">Opacidad</label>
+                  <input type="range" id="inputOpacityRange" min="0.1" max="1" step="0.05" value="1" style="width:100%;">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECCIÓN 3: GESTIÓN DE CAPAS -->
+          <section class="panel-section" id="panelSectionCapas">
             <div class="section-header">
               <h2 class="section-title">
                 <span class="section-step-badge">03</span>
-                <span>FICHA TÉCNICA Y DESCARGA</span>
+                <span>PILA DE CAPAS</span>
               </h2>
-              <span class="tag-chip">2000px + COTAS</span>
+              <span id="layersCountBadge" class="tag-chip">0 CAPAS</span>
             </div>
-            <p style="font-size:12px; color:var(--text-secondary);">
-              Empaqueta un archivo ZIP con las vistas acotadas en centímetros, los gráficos originales sin pérdida y la hoja de taller.
-            </p>
-            <button type="button" id="openExportModalBtn" class="btn btn-primary" style="width:100%;">
-              <span>Descargar para compartir (.ZIP)</span>
-            </button>
+
+            <!-- Lista interactiva de capas -->
+            <div class="layers-list" id="layersListContainer" role="listbox" aria-label="Capas de la superficie activa">
+              <div class="empty-state-text" id="emptyLayersText">No hay elementos en esta superficie. Sube una imagen o añade texto.</div>
+            </div>
           </section>
 
+          <!-- SECCIÓN 4: PEDIDO, CANTIDADES Y ENVÍO -->
+          <section class="panel-section" id="panelSectionPedido">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="section-step-badge">04</span>
+                <span>PEDIDO Y EXPORTACIÓN</span>
+              </h2>
+              <span class="tag-chip">PRODUCCIÓN</span>
+            </div>
+
+            <!-- Desglose de Tallas y Cantidades -->
+            <div class="field-group">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="field-label">Tallas y Cantidades a Fabricar</label>
+                <button type="button" id="addSizeRowBtn" class="btn-micro">+ TALLA</button>
+              </div>
+              <div class="quantities-matrix" id="quantitiesMatrixContainer"></div>
+              <div style="font-family:var(--font-mono); font-size:11px; text-align:right; margin-top:4px;">
+                TOTAL PRENDAS: <strong id="totalGarmentsLabel">1</strong>
+              </div>
+            </div>
+
+            <!-- Contacto WhatsApp e Indicaciones -->
+            <div class="field-group" style="margin-top:10px;">
+              <label class="field-label" for="whatsappInput">WhatsApp de Contacto (con prefijo +591)</label>
+              <input type="tel" id="whatsappInput" class="select-input" value="+591" placeholder="+591XXXXXXXX">
+            </div>
+
+            <div class="field-group" style="margin-top:8px;">
+              <label class="field-label" for="notesTextarea">Indicaciones para el Taller</label>
+              <textarea id="notesTextarea" class="textarea-input" rows="3" placeholder="Detalles de costura, posición o empaque especial..."></textarea>
+            </div>
+
+            <!-- Botones Principales de Salida -->
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
+              <button type="button" id="downloadPreviewZipBtn" class="btn btn-ghost" style="width:100%;">
+                <span>DESCARGAR VISTA PREVIA (ZIP)</span>
+              </button>
+              <button type="button" id="submitOrderZrnBtn" class="btn btn-crimson" style="width:100%; height:44px;">
+                <span>ENVIAR PEDIDO CIFRADO (.ZRN)</span>
+              </button>
+            </div>
+          </section>
         </div>
       </aside>
 
-      <!-- MESA DE TRABAJO CENTRAL CON BARRA DE DISEÑO INTEGRADA -->
-      <section class="stage-container" aria-label="Mesa de trabajo de diseño">
-        <!-- Barra 1: Pestañas Anverso / Reverso + Historial y Guías de Vista -->
+      <!-- MESA DE TRABAJO CENTRAL -->
+      <section class="stage-container" aria-label="Lienzo de diseño interactivo">
+        <!-- Barra Superior de Herramientas de Mesa -->
         <div class="stage-toolbar-top">
-          <div class="side-switcher" role="tablist" aria-label="Cambiar lado de la polera">
-            <button type="button" role="tab" aria-selected="true" class="side-tab active" id="tabAnverso" data-side="anverso">
-              <span class="side-dot" id="dotAnverso"></span>
-              <span>ANVERSO</span>
+          <!-- Alineación rápida respecto a la silueta -->
+          <div class="ribbon-group" aria-label="Alineación">
+            <span class="ribbon-label">ALINEAR:</span>
+            <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="4" y2="20"/><rect x="8" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
             </button>
-            <button type="button" role="tab" aria-selected="false" class="side-tab" id="tabReverso" data-side="reverso">
-              <span class="side-dot" id="dotReverso"></span>
-              <span>REVERSO</span>
+            <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><rect x="6" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
+            </button>
+            <button type="button" class="btn-icon" data-align="right" title="Alinear a la derecha" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="20" y1="4" x2="20" y2="20"/><rect x="4" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
+            </button>
+            <button type="button" class="btn-icon" data-align="top" title="Alinear arriba (base cuello)" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="20" y2="4"/><rect x="7" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
+            </button>
+            <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><rect x="7" y="6" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
+            </button>
+            <button type="button" class="btn-icon" data-align="bottom" title="Alinear al ruedo inferior" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="20"/><rect x="7" y="4" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
             </button>
           </div>
 
-          <!-- Deshacer, Rehacer, Cuadrícula y Cotas (Desactivadas por defecto) -->
+          <div class="ribbon-divider"></div>
+
+          <!-- Cuadrícula, Cotas y Ajustar a Pantalla -->
           <div style="display:flex; align-items:center; gap:4px;">
-            <button type="button" id="undoBtn" class="btn-icon" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+            <button type="button" id="toggleGridBtn" class="btn-icon" title="Mostrar u ocultar cuadrícula" aria-pressed="false">
+              <span>REJILLA</span>
             </button>
-            <button type="button" id="redoBtn" class="btn-icon" title="Rehacer (Ctrl+Y)" aria-label="Rehacer" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
-            </button>
-            <button type="button" id="toggleGridBtn" class="btn-icon" title="Mostrar u ocultar cuadrícula en cm" aria-pressed="false">
-              <span>CUADRÍCULA</span>
-            </button>
-            <button type="button" id="toggleCotasBtn" class="btn-icon" title="Mostrar u ocultar cotas de la prenda" aria-pressed="false">
+            <button type="button" id="toggleCotasBtn" class="btn-icon" title="Mostrar u ocultar cotas" aria-pressed="false">
               <span>COTAS</span>
             </button>
-          </div>
-        </div>
-
-        <!-- Barra 2 (Junto a la Mesa de Trabajo): Alineación, Dimensiones en cm, Rotación y Acciones del Diseño -->
-        <div class="stage-design-Ribbon" aria-label="Herramientas directas del diseño sobre la mesa">
-          <!-- Grupo Alineación respecto al cuerpo -->
-          <div class="ribbon-group">
-            <span class="ribbon-label">ALINEAR:</span>
-            <button type="button" class="btn-icon" data-align="left" title="Alinear al costado izquierdo" aria-label="Alinear a la izquierda" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="4" x2="4" y2="20"/><rect x="8" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
-            </button>
-            <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente en el pecho" aria-label="Centrar horizontalmente" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="3" x2="12" y2="21"/><rect x="6" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
-            </button>
-            <button type="button" class="btn-icon" data-align="right" title="Alinear al costado derecho" aria-label="Alinear a la derecha" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="20" y1="4" x2="20" y2="20"/><rect x="4" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
-            </button>
-            <button type="button" class="btn-icon" data-align="top" title="Alinear a la base del cuello" aria-label="Alinear arriba" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="4" x2="20" y2="4"/><rect x="7" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
-            </button>
-            <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente en el torso" aria-label="Centrar verticalmente" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="12" x2="21" y2="12"/><rect x="7" y="6" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
-            </button>
-            <button type="button" class="btn-icon" data-align="bottom" title="Alinear al borde inferior" aria-label="Alinear abajo" disabled>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="20" x2="20" y2="20"/><rect x="7" y="4" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
-            </button>
-          </div>
-
-          <div class="ribbon-divider"></div>
-
-          <!-- Grupo Ancho en cm y Proporción -->
-          <div class="ribbon-group">
-            <label class="ribbon-label" for="inputWidthCm">ANCHO (CM):</label>
-            <input type="number" id="inputWidthCm" class="ribbon-input" step="0.5" min="1" max="120" disabled aria-label="Ancho del diseño en centímetros">
-            <button type="button" id="lockAspectBtn" class="btn-icon active" aria-pressed="true" title="Bloquear o desbloquear proporción">
-              <span>PROP.</span>
-            </button>
-          </div>
-
-          <div class="ribbon-divider"></div>
-
-          <!-- Grupo Rotación -->
-          <div class="ribbon-group">
-            <label class="ribbon-label" for="inputAngleDeg">GIRO (°):</label>
-            <input type="number" id="inputAngleDeg" class="ribbon-input" step="1" min="-180" max="180" disabled aria-label="Ángulo de rotación en grados">
-            <button type="button" id="resetAngleBtn" class="btn-icon" title="Restablecer ángulo a 0°">0°</button>
-          </div>
-
-          <div class="ribbon-divider"></div>
-
-          <!-- Acciones rápidas: Centrar y Eliminar -->
-          <div class="ribbon-group">
-            <button type="button" id="centerDesignBtn" class="btn-icon" disabled title="Centrar diseño en el pecho">
-              <span>CENTRAR</span>
-            </button>
-            <button type="button" id="deleteDesignBtn" class="btn-icon" style="color:var(--error);" disabled title="Eliminar diseño del lado activo">
-              <span>ELIMINAR</span>
+            <button type="button" id="fitScreenBtn" class="btn-icon" title="Ajustar prenda a pantalla">
+              <span>AJUSTAR</span>
             </button>
           </div>
         </div>
 
-        <!-- Lienzo interactivo con reglas sutiles en los 4 lados -->
+        <!-- Viewport del Canvas Interactivo con Reglas -->
         <div class="canvas-viewport" id="canvasViewport">
-          <canvas id="workbenchCanvas" tabindex="0" aria-label="Lienzo interactivo de la polera"></canvas>
+          <canvas id="workbenchCanvas" tabindex="0" aria-label="Lienzo CAD interactivo"></canvas>
+
+          <!-- Barra Flotante Contextual sobre la Capa Seleccionada -->
+          <div class="floating-context-bar" id="floatingContextBar" style="display:none;" role="toolbar" aria-label="Acciones de elemento">
+            <button type="button" id="floatCenterBtn" class="btn-micro" title="Centrar elemento">CENTRAR</button>
+            <button type="button" id="floatDupBtn" class="btn-micro" title="Duplicar elemento">DUPLICAR</button>
+            <button type="button" id="floatLockBtn" class="btn-micro" title="Bloquear / Desbloquear">BLOQUEAR</button>
+            <button type="button" id="floatDeleteBtn" class="btn-micro btn-danger" title="Eliminar elemento">ELIMINAR</button>
+          </div>
         </div>
 
-        <!-- Barra inferior con indicadores en tiempo real en cm y controles de zoom -->
+        <!-- Barra Inferior HUD con Métricas en Tiempo Real y Zoom -->
         <div class="stage-hud-bottom">
           <div class="hud-metrics" id="liveMetricsHud" aria-live="polite">
-            <span class="hud-metric-item">DISEÑO: <strong id="hudSizeCm">—</strong></span>
-            <span class="hud-metric-item">CUELLO: <strong id="hudNeckCm">—</strong></span>
-            <span class="hud-metric-item">INF.: <strong id="hudBottomCm">—</strong></span>
-            <span class="hud-metric-item">IZQ.: <strong id="hudLeftCm">—</strong></span>
-            <span class="hud-metric-item">DER.: <strong id="hudRightCm">—</strong></span>
+            <span class="hud-metric-item">DISEÑO: <strong id="hudSize">—</strong></span>
+            <span class="hud-metric-item">CUELLO: <strong id="hudNeck">—</strong></span>
+            <span class="hud-metric-item">RUEDO: <strong id="hudBottom">—</strong></span>
+            <span class="hud-metric-item">LATERAL: <strong id="hudSide">—</strong></span>
           </div>
 
           <div class="zoom-controls">
-            <button type="button" id="zoomOutBtn" class="zoom-btn" aria-label="Alejar vista" title="Alejar">−</button>
-            <button type="button" id="zoomResetBtn" class="zoom-btn" aria-label="Restablecer zoom" title="Ajustar a pantalla">100%</button>
-            <button type="button" id="zoomInBtn" class="zoom-btn" aria-label="Acercar vista" title="Acercar">+</button>
+            <button type="button" id="zoomOutBtn" class="zoom-btn" aria-label="Alejar" title="Alejar">−</button>
+            <button type="button" id="zoomResetBtn" class="zoom-btn" aria-label="Restablecer zoom" title="Ajustar a 100%">100%</button>
+            <button type="button" id="zoomInBtn" class="zoom-btn" aria-label="Acercar" title="Acercar">+</button>
           </div>
         </div>
       </section>
     </main>
+
+    <!-- BARRA DE NAVEGACIÓN INFERIOR EXCLUSIVA PARA MÓVIL (100dvh + Safe Area) -->
+    <nav class="mobile-bottom-bar" id="mobileBottomBar" role="tablist" aria-label="Menú principal móvil">
+      <button type="button" class="mobile-nav-item active" id="mobileTabPrenda" data-sheet="prenda">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+        <span>Prenda</span>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileTabDiseno" data-sheet="diseno">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Diseño</span>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileTabCapas" data-sheet="capas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span>Capas</span>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileTabPedido" data-sheet="pedido">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span>Pedido</span>
+      </button>
+    </nav>
   </div>
 
-  <!-- Notificación flotante sin alert() -->
+  <!-- NOTIFICACIÓN FLOTANTE TOAST -->
   <div id="toastBanner" class="toast-banner" role="status" aria-live="assertive"></div>
 
-  <!-- MODAL DE CONFIRMACIÓN Y RESUMEN ANTES DE DESCARGAR EL ZIP -->
-  <div class="modal-backdrop" id="exportModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+  <!-- MODAL DE AJUSTES GENERALES -->
+  <div class="modal-backdrop" id="settingsModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
     <div class="modal-card">
       <div class="modal-title">
-        <span id="exportModalTitle">Resumen de descarga (.ZIP)</span>
-        <button type="button" id="closeExportModalBtn" class="btn-icon" aria-label="Cerrar ventana">✕</button>
+        <span id="settingsModalTitle">Configuración y Ajustes</span>
+        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar ventana">✕</button>
       </div>
-      <div id="exportModalNotice" style="font-size:13px; color:var(--text-secondary);"></div>
-      <div>
-        <div class="section-title" style="margin-bottom:8px;">SE INCLUIRÁN LOS SIGUIENTES ARCHIVOS:</div>
-        <ul class="file-summary-list" id="exportFilesList"></ul>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field-group">
+          <label class="field-label" for="settingUnitsSelect">Unidad de Medida</label>
+          <select id="settingUnitsSelect" class="select-input">
+            <option value="cm">Centímetros (cm) — Predeterminada</option>
+            <option value="mm">Milímetros (mm)</option>
+            <option value="in">Pulgadas (in)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="settingDeskBgSelect">Fondo de la Mesa</label>
+          <select id="settingDeskBgSelect" class="select-input">
+            <option value="cuadros">Damero Técnico (Cuadros)</option>
+            <option value="claro">Blanco Zairen Claro</option>
+            <option value="oscuro">Negro Carbón Oscuro</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; font-weight:600;">Imanes de Guías Magnéticas</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingMagneticGuidesToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; font-weight:600;">Mostrar Cotas de Prenda</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingShowCotasToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </div>
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:4px;">
-        <button type="button" id="cancelExportBtn" class="btn btn-ghost">Seguir editando</button>
-        <button type="button" id="confirmDownloadZipBtn" class="btn btn-crimson">Generar y Descargar ZIP</button>
+      <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+        <button type="button" class="btn btn-primary modal-close-btn">Aceptar</button>
       </div>
     </div>
   </div>
-  <script src="js/polera-assets.js"></script>
-  <script src="js/app.js"></script>
+
+  <!-- MODAL DE RESUMEN Y EXPORTACIÓN -->
+  <div class="modal-backdrop" id="exportModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span id="exportModalTitle">Confirmar Pedido</span>
+        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar">✕</button>
+      </div>
+      <div id="exportModalNotice" style="font-size:12px; color:var(--text-secondary);"></div>
+      <div>
+        <div class="section-title" style="margin-bottom:8px;">ARCHIVOS Y METADATOS QUE SE GENERARÁN:</div>
+        <ul class="file-summary-list" id="exportFilesList"></ul>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+        <button type="button" class="btn btn-ghost modal-close-btn">Seguir editando</button>
+        <button type="button" id="confirmDownloadBtn" class="btn btn-crimson">Generar y Descargar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Modular ES6 Nativo -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
