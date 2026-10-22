@@ -1,0 +1,15 @@
+# Entorno y variables secretas
+.env
+.dev.vars
+
+# Claves criptográficas y certificados privados
+*.pem
+clave-privada*
+*-clave-privada*
+
+# Dependencias y temporales
+node_modules/
+.wrangler/
+dist/
+.DS_Store
+Thumbs.db
