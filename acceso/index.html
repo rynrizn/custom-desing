@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ZAIREN — Acceso Administrativo</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background-color: #0A0A0A;
+      color: #FAF9F6;
+      padding: 16px;
+    }
+    .login-card {
+      background: #141518;
+      border: 1px solid #383a42;
+      width: 100%;
+      max-width: 380px;
+      padding: 32px 28px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 16px;
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+    }
+    .brand-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #8F8F8C;
+      letter-spacing: 0.08em;
+    }
+    .error-msg {
+      background: rgba(223, 40, 66, 0.15);
+      border: 1px solid var(--accent-crimson);
+      color: #FF897D;
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand-header">
+      <div class="brand-title">ZAIREN | ザイレン</div>
+      <div class="brand-sub">PANEL ADMINISTRATIVO PRIVADO</div>
+    </div>
+
+    <div class="error-msg" id="errorMessage" role="alert"></div>
+
+    <form id="loginForm" style="display:flex; flex-direction:column; gap:16px;">
+      <div class="field-group">
+        <label class="field-label" for="passwordInput" style="color:#D6D6D3;">Contraseña de Administrador</label>
+        <input type="password" id="passwordInput" class="select-input" required autofocus placeholder="••••••••••••" style="background:#1c1d22; border-color:#383a42; color:#FAF9F6; height:40px;">
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn btn-crimson" style="height:42px; width:100%;">
+        <span>INGRESAR AL LECTOR</span>
+      </button>
+    </form>
+
+    <div style="font-family:var(--font-mono); font-size:10px; color:#8F8F8C; text-align:center;">
+      Protegido con Web Crypto y Cloudflare Functions
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>

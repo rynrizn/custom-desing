@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ZAIREN — Asistente de Claves Criptográficas</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      background-color: #0A0A0A;
+      color: #FAF9F6;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+    .config-card {
+      background: #141518;
+      border: 1px solid #383a42;
+      max-width: 680px;
+      width: 100%;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+    .code-box {
+      background: #0D0E10;
+      border: 1px solid #383a42;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #D6D6D3;
+      word-break: break-all;
+      user-select: all;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .step-box {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #18191D;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="config-card">
+    <div class="modal-title" style="border-bottom:1px solid #383a42;">
+      <div>
+        <span style="font-family:var(--font-display); font-size:16px; font-weight:700;">ZAIREN | GENERADOR DE CLAVES</span>
+        <div style="font-family:var(--font-mono); font-size:10px; color:#8F8F8C; margin-top:2px;">SEGURIDAD CERO-CONOCIMIENTO (RSA 3072 + PBKDF2 600K + AES-GCM)</div>
+      </div>
+      <a href="/lector" class="btn btn-ghost" style="height:30px; font-size:10px;">← Volver al Lector</a>
+    </div>
+
+    <p style="font-size:12px; color:#D6D6D3; line-height:1.6;">
+      Este asistente genera en tu navegador un par de claves criptográficas seguras.
+      La clave privada quedará cifrada con tu propia <strong>Frase Secreta</strong> mediante PBKDF2 (600,000 iteraciones).
+      Ni Cloudflare ni los visitantes podrán descifrar los pedidos sin esa frase.
+    </p>
+
+    <!-- Paso 1: Introducir Frase Secreta -->
+    <div class="step-box">
+      <div style="font-family:var(--font-headline); font-weight:700; font-size:12px; color:#FAF9F6;">
+        PASO 1: DEFINE TU FRASE SECRETA DEL TALLER
+      </div>
+      <div style="font-size:11px; color:#8F8F8C;">
+        Elige una frase larga y memorable. La necesitarás cada vez que abras el Lector para revisar pedidos .zrn.
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="passphraseInput" style="color:#D6D6D3;">Frase Secreta</label>
+        <input type="password" id="passphraseInput" class="select-input" placeholder="ej. zairen-tarija-silueta-2026-corte-silencioso" style="background:#0D0E10; border-color:#383a42; color:#FAF9F6;">
+      </div>
+      <button type="button" id="generateKeysBtn" class="btn btn-crimson" style="height:38px;">
+        <span>GENERAR CLAVES CRIPTOGRÁFICAS</span>
+      </button>
+    </div>
+
+    <!-- Resultados (Ocultos hasta generar) -->
+    <div id="resultsContainer" style="display:none; flex-direction:column; gap:16px;">
+      <!-- Clave Pública -->
+      <div class="step-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-family:var(--font-headline); font-size:12px;">PASO 2: CLAVE PÚBLICA (PÉGALA EN js/config.js)</strong>
+          <button type="button" class="btn-micro" id="copyPubKeyBtn">COPIAR</button>
+        </div>
+        <div style="font-size:11px; color:#8F8F8C;">
+          Pega este texto en el campo <code>CONFIG.RSA_PUBLIC_KEY</code> de <code>js/config.js</code>:
+        </div>
+        <div class="code-box" id="pubKeyDisplay"></div>
+      </div>
+
+      <!-- Clave Privada Cifrada -->
+      <div class="step-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-family:var(--font-headline); font-size:12px;">PASO 3: CLAVE PRIVADA CIFRADA (SECRETO CLOUDFLARE)</strong>
+          <button type="button" class="btn-micro" id="copyPrivKeyBtn">COPIAR</button>
+        </div>
+        <div style="font-size:11px; color:#8F8F8C;">
+          Ve al panel de Cloudflare Pages &gt; Settings &gt; Environment variables &gt; Add a variable &gt; Tipo <strong>Secret</strong> &gt; Nombre: <code>PRIVATE_KEY_ENC</code> y pega este texto:
+        </div>
+        <div class="code-box" id="privKeyDisplay"></div>
+      </div>
+
+      <!-- Respaldo -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#18191D; padding:12px; border:1px solid #383a42;">
+        <span style="font-size:11px; color:#D6D6D3;">Descarga una copia local cifrada para guardarla en un lugar seguro:</span>
+        <button type="button" id="downloadBackupBtn" class="btn btn-primary" style="height:36px;">
+          <span>DESCARGAR RESPALDO JSON</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="configurar.js"></script>
+</body>
+</html>
