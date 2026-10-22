@@ -170,40 +170,50 @@ button, select, input, textarea {
   text-transform: uppercase;
 }
 
-/* Selector de 4 Superficies: Anverso, Reverso, Manga Izq, Manga Der */
-.surface-switcher {
-  display: flex;
-  align-items: center;
+/* Barra de Selección de 4 Superficies: Anverso, Reverso, Manga Izq, Manga Der */
+.surface-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+  height: 40px;
   background: var(--surface-low);
-  border: 1px solid var(--border-strong);
-  padding: 2px;
-  gap: 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 3px 6px;
+  gap: 4px;
+  z-index: 35;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .surface-pill {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   font-family: var(--font-headline);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  min-height: 32px;
+  user-select: none;
 }
 
 .surface-pill:hover {
   color: var(--text-primary);
+  background: var(--surface-high);
 }
 
 .surface-pill.active {
   background: var(--surface-solid);
   color: var(--text-primary);
+  border-color: var(--border-strong);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -213,6 +223,7 @@ button, select, input, textarea {
   background: var(--text-muted);
   display: inline-block;
   transition: background 0.15s ease;
+  flex-shrink: 0;
 }
 
 .surface-pill.active .pill-dot {
@@ -384,8 +395,8 @@ button, select, input, textarea {
   display: grid;
   grid-template-columns: 360px 1fr;
   flex: 1;
-  height: calc(100vh - 49px);
-  height: calc(100dvh - 49px);
+  height: calc(100vh - 88px);
+  height: calc(100dvh - 88px);
   overflow: hidden;
   background: var(--border-strong);
   gap: 1px;
@@ -965,21 +976,53 @@ input:checked + .toggle-slider:before {
   .top-navbar {
     height: 44px;
     padding: 0 10px;
+    gap: 8px;
+  }
+
+  .nav-actions {
+    gap: 4px;
+  }
+
+  .nav-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+  }
+
+  .nav-actions #topExportBtn {
+    min-height: 32px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
   }
 
   .sub-hide-mobile {
     display: none;
   }
 
-  .surface-pill span {
-    font-size: 10px;
+  .surface-nav-bar {
+    height: 38px;
     padding: 2px 4px;
+    gap: 3px;
+  }
+
+  .surface-pill {
+    padding: 2px 2px;
+    font-size: 10px;
+    gap: 3px;
+    min-height: 32px;
+  }
+
+  .pill-text {
+    font-size: 10px;
   }
 
   .workspace-grid {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
-    height: calc(100dvh - 44px - 56px);
+    height: calc(100vh - 44px - 38px - 56px);
+    height: calc(100dvh - 44px - 38px - 56px);
   }
 
   .mobile-bottom-bar {

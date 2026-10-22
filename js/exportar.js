@@ -165,7 +165,7 @@ export class ExportadorArchivos {
     };
 
     // 1. Dibujar la prenda vectorial con su color exacto
-    motorPoleraSVG.dibujarPrendaEnCanvas(ctx, superficie, polera.color, polera.tallaVista);
+    motorPoleraSVG.dibujarPrendaEnCanvas(ctx, superficie, polera.color, polera.tallaVista, mockMesa);
 
     // 2. Dibujar estampados de esa superficie
     const capas = polera.superficies[superficie]?.capas || [];

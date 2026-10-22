@@ -12,7 +12,6 @@ import { estado } from './estado.js';
 export class MotorPoleraSVG {
   constructor() {
     this.cacheSVG = {};
-    this.cacheImagenesSVG = {};
   }
 
   /**
@@ -20,23 +19,18 @@ export class MotorPoleraSVG {
    * Los diseños de usuario NO usan este factor; conservan sus centímetros reales 1:1.
    */
   obtenerEscalasTalla(talla = estado.poleraActiva.tallaVista, superficie = estado.datos.superficieActiva) {
-    if (superficie === 'manga_izquierda' || superficie === 'manga_derecha') {
-      const dim = CONFIG.TALLAS_MANGAS[talla] || CONFIG.TALLAS_MANGAS.M;
-      return {
-        sx: dim.union / CONFIG.TALLAS_MANGAS.M.union,
-        sy: dim.alto / CONFIG.TALLAS_MANGAS.M.alto,
-        altoCm: dim.alto,
-        bocaCm: dim.boca,
-        unionCm: dim.union
-      };
-    }
-
     const t = CONFIG.TALLAS_CUERPO[talla] || CONFIG.TALLAS_CUERPO.M;
+    const m = CONFIG.TALLAS_MANGAS[talla] || CONFIG.TALLAS_MANGAS.M;
+
     return {
       sx: t.ancho / CONFIG.TALLAS_CUERPO.M.ancho, // 53 cm base
       sy: t.largo / CONFIG.TALLAS_CUERPO.M.largo,  // 71 cm base
       anchoCm: t.ancho,
-      largoCm: t.largo
+      largoCm: t.largo,
+      // Dimensiones de manga
+      altoMangaCm: m.alto,
+      bocaMangaCm: m.boca,
+      unionMangaCm: m.union
     };
   }
 
@@ -49,10 +43,8 @@ export class MotorPoleraSVG {
     const yClamped = Math.max(0, Math.min(largoCm, yCm));
     const semiAncho = anchoCm / 2.0;
 
-    // Axila a ~36 cm de altura
     const axilaY = 36.0 * sy;
     if (yClamped < axilaY) {
-      // Zona superior axila-hombro: ensanchamiento gradual hacia la manga
       const factorHombro = 1.0 + (1.0 - (yClamped / axilaY)) * 0.06;
       return {
         izqCm: -semiAncho * factorHombro,
@@ -60,7 +52,6 @@ export class MotorPoleraSVG {
       };
     }
 
-    // Del pecho al ruedo el cuerpo es recto con caída natural
     return {
       izqCm: -semiAncho,
       derCm: semiAncho
@@ -70,40 +61,87 @@ export class MotorPoleraSVG {
   /**
    * Retorna las dimensiones de la zona máxima de estampado para la superficie activa.
    */
-  obtenerZonaMaximaImpresionCm(superficie = estado.datos.superficieActiva) {
-    return CONFIG.ZONAS_IMPRESION[superficie] || CONFIG.ZONAS_IMPRESION.anverso;
+  obtenerZonaMaximaImpresionCm(superficie = estado.datos.superficieActiva, modoManga = 'prenda') {
+    if (superficie === 'manga_izquierda' || superficie === 'manga_derecha') {
+      const z = CONFIG.ZONAS_IMPRESION[superficie] || { ancho: 10, alto: 12, label: '10 × 12 cm' };
+      if (modoManga === 'plana') {
+        return {
+          ancho: z.ancho,
+          alto: z.alto,
+          centroX: 0,
+          centroY: 9.5,
+          label: z.label
+        };
+      } else {
+        // En vista de polera, colocada sobre la manga anatómica
+        const signo = superficie === 'manga_izquierda' ? -1 : 1;
+        return {
+          ancho: z.ancho,
+          alto: z.alto,
+          centroX: signo * 36.5,
+          centroY: 22.5,
+          label: z.label
+        };
+      }
+    }
+
+    const z = CONFIG.ZONAS_IMPRESION[superficie] || CONFIG.ZONAS_IMPRESION.anverso;
+    return {
+      ancho: z.ancho,
+      alto: z.alto,
+      centroX: 0,
+      centroY: 28.0, // centrado vertical en pecho/espalda (de y=8 a y=48)
+      label: z.label
+    };
   }
 
   /**
    * Dibuja la prenda completa en el contexto Canvas 2D en centímetros reales.
-   * La prenda se dibuja centrada en x=0, con y=0 en la cúspide del hombro.
+   * Aplica la traslación y escala del mundo desde la instancia de mesa de trabajo.
    */
-  dibujarPrendaEnCanvas(ctx, superficie, colorHex, talla, alpha = 1.0) {
-    ctx.save();
-    ctx.globalAlpha = alpha;
+  dibujarPrendaEnCanvas(ctx, superficie, colorHex, talla, mesa, modoManga = 'prenda') {
+    if (!mesa) return;
 
-    if (superficie === 'manga_izquierda' || superficie === 'manga_derecha') {
+    ctx.save();
+
+    // 1. Convertir origen de mundo (0,0) a píxeles de canvas
+    const centroMundo = mesa.mundoACanvas(0, 0);
+    const escala = mesa.pxPorCmBase * mesa.zoom;
+
+    ctx.translate(centroMundo.cx, centroMundo.cy);
+    ctx.scale(escala, escala);
+
+    // 2. Sombra de estudio realista para que la prenda destaque claramente del fondo
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetY = 6;
+
+    if ((superficie === 'manga_izquierda' || superficie === 'manga_derecha') && modoManga === 'plana') {
       this.dibujarMangaPlanaEnCanvas(ctx, colorHex, talla, superficie);
     } else {
-      this.dibujarCuerpoEnCanvas(ctx, superficie, colorHex, talla);
+      // Dibuja la silueta de polera completa (anverso o reverso)
+      this.dibujarCuerpoEnCanvas(ctx, superficie, colorHex, talla, modoManga);
     }
 
+    ctx.restore();
     ctx.restore();
   }
 
   /**
-   * Renderizado vectorial preciso del cuerpo (Anverso / Reverso) en Canvas.
+   * Renderizado vectorial preciso del cuerpo y mangas en Canvas.
    */
-  dibujarCuerpoEnCanvas(ctx, superficie, colorHex, talla) {
-    const { sx, sy, anchoCm, largoCm } = this.obtenerEscalasTalla(talla, superficie);
-    const esAnverso = superficie === 'anverso';
+  dibujarCuerpoEnCanvas(ctx, superficie, colorHex, talla, modoManga = 'prenda') {
+    const { sx, sy } = this.obtenerEscalasTalla(talla, superficie);
+    const esReverso = superficie === 'reverso';
+    const esMangaIzq = superficie === 'manga_izquierda';
+    const esMangaDer = superficie === 'manga_derecha';
 
     ctx.save();
-    // Escalar la prenda según la talla sin deformar los diseños
     ctx.scale(sx, sy);
 
     // 1. Mangas de vista en perspectiva
-    this.dibujarMangasVistaPerspectiva(ctx, colorHex, esAnverso);
+    this.dibujarMangasVistaPerspectiva(ctx, colorHex, !esReverso, esMangaIzq, esMangaDer);
 
     // 2. Silueta del cuerpo
     ctx.beginPath();
@@ -115,8 +153,8 @@ export class MotorPoleraSVG {
     ctx.lineTo(13.40, -1.01);
     ctx.lineTo(11.39, -2.01);
 
-    // Escote del cuello
-    if (esAnverso) {
+    // Escote del cuello (anverso o reverso)
+    if (!esReverso) {
       ctx.quadraticCurveTo(0, 7.8, -9.0, -1.2);
     } else {
       ctx.quadraticCurveTo(0, 2.2, -9.0, -1.2);
@@ -132,7 +170,7 @@ export class MotorPoleraSVG {
     ctx.lineTo(-28.01, 6.03);
     ctx.lineTo(-27.71, 6.27);
 
-    // Sisa izquierda
+    // Sisa y costado izquierdo
     ctx.lineTo(-26.65, 36.61);
     ctx.lineTo(-26.23, 36.50);
     ctx.lineTo(-26.06, 36.79);
@@ -142,10 +180,10 @@ export class MotorPoleraSVG {
     ctx.lineTo(-26.47, 63.29);
     ctx.lineTo(-26.50, 71.0);
 
-    // Ruedo inferior suavizado (curva suave a y=71 cm exactos)
+    // Ruedo inferior suavizado (curva limpia a y=71 cm)
     ctx.quadraticCurveTo(0, 71.35, 26.50, 71.0);
 
-    // Costado derecho hacia sisa derecha
+    // Costado y sisa derecho
     ctx.lineTo(26.47, 67.67);
     ctx.lineTo(26.41, 51.34);
     ctx.lineTo(25.94, 38.63);
@@ -158,11 +196,11 @@ export class MotorPoleraSVG {
     ctx.lineTo(27.48, 5.09);
     ctx.closePath();
 
-    // Relleno de color de la prenda
+    // Relleno principal de tela
     ctx.fillStyle = colorHex;
     ctx.fill();
 
-    // Gradiente de volumen suave transversal
+    // Volumen suave del torso
     const gradTorso = ctx.createLinearGradient(-26.5, 0, 26.5, 0);
     gradTorso.addColorStop(0.0, 'rgba(0, 0, 0, 0.08)');
     gradTorso.addColorStop(0.2, 'rgba(255, 255, 255, 0.04)');
@@ -172,20 +210,20 @@ export class MotorPoleraSVG {
     ctx.fillStyle = gradTorso;
     ctx.fill();
 
-    // Contorno exterior fino
+    // Contorno exterior
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.22)';
-    ctx.lineWidth = 0.12;
+    ctx.lineWidth = 0.14;
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // 3. Cuello de la polera (Banda acanalada de 1.5 cm)
-    this.dibujarCuelloEnCanvas(ctx, colorHex, esAnverso);
+    // 3. Cuello acanalado
+    this.dibujarCuelloEnCanvas(ctx, colorHex, !esReverso);
 
-    // 4. Pespunte sutil de confección en el ruedo
+    // 4. Pespunte de confección en ruedo
     ctx.beginPath();
     ctx.moveTo(-26.2, 68.8);
     ctx.quadraticCurveTo(0, 69.15, 26.2, 68.8);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.16)';
     ctx.lineWidth = 0.08;
     ctx.setLineDash([0.35, 0.25]);
     ctx.stroke();
@@ -195,13 +233,13 @@ export class MotorPoleraSVG {
   }
 
   /**
-   * Mangas de vista en perspectiva lateral sobre el anverso/reverso.
+   * Mangas de vista en perspectiva lateral sobre la polera.
    */
-  dibujarMangasVistaPerspectiva(ctx, colorHex, esAnverso) {
+  dibujarMangasVistaPerspectiva(ctx, colorHex, esAnverso, destacarIzq = false, destacarDer = false) {
     ctx.save();
     ctx.fillStyle = colorHex;
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
-    ctx.lineWidth = 0.12;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.20)';
+    ctx.lineWidth = 0.14;
     ctx.lineJoin = 'round';
 
     // Manga Izquierda vista
@@ -222,13 +260,19 @@ export class MotorPoleraSVG {
     ctx.fill();
     ctx.stroke();
 
-    // Sombra de axila izquierda
+    // Sombra de sisa izquierda
     const gradSombraIzq = ctx.createLinearGradient(-26, 6, -46, 38);
     gradSombraIzq.addColorStop(0.0, 'rgba(0, 0, 0, 0.16)');
     gradSombraIzq.addColorStop(0.7, 'rgba(0, 0, 0, 0.03)');
     gradSombraIzq.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
     ctx.fillStyle = gradSombraIzq;
     ctx.fill();
+
+    if (destacarIzq) {
+      ctx.strokeStyle = '#BA002C'; // Resaltar borde de manga activa
+      ctx.lineWidth = 0.25;
+      ctx.stroke();
+    }
 
     // Manga Derecha vista
     ctx.beginPath();
@@ -250,7 +294,7 @@ export class MotorPoleraSVG {
     ctx.fill();
     ctx.stroke();
 
-    // Sombra de axila derecha
+    // Sombra de sisa derecha
     const gradSombraDer = ctx.createLinearGradient(26, 6, 46, 38);
     gradSombraDer.addColorStop(0.0, 'rgba(0, 0, 0, 0.16)');
     gradSombraDer.addColorStop(0.7, 'rgba(0, 0, 0, 0.03)');
@@ -258,11 +302,17 @@ export class MotorPoleraSVG {
     ctx.fillStyle = gradSombraDer;
     ctx.fill();
 
+    if (destacarDer) {
+      ctx.strokeStyle = '#BA002C'; // Resaltar borde de manga activa
+      ctx.lineWidth = 0.25;
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 
   /**
-   * Dibuja la banda de cuello acanalada con acabado profesional.
+   * Dibuja la banda de cuello acanalada con acabado formal.
    */
   dibujarCuelloEnCanvas(ctx, colorHex, esAnverso) {
     ctx.save();
@@ -289,7 +339,7 @@ export class MotorPoleraSVG {
       ctx.lineWidth = 0.10;
       ctx.stroke();
 
-      // Pespunte de unión del cuello
+      // Pespunte
       ctx.beginPath();
       ctx.moveTo(-8.8, 0.1);
       ctx.quadraticCurveTo(0, 8.0, 8.8, 0.1);
@@ -312,7 +362,7 @@ export class MotorPoleraSVG {
       ctx.lineWidth = 0.10;
       ctx.stroke();
 
-      // Pespunte de espalda
+      // Pespunte
       ctx.beginPath();
       ctx.moveTo(-8.8, 0.6);
       ctx.quadraticCurveTo(0, 3.7, 8.8, 0.6);
@@ -328,9 +378,10 @@ export class MotorPoleraSVG {
    * Renderizado de la pieza plana paramétrica de la manga.
    */
   dibujarMangaPlanaEnCanvas(ctx, colorHex, talla, superficie) {
-    const { sx, sy, altoCm, bocaCm, unionCm } = this.obtenerEscalasTalla(talla, superficie);
-    const semiUnion = unionCm / 2.0;
-    const semiBoca = bocaCm / 2.0;
+    const { sx, sy, altoMangaCm, bocaMangaCm, unionMangaCm } = this.obtenerEscalasTalla(talla, superficie);
+    const semiUnion = (unionMangaCm || 18.5) / 2.0;
+    const semiBoca = (bocaMangaCm || 16.5) / 2.0;
+    const altoCm = altoMangaCm || 19.0;
 
     ctx.save();
     ctx.beginPath();
@@ -374,14 +425,14 @@ export class MotorPoleraSVG {
   }
 
   /**
-   * Traza el contorno de recorte (Path2D o trazado en ctx) para que los estampados
-   * no floten fuera de la tela de la polera.
+   * Traza el contorno de recorte para los estampados.
    */
-  trazarContornoRecorte(ctx, superficie, talla) {
-    if (superficie === 'manga_izquierda' || superficie === 'manga_derecha') {
-      const { altoCm, bocaCm, unionCm, sy } = this.obtenerEscalasTalla(talla, superficie);
-      const semiUnion = unionCm / 2.0;
-      const semiBoca = bocaCm / 2.0;
+  trazarContornoRecorte(ctx, superficie, talla, modoManga = 'prenda') {
+    if ((superficie === 'manga_izquierda' || superficie === 'manga_derecha') && modoManga === 'plana') {
+      const { altoMangaCm, bocaMangaCm, unionMangaCm, sy } = this.obtenerEscalasTalla(talla, superficie);
+      const semiUnion = (unionMangaCm || 18.5) / 2.0;
+      const semiBoca = (bocaMangaCm || 16.5) / 2.0;
+      const altoCm = altoMangaCm || 19.0;
       ctx.beginPath();
       ctx.moveTo(-semiUnion, 1.8 * sy);
       ctx.quadraticCurveTo(0, -0.4 * sy, semiUnion, 1.8 * sy);

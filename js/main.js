@@ -98,11 +98,14 @@ class AplicacionCADTextil {
     const polera = estado.poleraActiva;
 
     // 2. Dibujar prenda vectorial SVG en centímetros reales
+    const modoManga = this.mesa.modoManga || 'prenda';
     motorPoleraSVG.dibujarPrendaEnCanvas(
       this.ctx,
       superficie,
       polera.color,
-      polera.tallaVista
+      polera.tallaVista,
+      this.mesa,
+      modoManga
     );
 
     // 3. Zona máxima de estampado recomendada
@@ -114,14 +117,13 @@ class AplicacionCADTextil {
     // 5. Proyección visual de mangas sobre anverso/reverso
     gestorMangas.dibujarProyeccionEnTorso(this.ctx, superficie, this.mesa);
 
-    // 6. Recorte estricto a la silueta para los estampados de esta superficie
+    // 6. Recorte o referencia a la silueta para los estampados de esta superficie
     this.ctx.save();
-    // Trazamos el contorno de la prenda como máscara de recorte
     const centroMundo = this.mesa.mundoACanvas(0, 0);
     const escala = this.mesa.pxPorCmBase * this.mesa.zoom;
     this.ctx.translate(centroMundo.cx, centroMundo.cy);
     this.ctx.scale(escala, escala);
-    motorPoleraSVG.trazarContornoRecorte(this.ctx, superficie, polera.tallaVista);
+    motorPoleraSVG.trazarContornoRecorte(this.ctx, superficie, polera.tallaVista, modoManga);
     this.ctx.restore();
 
     // Dibujar cada capa de esta superficie

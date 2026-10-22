@@ -167,6 +167,12 @@ export class ControladorUI {
 
         document.getElementById('activeSurfaceLabelChip').textContent = sup.toUpperCase().replace('_', ' ');
 
+        const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
+        const mangaBtn = document.getElementById('mangaModeBtn');
+        if (mangaBtn) {
+          mangaBtn.style.display = esManga ? 'inline-flex' : 'none';
+        }
+
         // Al cambiar de superficie, ajustar la mesa a la nueva pieza
         this.mesa.ajustarAPantalla();
         this.actualizarListaCapas();
@@ -501,6 +507,19 @@ export class ControladorUI {
       estado.datos.mostrarCotas = !estado.datos.mostrarCotas;
       cotasBtn.classList.toggle('active', estado.datos.mostrarCotas);
       estado.notificar('cambio-cotas');
+    });
+
+    // Alternar modo de manga (Vista Polera / Patrón Plano)
+    const mangaBtn = document.getElementById('mangaModeBtn');
+    mangaBtn?.addEventListener('click', () => {
+      this.mesa.modoManga = this.mesa.modoManga === 'plana' ? 'prenda' : 'plana';
+      const span = mangaBtn.querySelector('span');
+      if (span) {
+        span.textContent = this.mesa.modoManga === 'plana' ? 'PATRÓN PLANO' : 'VISTA POLERA';
+      }
+      this.mesa.ajustarAPantalla();
+      this.actualizarHUDMedidas();
+      estado.notificar('modo-manga', this.mesa.modoManga);
     });
 
     // Deshacer y Rehacer

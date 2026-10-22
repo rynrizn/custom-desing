@@ -25,6 +25,9 @@ export class MesaDeTrabajo {
     this.panX = 0;
     this.panY = 0;
 
+    // Modo de manga: 'prenda' (vista anatómica en la polera) o 'plana' (patrón plano)
+    this.modoManga = 'prenda';
+
     // Estado de gestos
     this.isPanning = false;
     this.lastPointerPos = { x: 0, y: 0 };
@@ -37,16 +40,28 @@ export class MesaDeTrabajo {
     this.inicializarEventos();
   }
 
+  // --- Dimensiones Lógicas Calibradas para DPR (Retina / Móvil) ---
+
+  get anchoLogico() {
+    const dpr = window.devicePixelRatio || 1;
+    return (this.canvas.width / dpr) || this.canvas.clientWidth || 800;
+  }
+
+  get altoLogico() {
+    const dpr = window.devicePixelRatio || 1;
+    return (this.canvas.height / dpr) || this.canvas.clientHeight || 800;
+  }
+
   // --- Transformaciones de Coordenadas ---
 
   /**
-   * Convierte coordenadas en centímetros reales (Mundo) a píxeles de Canvas.
+   * Convierte coordenadas en centímetros reales (Mundo) a píxeles de Canvas (coordenadas lógicas).
    */
   mundoACanvas(xCm, yCm) {
     const escala = this.pxPorCmBase * this.zoom;
-    const centroX = this.canvas.width / 2.0 + this.panX;
+    const centroX = this.anchoLogico / 2.0 + this.panX;
     // Anclamos y=0 ligeramente arriba del centro para que la prenda se vea balanceada
-    const centroY = this.canvas.height / 2.0 - (35.0 * escala / 2.0) + this.panY;
+    const centroY = this.altoLogico / 2.0 - (35.0 * escala / 2.0) + this.panY;
 
     return {
       cx: centroX + xCm * escala,
@@ -59,8 +74,8 @@ export class MesaDeTrabajo {
    */
   canvasAMundo(cx, cy) {
     const escala = this.pxPorCmBase * this.zoom;
-    const centroX = this.canvas.width / 2.0 + this.panX;
-    const centroY = this.canvas.height / 2.0 - (35.0 * escala / 2.0) + this.panY;
+    const centroX = this.anchoLogico / 2.0 + this.panX;
+    const centroY = this.altoLogico / 2.0 - (35.0 * escala / 2.0) + this.panY;
 
     return {
       xCm: (cx - centroX) / escala,
@@ -72,16 +87,26 @@ export class MesaDeTrabajo {
    * Ajusta la vista para que la prenda activa quepa completamente en la pantalla con margen.
    */
   ajustarAPantalla() {
-    const { anchoCm, largoCm, altoCm } = motorPoleraSVG.obtenerEscalasTalla();
-    const altoPrenda = altoCm || largoCm || 71.0;
-    const anchoPrenda = (anchoCm || 53.0) + 30.0; // margen lateral para mangas
+    const sup = estado.datos.superficieActiva;
+    const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
+    const modoManga = this.modoManga || 'prenda';
 
-    const rect = this.canvas.getBoundingClientRect();
-    const w = rect.width || this.canvas.width;
-    const h = rect.height || this.canvas.height;
+    let anchoPrenda, altoPrenda;
+    if (esManga && modoManga === 'plana') {
+      const { altoMangaCm, unionMangaCm } = motorPoleraSVG.obtenerEscalasTalla();
+      anchoPrenda = (unionMangaCm || 18.5) + 12.0;
+      altoPrenda = (altoMangaCm || 19.0) + 8.0;
+    } else {
+      const { anchoCm, largoCm } = motorPoleraSVG.obtenerEscalasTalla();
+      anchoPrenda = (anchoCm || 53.0) + 40.0; // Margen lateral para mangas en perspectiva
+      altoPrenda = (largoCm || 71.0) + 12.0;
+    }
 
-    const zoomX = (w * 0.85) / (anchoPrenda * this.pxPorCmBase);
-    const zoomY = (h * 0.85) / (altoPrenda * this.pxPorCmBase);
+    const w = this.anchoLogico;
+    const h = this.altoLogico;
+
+    const zoomX = (w * 0.90) / (anchoPrenda * this.pxPorCmBase);
+    const zoomY = (h * 0.86) / (altoPrenda * this.pxPorCmBase);
 
     this.zoom = Math.max(0.35, Math.min(2.5, Math.min(zoomX, zoomY)));
     this.panX = 0;
@@ -90,13 +115,14 @@ export class MesaDeTrabajo {
     estado.datos.zoom = this.zoom;
     estado.datos.panX = 0;
     estado.datos.panY = 0;
+    estado.notificar('zoom', this.zoom);
   }
 
   // --- Dibujo de Reglas, Cuadrícula y Guías ---
 
   dibujarFondoYCuadricula() {
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.anchoLogico;
+    const h = this.altoLogico;
     const fondo = estado.datos.fondoMesa;
 
     if (fondo === 'oscuro') {
@@ -126,9 +152,10 @@ export class MesaDeTrabajo {
   }
 
   dibujarCuadriculaCm() {
-    const escala = this.pxPorCmBase * this.zoom;
+    const w = this.anchoLogico;
+    const h = this.altoLogico;
     const pMin = this.canvasAMundo(0, 0);
-    const pMax = this.canvasAMundo(this.canvas.width, this.canvas.height);
+    const pMax = this.canvasAMundo(w, h);
 
     const xInicio = Math.floor(pMin.xCm / 5) * 5;
     const xFin = Math.ceil(pMax.xCm / 5) * 5;
@@ -144,14 +171,14 @@ export class MesaDeTrabajo {
       const { cx } = this.mundoACanvas(x, 0);
       this.ctx.beginPath();
       this.ctx.moveTo(cx, 0);
-      this.ctx.lineTo(cx, this.canvas.height);
+      this.ctx.lineTo(cx, h);
       this.ctx.stroke();
     }
     for (let y = Math.floor(pMin.yCm); y <= Math.ceil(pMax.yCm); y++) {
       const { cy } = this.mundoACanvas(0, y);
       this.ctx.beginPath();
       this.ctx.moveTo(0, cy);
-      this.ctx.lineTo(this.canvas.width, cy);
+      this.ctx.lineTo(w, cy);
       this.ctx.stroke();
     }
 
@@ -161,14 +188,14 @@ export class MesaDeTrabajo {
       const { cx } = this.mundoACanvas(x, 0);
       this.ctx.beginPath();
       this.ctx.moveTo(cx, 0);
-      this.ctx.lineTo(cx, this.canvas.height);
+      this.ctx.lineTo(cx, h);
       this.ctx.stroke();
     }
     for (let y = yInicio; y <= yFin; y += 5) {
       const { cy } = this.mundoACanvas(0, y);
       this.ctx.beginPath();
       this.ctx.moveTo(0, cy);
-      this.ctx.lineTo(this.canvas.width, cy);
+      this.ctx.lineTo(w, cy);
       this.ctx.stroke();
     }
 
@@ -178,7 +205,7 @@ export class MesaDeTrabajo {
     this.ctx.lineWidth = 1.5;
     this.ctx.beginPath();
     this.ctx.moveTo(centro.cx, 0);
-    this.ctx.lineTo(centro.cx, this.canvas.height);
+    this.ctx.lineTo(centro.cx, h);
     this.ctx.stroke();
 
     this.ctx.restore();
@@ -186,8 +213,8 @@ export class MesaDeTrabajo {
 
   dibujarReglas() {
     const altoRegla = 22;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.anchoLogico;
+    const h = this.altoLogico;
     const unidad = estado.datos.unidades;
 
     this.ctx.save();
@@ -252,6 +279,9 @@ export class MesaDeTrabajo {
   dibujarGuiasMagneticas() {
     if (!this.guiasActivas.length) return;
 
+    const w = this.anchoLogico;
+    const h = this.altoLogico;
+
     this.ctx.save();
     this.ctx.strokeStyle = '#BA002C'; // Carmesí Zairen
     this.ctx.lineWidth = 1.2;
@@ -262,13 +292,13 @@ export class MesaDeTrabajo {
         const { cx } = this.mundoACanvas(g.xCm, 0);
         this.ctx.beginPath();
         this.ctx.moveTo(cx, 0);
-        this.ctx.lineTo(cx, this.canvas.height);
+        this.ctx.lineTo(cx, h);
         this.ctx.stroke();
       } else if (g.tipo === 'horizontal') {
         const { cy } = this.mundoACanvas(0, g.yCm);
         this.ctx.beginPath();
         this.ctx.moveTo(0, cy);
-        this.ctx.lineTo(this.canvas.width, cy);
+        this.ctx.lineTo(w, cy);
         this.ctx.stroke();
       }
     }
@@ -277,20 +307,28 @@ export class MesaDeTrabajo {
   }
 
   dibujarZonaMaximaEstampado() {
-    const zona = motorPoleraSVG.obtenerZonaMaximaImpresionCm();
-    const { cx: x1, cy: y1 } = this.mundoACanvas(-zona.ancho / 2, 8.0);
-    const { cx: x2, cy: y2 } = this.mundoACanvas(zona.ancho / 2, 8.0 + zona.alto);
+    const sup = estado.datos.superficieActiva;
+    const modoManga = this.modoManga || 'prenda';
+    const zona = motorPoleraSVG.obtenerZonaMaximaImpresionCm(sup, modoManga);
+
+    const xMin = zona.centroX - zona.ancho / 2;
+    const yMin = zona.centroY - zona.alto / 2;
+    const xMax = zona.centroX + zona.ancho / 2;
+    const yMax = zona.centroY + zona.alto / 2;
+
+    const { cx: x1, cy: y1 } = this.mundoACanvas(xMin, yMin);
+    const { cx: x2, cy: y2 } = this.mundoACanvas(xMax, yMax);
 
     this.ctx.save();
-    this.ctx.strokeStyle = 'rgba(58, 74, 92, 0.45)'; // Azul grafito sutil
+    this.ctx.strokeStyle = 'rgba(58, 74, 92, 0.55)'; // Azul grafito sutil
     this.ctx.lineWidth = 1.0;
     this.ctx.setLineDash([5, 4]);
     this.ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
 
     // Etiqueta formal
-    this.ctx.fillStyle = 'rgba(58, 74, 92, 0.65)';
+    this.ctx.fillStyle = 'rgba(58, 74, 92, 0.85)';
     this.ctx.font = '10px monospace';
-    this.ctx.fillText(`ÁREA IMPRESIÓN MÁX: ${zona.label}`, x1 + 6, y1 + 14);
+    this.ctx.fillText(`ÁREA IMPRESIÓN MÁX: ${zona.label}`, x1 + 6, y1 + 13);
     this.ctx.restore();
   }
 
