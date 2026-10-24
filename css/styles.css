@@ -1096,16 +1096,23 @@ input:checked + .toggle-slider:before {
   }
 
   .surface-nav-bar {
-    height: 38px;
+    height: 48px;
     padding: 2px 4px;
     gap: 3px;
+    box-sizing: border-box;
   }
 
   .surface-pill {
-    padding: 2px 2px;
-    font-size: 10px;
-    gap: 3px;
-    min-height: 32px;
+    padding: 2px 4px;
+    font-size: 11px;
+    gap: 4px;
+    min-height: 44px;
+    min-width: 44px;
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .pill-text {
@@ -1115,8 +1122,8 @@ input:checked + .toggle-slider:before {
   .workspace-grid {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
-    height: calc(100vh - 44px - 38px - 56px);
-    height: calc(100dvh - 44px - 38px - 56px);
+    height: calc(100vh - 44px - 48px - 56px);
+    height: calc(100dvh - 44px - 48px - 56px);
   }
 
   .mobile-bottom-bar {
@@ -1255,12 +1262,83 @@ input:checked + .toggle-slider:before {
   }
 
   .btn-icon, .zoom-btn {
-    min-height: 38px;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Barra de ajuste fino en móvil con metas táctiles cómodas */
+  .fine-tune-bar {
+    bottom: 8px;
+    padding: 4px 6px;
+    max-width: calc(100% - 12px);
+  }
+
+  .btn-tune {
     min-width: 38px;
+    min-height: 44px;
+    padding: 6px 8px;
+    font-size: 12px;
   }
 
   .hud-metrics {
     font-size: 10px;
     gap: 8px;
   }
+}
+
+/* Estado Vacío de Capas y Superficies */
+.empty-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--surface-low);
+  border: 1px dashed var(--border-strong);
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.empty-state-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.empty-state-title {
+  font-family: var(--font-headline);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.empty-state-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 14px 0;
+  max-width: 240px;
+  line-height: 1.4;
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.empty-state-actions .btn-micro {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 8px 14px;
+  font-size: 11px;
+}
+
+.toast-banner.toast-error {
+  border-left: 4px solid var(--accent-crimson);
+  background: var(--surface-solid);
+}
+
+.toast-banner.toast-warning {
+  border-left: 4px solid #D97706;
+  background: var(--surface-solid);
 }

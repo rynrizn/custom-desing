@@ -950,7 +950,23 @@ export class ControladorUI {
     if (countBadge) countBadge.textContent = `${capas.length} CAPAS`;
 
     if (!capas.length) {
-      container.innerHTML = `<div class="empty-state-text">No hay elementos en esta superficie. Sube una imagen o añade texto.</div>`;
+      container.innerHTML = `
+        <div class="empty-state-card">
+          <div class="empty-state-icon">🎨</div>
+          <div class="empty-state-title">Superficie sin estampados</div>
+          <p class="empty-state-desc">Añade imágenes o textos para personalizar esta zona de la polera.</p>
+          <div class="empty-state-actions">
+            <button type="button" class="btn-micro" id="emptyAddImageBtn">📁 Subir Imagen</button>
+            <button type="button" class="btn-micro" id="emptyAddTextBtn">🔤 Añadir Texto</button>
+          </div>
+        </div>
+      `;
+      container.querySelector('#emptyAddImageBtn')?.addEventListener('click', () => {
+        document.getElementById('fileInput')?.click();
+      });
+      container.querySelector('#emptyAddTextBtn')?.addEventListener('click', () => {
+        document.getElementById('addTextBtn')?.click();
+      });
       return;
     }
 
@@ -1124,15 +1140,16 @@ export class ControladorUI {
     }
   }
 
-  mostrarNotificacion(mensaje) {
+  mostrarNotificacion(mensaje, tipo = 'info') {
     const toast = document.getElementById('toastBanner');
     if (!toast) return;
 
     toast.textContent = mensaje;
-    toast.classList.add('visible');
+    toast.className = `toast-banner visible ${tipo === 'error' ? 'toast-error' : tipo === 'warning' ? 'toast-warning' : 'toast-info'}`;
     clearTimeout(this.toastTimer);
+    const duracion = tipo === 'error' ? 5200 : 3800;
     this.toastTimer = setTimeout(() => {
       toast.classList.remove('visible');
-    }, 3800);
+    }, duracion);
   }
 }

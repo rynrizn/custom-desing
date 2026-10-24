@@ -62,8 +62,8 @@ export class TourGuiado {
           element: '#canvasViewport',
           id: 'paso-mesa',
           popover: {
-            title: '1. Mesa de Trabajo CAD',
-            description: 'Visualiza la polera con medidas reales en centímetros. Usa la rueda del ratón o pellizco táctil para zoom, y arrastra para desplazarte.',
+            title: '1. Mesa CAD y Gestos Táctiles',
+            description: 'Con 1 dedo: arrastra un elemento para moverlo de inmediato o la mesa para desplazarte. Con 2 dedos: pellizca para zoom fluido (30% a 800%) y paneo simultáneo. Doble toque en vacío encuadra la prenda a pantalla.',
             side: 'bottom',
             align: 'center'
           }
@@ -72,8 +72,8 @@ export class TourGuiado {
           element: '#surfaceSwitcher',
           id: 'paso-superficies',
           popover: {
-            title: '2. Selector de 4 Superficies',
-            description: 'Cambia entre Anverso, Reverso, Manga Izquierda y Manga Derecha. Las mangas cuentan con sincronización simétrica en modo espejo.',
+            title: '2. Superficies y Patrón Plano de Mangas',
+            description: 'Cambia entre Anverso, Reverso y Mangas. Ambas mangas abren de forma predeterminada en su patrón plano técnico al 75% de zoom, con cotas de costura y puño, y opción de no invertir texto al reflejar en espejo.',
             side: 'bottom',
             align: 'start'
           }
@@ -83,7 +83,7 @@ export class TourGuiado {
           id: 'paso-prenda',
           popover: {
             title: '3. Talla y Color de Prenda',
-            description: 'Elige la talla (S a XXL) escalando la silueta matemáticamente. Elige el color oficial de la tela de la paleta Zenith Monochrome.',
+            description: 'Elige la talla (S a XXL) con siluetas reales escaladas ancladas a medidas de taller. Cambia el color oficial de la tela con la paleta Zenith Monochrome.',
             side: esMovil ? 'top' : 'right',
             align: 'start'
           }
@@ -93,7 +93,19 @@ export class TourGuiado {
           id: 'paso-diseno',
           popover: {
             title: '4. Subir Diseño y Añadir Texto',
-            description: 'Arrastra tus gráficos (PNG, JPG, SVG, WEBP) o escribe textos con más de 10 tipografías oficiales. Cuenta con manijas independientes y aviso de calidad < 150 DPI.',
+            description: 'Arrastra tus gráficos (PNG, JPG, SVG, WEBP) o escribe textos con más de 10 tipografías oficiales. El texto es ágil y estable (mover, rotar y editar), y las imágenes cuentan con aviso de calidad < 150 DPI.',
+            side: esMovil ? 'top' : 'right',
+            align: 'start'
+          }
+        },
+        {
+          element: esMovil ? '#controlsPanel' : '#panelSectionCapas',
+          id: 'paso-capas',
+          popover: {
+            title: esMovil ? '5. Hoja Deslizable en 3 Posiciones' : '5. Gestión de Capas',
+            description: esMovil
+              ? 'La hoja cuenta con 3 posiciones: cerrada, media (donde la mesa se reduce para mantener tu diseño visible arriba sin taparlo) y completa. Además incluye barra de ajuste fino con pasos de 1 mm.'
+              : 'Ordena, bloquea, visualiza y elimina capas con botones directos y barra flotante contextual fuera de la silueta.',
             side: esMovil ? 'top' : 'right',
             align: 'start'
           }
@@ -102,7 +114,7 @@ export class TourGuiado {
           element: esMovil ? '#mobileTabPedido' : '#panelSectionPedido',
           id: 'paso-pedido',
           popover: {
-            title: '5. Múltiples Poleras y Envío Cifrado',
+            title: '6. Múltiples Poleras y Envío Cifrado',
             description: 'Crea varias poleras por pedido, desglosa cantidades por talla, descarga vistas previas con marca de agua y genera el paquete técnico cifrado .zrn.',
             side: esMovil ? 'top' : 'right',
             align: 'start'
