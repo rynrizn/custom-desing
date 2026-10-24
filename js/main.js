@@ -168,7 +168,19 @@ class AplicacionCADTextil {
     window.addEventListener('pointerup', (e) => this.onPointerUp(e));
     window.addEventListener('pointercancel', (e) => this.onPointerUp(e));
 
-    // Doble toque / doble clic para editar texto directamente
+    // Bloquear gestos nativos de página en Safari iOS (pinch zoom de viewport web)
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) => {
+      window.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
+    });
+
+    // Bloquear zoom nativo del navegador con Ctrl+rueda o touchpad pinch
+    window.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Doble toque / doble clic para editar texto directamente o ajustar pantalla
     this.canvas.addEventListener('dblclick', (e) => this.onDoubleClick(e));
   }
 
