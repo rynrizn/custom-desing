@@ -21,6 +21,8 @@ Sistema CAD textil profesional para personalización, previsualización técnica
 - **Motor Tipográfico Integrado:** 14 fuentes tipográficas (4 de identidad de marca + 10 fuentes OFL de Google Fonts) alojadas localmente en formato WOFF2 en `fonts/` con soporte de contorno, sombra, tracking e interlineado.
 - **Edición Gráfica tipo Canva:** 8 manijas de transformación independientes (esquinas proporcionales y laterales unidireccionales), rotación con imán angular, y aviso visual si la imagen baja de 150 DPI.
 - **Gestión Multi-Polera:** Permite diseñar múltiples poleras en un solo pedido, desglosando cantidades por talla (ej. 2 en M y 1 en L con el mismo diseño).
+- **Autoguardado en IndexedDB y Proyectos JSON:** Persistencia continua en segundo plano mediante `zairen_cad_textil_db` con debounce de 800 ms (imágenes como Blobs binarios para evitar `QuotaExceededError`). Diálogo de bienvenida para retomar la sesión previa o empezar de cero, y botones para **Guardar** y **Abrir** proyectos en formato `.json` legible sin cifrar.
+- **Código de Pedido Único Normalizado:** Formato `ZRN-AAAAMMDD-XXXX` sin caracteres ambiguos, unificado en el nombre del paquete `.zrn`, en `pedido.json`, en el ZIP de vista previa y en el mensaje de WhatsApp.
 - **Cifrado Híbrido Cero-Conocimiento (.zrn):** Protección de pedidos mediante Web Crypto API (AES-256-GCM + RSA-OAEP 3072 bits + AAD `ZRN1`). La clave privada reside cifrada con una Frase Secreta del taller y se descifra únicamente en la memoria del navegador del administrador.
 - **Portal Administrativo Protegido:** Rutas privadas `/acceso` (login en tiempo constante), `/lector` (visor y descompresor de pedidos) y `/lector/configurar` (aprovisionador de claves) respaldadas por Cloudflare Pages Functions.
 - **Tour Guiado con Driver.js:** Recorrido interactivo de 5 pasos cortos adaptado a pantallas táctiles y escritorio.
@@ -63,10 +65,19 @@ custom-desing/
 │   ├── unidades.js              # Conversor de cm, mm e in (base interna mm)
 │   ├── pedido.js                # Gestor multi-prenda y cálculo de cantidades
 │   ├── exportar.js              # Generador de mockups acotados y marca de agua
+│   ├── almacenamiento.js        # Autoguardado en IndexedDB (Blobs) y gestión de proyectos .json
 │   ├── cifrado.js               # Web Crypto RSA-OAEP + AES-GCM formato .zrn
 │   ├── tour.js                  # Tour interactivo con Driver.js
 │   ├── ui.js                    # Controlador DOM, hojas deslizables y diálogos
 │   └── main.js                  # Orquestador del ciclo de vida y eventos de puntero
+├── tests/                       # Suites de pruebas automatizadas Node.js
+│   ├── cifrado.test.mjs         # Pruebas criptográficas Web Crypto RSA-3072 y .zrn
+│   ├── tallas-geometria.test.mjs# Medidas reales M (53x71 cm), cotas y factores sx/sy
+│   ├── interaccion.test.mjs     # Manijas táctiles, hit-testing y guías magnéticas
+│   ├── centrado-alineacion.test.mjs # Bounding box visual real y alineación milimétrica
+│   ├── mangas-aislamiento.test.mjs  # Patrón plano, aislamiento y texto simplificado
+│   ├── interfaz-movil.test.mjs  # Barra flotante adaptable, hoja en 3 posiciones
+│   └── guardado-proyecto.test.mjs # Autoguardado, Blobs, proyecto JSON y código ZRN
 ├── acceso/
 │   ├── index.html               # Página de inicio de sesión administrativo
 │   └── login.js                 # Cliente de login hacia /api/login
@@ -143,7 +154,24 @@ npx wrangler pages dev .
 
 ---
 
-## 5. Procedimiento para Merge a `main`
+## 5. Batería de Pruebas Automatizadas
+
+El proyecto incluye 7 suites de pruebas automatizadas en `tests/` que validan cada aspecto crítico de la aplicación:
+
+```bash
+# Ejecutar suite completa (todas las fases)
+node tests/cifrado.test.mjs
+node tests/tallas-geometria.test.mjs
+node tests/interaccion.test.mjs
+node tests/centrado-alineacion.test.mjs
+node tests/mangas-aislamiento.test.mjs
+node tests/interfaz-movil.test.mjs
+node tests/guardado-proyecto.test.mjs
+```
+
+---
+
+## 6. Procedimiento para Merge a `main`
 
 El trabajo actual se encuentra aislado en la rama `dev-editor-svg`. Para pasar a producción:
 
