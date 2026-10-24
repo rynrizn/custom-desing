@@ -12,8 +12,12 @@ import { estado } from './estado.js';
 
 export class GestorImagenes {
   constructor() {
+    this.manijaTamPx = 14.0;       // Punto visible de 14 px
     this.manijaRadioPx = 7.0;
-    this.brazoRotacionCm = 2.8;
+    this.manijaHitAreaPx = 44.0;   // Área de toque táctil de 44 px
+    this.manijaHitRadioPx = 22.0;
+    this.margenToqueCuerpoPx = 12.0; // Margen de toque de 12 px para cuerpo
+    this.brazoRotacionCm = 2.4;
   }
 
   /**
@@ -143,6 +147,7 @@ export class GestorImagenes {
 
   /**
    * Dibuja el marco de selección y las 8 manijas de transformación + manija de rotación.
+   * Punto visible calibrado a 14 px exactos.
    */
   dibujarManijasTransformacion(ctx, capa, mesa) {
     if (!capa || capa.locked) return;
@@ -162,7 +167,7 @@ export class GestorImagenes {
     ctx.lineWidth = 1.4;
     ctx.strokeRect(-wPx / 2, -hPx / 2, wPx, hPx);
 
-    // Brazo de rotación
+    // Brazo de rotación aparte
     const brazoPx = this.brazoRotacionCm * escala;
     ctx.beginPath();
     ctx.moveTo(0, -hPx / 2);
@@ -171,37 +176,50 @@ export class GestorImagenes {
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    // Manija de rotación circular
+    // Manija de rotación circular visible (14 px de diámetro)
     ctx.beginPath();
     ctx.arc(0, -hPx / 2 - brazoPx, this.manijaRadioPx, 0, Math.PI * 2);
     ctx.fillStyle = '#FAF9F6';
     ctx.fill();
+    ctx.strokeStyle = '#BA002C';
+    ctx.lineWidth = 1.6;
     ctx.stroke();
 
-    // 8 Manijas de transformación rectangulares formales
+    // 8 Manijas de transformación visibles de 14 px exactos
     const puntos = [
-      { id: 'tl', x: -wPx / 2, y: -hPx / 2 },
-      { id: 'tm', x: 0,        y: -hPx / 2 },
-      { id: 'tr', x: wPx / 2,  y: -hPx / 2 },
-      { id: 'mr', x: wPx / 2,  y: 0 },
-      { id: 'br', x: wPx / 2,  y: hPx / 2 },
-      { id: 'bm', x: 0,        y: hPx / 2 },
-      { id: 'bl', x: -wPx / 2, y: hPx / 2 },
-      { id: 'ml', x: -wPx / 2, y: 0 }
+      { id: 'tl', x: -wPx / 2, y: -hPx / 2, tipo: 'esquina' },
+      { id: 'tm', x: 0,        y: -hPx / 2, tipo: 'lado' },
+      { id: 'tr', x: wPx / 2,  y: -hPx / 2, tipo: 'esquina' },
+      { id: 'mr', x: wPx / 2,  y: 0,        tipo: 'lado' },
+      { id: 'br', x: wPx / 2,  y: hPx / 2,  tipo: 'esquina' },
+      { id: 'bm', x: 0,        y: hPx / 2,  tipo: 'lado' },
+      { id: 'bl', x: -wPx / 2, y: hPx / 2,  tipo: 'esquina' },
+      { id: 'ml', x: -wPx / 2, y: 0,        tipo: 'lado' }
     ];
 
-    const tam = this.manijaRadioPx * 2;
+    const tam = this.manijaTamPx; // 14 px visible
     for (const p of puntos) {
       ctx.fillStyle = '#FAF9F6';
-      ctx.fillRect(p.x - tam / 2, p.y - tam / 2, tam, tam);
-      ctx.strokeRect(p.x - tam / 2, p.y - tam / 2, tam, tam);
+      ctx.strokeStyle = '#BA002C';
+      ctx.lineWidth = 1.5;
+
+      if (p.tipo === 'esquina') {
+        // Manija de esquina: cuadrado de 14 px con borde nítido
+        ctx.fillRect(p.x - tam / 2, p.y - tam / 2, tam, tam);
+        ctx.strokeRect(p.x - tam / 2, p.y - tam / 2, tam, tam);
+      } else {
+        // Manija lateral de un solo eje: píldora/rectángulo de 14 px
+        ctx.fillRect(p.x - tam / 2, p.y - tam / 2, tam, tam);
+        ctx.strokeRect(p.x - tam / 2, p.y - tam / 2, tam, tam);
+      }
     }
 
     ctx.restore();
   }
 
   /**
-   * Hit-testing para detectar clics sobre manijas o sobre el cuerpo de la capa.
+   * Hit-testing para detectar toques o clics sobre manijas o sobre el cuerpo de la capa.
+   * Área de toque ampliada a 44 px para manijas y margen de toque de 12 px para cuerpo.
    */
   obtenerHitTest(canvasX, canvasY, capa, mesa) {
     if (!capa || !capa.visible) return null;
@@ -219,41 +237,47 @@ export class GestorImagenes {
     const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
 
     if (capa.locked) {
-      if (Math.abs(lx) <= wPx / 2 && Math.abs(ly) <= hPx / 2) {
+      if (Math.abs(lx) <= (wPx / 2 + this.margenToqueCuerpoPx) && Math.abs(ly) <= (hPx / 2 + this.margenToqueCuerpoPx)) {
         return { tipo: 'bloqueado', capa };
       }
       return null;
     }
 
-    // Verificar manija de rotación
+    // 1. Verificar manija de rotación (área de toque de 44 px)
     const brazoPx = this.brazoRotacionCm * escala;
     const rotY = -hPx / 2 - brazoPx;
-    if (Math.hypot(lx, ly - rotY) <= this.manijaRadioPx + 4) {
-      return { tipo: 'rotar', capa };
+    if (Math.hypot(lx, ly - rotY) <= this.manijaHitRadioPx) {
+      return { tipo: 'rotar', capa, cursor: 'grab' };
     }
 
-    // Verificar las 8 manijas de escala
-    const umbral = this.manijaRadioPx + 4;
+    // 2. Verificar las 8 manijas de escala (área de toque de 44 px)
+    const umbralHit = this.manijaHitRadioPx; // 22 px radio => 44 px área de toque
     const manijas = [
-      { id: 'tl', x: -wPx / 2, y: -hPx / 2, cursor: 'nwse-resize' },
-      { id: 'tr', x: wPx / 2,  y: -hPx / 2, cursor: 'nesw-resize' },
-      { id: 'br', x: wPx / 2,  y: hPx / 2,  cursor: 'nwse-resize' },
-      { id: 'bl', x: -wPx / 2, y: hPx / 2,  cursor: 'nesw-resize' },
-      { id: 'tm', x: 0,        y: -hPx / 2, cursor: 'ns-resize' },
-      { id: 'bm', x: 0,        y: hPx / 2,  cursor: 'ns-resize' },
-      { id: 'ml', x: -wPx / 2, y: 0,        cursor: 'ew-resize' },
-      { id: 'mr', x: wPx / 2,  y: 0,        cursor: 'ew-resize' }
+      { id: 'tl', x: -wPx / 2, y: -hPx / 2, cursor: 'nwse-resize', esEsquina: true },
+      { id: 'tr', x: wPx / 2,  y: -hPx / 2, cursor: 'nesw-resize', esEsquina: true },
+      { id: 'br', x: wPx / 2,  y: hPx / 2,  cursor: 'nwse-resize', esEsquina: true },
+      { id: 'bl', x: -wPx / 2, y: hPx / 2,  cursor: 'nesw-resize', esEsquina: true },
+      { id: 'tm', x: 0,        y: -hPx / 2, cursor: 'ns-resize',   esEsquina: false },
+      { id: 'bm', x: 0,        y: hPx / 2,  cursor: 'ns-resize',   esEsquina: false },
+      { id: 'ml', x: -wPx / 2, y: 0,        cursor: 'ew-resize',   esEsquina: false },
+      { id: 'mr', x: wPx / 2,  y: 0,        cursor: 'ew-resize',   esEsquina: false }
     ];
 
     for (const m of manijas) {
-      if (Math.abs(lx - m.x) <= umbral && Math.abs(ly - m.y) <= umbral) {
-        return { tipo: 'manija', manijaId: m.id, cursor: m.cursor, capa };
+      if (Math.abs(lx - m.x) <= umbralHit && Math.abs(ly - m.y) <= umbralHit) {
+        return {
+          tipo: 'manija',
+          manijaId: m.id,
+          cursor: m.cursor,
+          esEsquina: m.esEsquina,
+          capa
+        };
       }
     }
 
-    // Verificar cuerpo de la capa para arrastrar
-    if (Math.abs(lx) <= wPx / 2 && Math.abs(ly) <= hPx / 2) {
-      return { tipo: 'cuerpo', capa };
+    // 3. Verificar cuerpo de la capa con margen de toque de 12 px
+    if (Math.abs(lx) <= (wPx / 2 + this.margenToqueCuerpoPx) && Math.abs(ly) <= (hPx / 2 + this.margenToqueCuerpoPx)) {
+      return { tipo: 'cuerpo', capa, cursor: 'move' };
     }
 
     return null;
