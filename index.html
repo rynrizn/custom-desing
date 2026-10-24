@@ -282,7 +282,7 @@
                 </div>
 
                 <div class="form-row">
-                  <div class="field-group">
+                  <div class="field-group" id="textPtFieldGroup" style="display:none;">
                     <label class="field-label" for="textPtInput">Tamaño (pt)</label>
                     <input type="number" id="textPtInput" class="ribbon-input" min="10" max="200" step="2" value="42">
                   </div>
@@ -481,9 +481,9 @@
               <button type="button" id="nudgeRightBtn" class="btn-tune" title="1 mm Derecha" aria-label="1 mm Derecha">▶</button>
             </div>
 
-            <div class="tune-divider"></div>
+            <div class="tune-divider" id="fineTuneSizeDivider"></div>
 
-            <div class="fine-tune-group" title="Tamaño y Proporción">
+            <div class="fine-tune-group" id="fineTuneSizeGroup" title="Tamaño y Proporción">
               <button type="button" id="scaleDownBtn" class="btn-tune" title="Reducir 5%" aria-label="Reducir tamaño">−</button>
               <span class="tune-label">TAMAÑO</span>
               <button type="button" id="scaleUpBtn" class="btn-tune" title="Aumentar 5%" aria-label="Aumentar tamaño">+</button>

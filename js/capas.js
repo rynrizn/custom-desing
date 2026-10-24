@@ -268,6 +268,10 @@ export class GestorCapas {
 
     if (fineTuneEl) {
       fineTuneEl.style.display = 'flex';
+      const sizeGroup = document.getElementById('fineTuneSizeGroup');
+      const sizeDivider = document.getElementById('fineTuneSizeDivider');
+      if (sizeGroup) sizeGroup.style.display = (capa.tipo === 'texto') ? 'none' : 'flex';
+      if (sizeDivider) sizeDivider.style.display = (capa.tipo === 'texto') ? 'none' : 'block';
       const aspectBtn = document.getElementById('toggleAspectBtn');
       if (aspectBtn) {
         aspectBtn.textContent = (capa.lockAspect !== false) ? '🔒' : '🔓';

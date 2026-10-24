@@ -937,6 +937,14 @@ export class ControladorUI {
     const inputAngle = document.getElementById('inputAngleDeg');
     const inputOpacity = document.getElementById('inputOpacityRange');
 
+    if (capa.tipo === 'texto') {
+      if (inputW) { inputW.disabled = true; inputW.title = 'El tamaño del texto se ajusta automáticamente según su contenido'; }
+      if (inputH) { inputH.disabled = true; inputH.title = 'El tamaño del texto se ajusta automáticamente según su contenido'; }
+    } else {
+      if (inputW) { inputW.disabled = false; inputW.title = ''; }
+      if (inputH) { inputH.disabled = false; inputH.title = ''; }
+    }
+
     const unidad = estado.datos.unidades;
     if (inputW) inputW.value = UNIDADES.deCmAActiva(capa.widthCm, unidad).toFixed(1);
     if (inputH) inputH.value = UNIDADES.deCmAActiva(capa.heightCm, unidad).toFixed(1);
@@ -994,11 +1002,9 @@ export class ControladorUI {
   escalarCapaSeleccionada(factor) {
     const sel = estado.capaSeleccionada;
     if (sel && !sel.locked) {
+      if (sel.tipo === 'texto') return; // El texto no se escala ni estira
       sel.widthCm = parseFloat(Math.max(1.5, Math.min(70.0, sel.widthCm * factor)).toFixed(2));
       sel.heightCm = parseFloat(Math.max(1.5, Math.min(70.0, sel.heightCm * factor)).toFixed(2));
-      if (sel.tipo === 'texto') {
-        sel.tamanoPt = Math.max(8, Math.round((sel.tamanoPt || 36) * factor));
-      }
       estado.notificar('capa-escalada', sel);
       estado.guardarSnapshotHistorial('Escalar tamaño elemento');
     }

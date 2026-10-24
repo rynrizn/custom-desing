@@ -383,14 +383,15 @@ class AplicacionCADTextil {
         let deltaDeg = Math.round((deltaRad * 180) / Math.PI);
 
         const capa = init.capa;
-        const nuevoW = Math.max(1.5, Math.min(70.0, init.widthCm * factor));
-        const nuevoH = Math.max(1.5, Math.min(70.0, init.heightCm * factor));
-        capa.widthCm = parseFloat(nuevoW.toFixed(2));
-        capa.heightCm = parseFloat(nuevoH.toFixed(2));
-        capa.angleDeg = (init.angleDeg + deltaDeg) % 360;
-
         if (capa.tipo === 'texto') {
-          capa.tamanoPt = Math.max(8, Math.round(init.tamanoPt * factor));
+          // El texto solo rota y se mueve, no se escala ni estira
+          capa.angleDeg = (init.angleDeg + deltaDeg) % 360;
+        } else {
+          const nuevoW = Math.max(1.5, Math.min(70.0, init.widthCm * factor));
+          const nuevoH = Math.max(1.5, Math.min(70.0, init.heightCm * factor));
+          capa.widthCm = parseFloat(nuevoW.toFixed(2));
+          capa.heightCm = parseFloat(nuevoH.toFixed(2));
+          capa.angleDeg = (init.angleDeg + deltaDeg) % 360;
         }
         estado.notificar('capa-escalada', capa);
       } else if (this.operacionActiva === 'gesto-mesa' && this.gestoMesaInicial) {
@@ -488,6 +489,7 @@ class AplicacionCADTextil {
 
   aplicarTransformacionManija(dxPx, dyPx, shiftKey) {
     const capa = this.capaInteraccion;
+    if (!capa || capa.tipo === 'texto') return; // El texto no se transforma con manijas
     const inicial = this.estadoInicialCapa;
     const escala = this.mesa.pxPorCmBase * this.mesa.zoom;
     const id = this.manijaInteraccion;

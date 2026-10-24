@@ -185,7 +185,13 @@ export class GestorImagenes {
     ctx.lineWidth = 1.6;
     ctx.stroke();
 
-    // 8 Manijas de transformación visibles de 14 px exactos
+    // Las capas de texto NO tienen manijas de estiramiento/escala (solo mover y rotar)
+    if (capa.tipo === 'texto') {
+      ctx.restore();
+      return;
+    }
+
+    // 8 Manijas de transformación visibles de 14 px exactos para imágenes
     const puntos = [
       { id: 'tl', x: -wPx / 2, y: -hPx / 2, tipo: 'esquina' },
       { id: 'tm', x: 0,        y: -hPx / 2, tipo: 'lado' },
@@ -250,28 +256,30 @@ export class GestorImagenes {
       return { tipo: 'rotar', capa, cursor: 'grab' };
     }
 
-    // 2. Verificar las 8 manijas de escala (área de toque de 44 px)
-    const umbralHit = this.manijaHitRadioPx; // 22 px radio => 44 px área de toque
-    const manijas = [
-      { id: 'tl', x: -wPx / 2, y: -hPx / 2, cursor: 'nwse-resize', esEsquina: true },
-      { id: 'tr', x: wPx / 2,  y: -hPx / 2, cursor: 'nesw-resize', esEsquina: true },
-      { id: 'br', x: wPx / 2,  y: hPx / 2,  cursor: 'nwse-resize', esEsquina: true },
-      { id: 'bl', x: -wPx / 2, y: hPx / 2,  cursor: 'nesw-resize', esEsquina: true },
-      { id: 'tm', x: 0,        y: -hPx / 2, cursor: 'ns-resize',   esEsquina: false },
-      { id: 'bm', x: 0,        y: hPx / 2,  cursor: 'ns-resize',   esEsquina: false },
-      { id: 'ml', x: -wPx / 2, y: 0,        cursor: 'ew-resize',   esEsquina: false },
-      { id: 'mr', x: wPx / 2,  y: 0,        cursor: 'ew-resize',   esEsquina: false }
-    ];
+    // 2. Verificar las 8 manijas de escala (solo para imágenes, el texto no se estira ni escala)
+    if (capa.tipo !== 'texto') {
+      const umbralHit = this.manijaHitRadioPx; // 22 px radio => 44 px área de toque
+      const manijas = [
+        { id: 'tl', x: -wPx / 2, y: -hPx / 2, cursor: 'nwse-resize', esEsquina: true },
+        { id: 'tr', x: wPx / 2,  y: -hPx / 2, cursor: 'nesw-resize', esEsquina: true },
+        { id: 'br', x: wPx / 2,  y: hPx / 2,  cursor: 'nwse-resize', esEsquina: true },
+        { id: 'bl', x: -wPx / 2, y: hPx / 2,  cursor: 'nesw-resize', esEsquina: true },
+        { id: 'tm', x: 0,        y: -hPx / 2, cursor: 'ns-resize',   esEsquina: false },
+        { id: 'bm', x: 0,        y: hPx / 2,  cursor: 'ns-resize',   esEsquina: false },
+        { id: 'ml', x: -wPx / 2, y: 0,        cursor: 'ew-resize',   esEsquina: false },
+        { id: 'mr', x: wPx / 2,  y: 0,        cursor: 'ew-resize',   esEsquina: false }
+      ];
 
-    for (const m of manijas) {
-      if (Math.abs(lx - m.x) <= umbralHit && Math.abs(ly - m.y) <= umbralHit) {
-        return {
-          tipo: 'manija',
-          manijaId: m.id,
-          cursor: m.cursor,
-          esEsquina: m.esEsquina,
-          capa
-        };
+      for (const m of manijas) {
+        if (Math.abs(lx - m.x) <= umbralHit && Math.abs(ly - m.y) <= umbralHit) {
+          return {
+            tipo: 'manija',
+            manijaId: m.id,
+            cursor: m.cursor,
+            esEsquina: m.esEsquina,
+            capa
+          };
+        }
       }
     }
 
