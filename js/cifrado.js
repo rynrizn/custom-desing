@@ -11,6 +11,7 @@
  */
 
 import { CONFIG } from './config.js';
+import { gestorAlmacenamiento } from './almacenamiento.js';
 
 const MAGIC_ZRN1 = new Uint8Array([0x5A, 0x52, 0x4E, 0x31]); // ASCII: "ZRN1"
 
@@ -236,9 +237,9 @@ export class MotorCifradoZRN {
   /**
    * Gestiona el envío del archivo cifrado a ZAIRENLAB vía Web Share API o WhatsApp.
    */
-  async enviarPedidoAZairenLab(zrnBlob, metadataPedido) {
-    const fecha = new Date().toISOString().split('T')[0];
-    const nombreArchivo = `pedido-zairen-${fecha}.zrn`;
+  async enviarPedidoAZairenLab(zrnBlob, metadataPedido, codigoPedido = null) {
+    const codigo = codigoPedido || metadataPedido?.codigoPedido || gestorAlmacenamiento.generarCodigoPedido();
+    const nombreArchivo = `${codigo}.zrn`;
     const archivoZrn = new File([zrnBlob], nombreArchivo, { type: 'application/octet-stream' });
 
     // Intento 1: Web Share API con archivo adjunto (móviles modernos)
@@ -246,8 +247,8 @@ export class MotorCifradoZRN {
       try {
         await navigator.share({
           files: [archivoZrn],
-          title: 'Pedido ZAIRENLAB',
-          text: `Pedido personalizado ZAIREN (${metadataPedido.resumen.totalUnidadesPrenda} prenda(s)). Archivo adjunto: ${nombreArchivo}`
+          title: `Pedido ZAIRENLAB (${codigo})`,
+          text: `Pedido personalizado ZAIREN con código ${codigo} (${metadataPedido?.resumen?.totalUnidadesPrenda || 1} prenda(s)). Archivo adjunto: ${nombreArchivo}`
         });
         return { metodo: 'webshare', exito: true };
       } catch (err) {
@@ -267,7 +268,8 @@ export class MotorCifradoZRN {
     setTimeout(() => URL.revokeObjectURL(url), 5000);
 
     const telefonoLimpio = (CONFIG.WHATSAPP_NEGOCIO || '').replace(/[^\d+]/g, '');
-    const mensajeWA = `¡Hola ZAIRENLAB! Acabo de generar mi pedido cifrado desde el editor (${nombreArchivo}). Les adjunto el archivo .zrn a continuación para su confección. WhatsApp de contacto: ${metadataPedido.cliente.whatsapp || 'Mismo número'}.`;
+    const contactoWA = metadataPedido?.cliente?.whatsapp || 'Mismo número';
+    const mensajeWA = `¡Hola ZAIRENLAB! Acabo de generar mi pedido con código ${codigo} desde el editor. Les adjunto el archivo ${codigo}.zrn a continuación para confección. WhatsApp de contacto: ${contactoWA}.`;
     const urlWA = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(mensajeWA)}`;
 
     window.open(urlWA, '_blank');

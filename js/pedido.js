@@ -9,6 +9,7 @@
 
 import { CONFIG } from './config.js';
 import { estado } from './estado.js';
+import { gestorAlmacenamiento } from './almacenamiento.js';
 
 export class GestorPedido {
   constructor() {}
@@ -89,9 +90,11 @@ export class GestorPedido {
   /**
    * Genera el objeto JSON formal del pedido con todas sus poleras y metadatos.
    */
-  generarObjetoPedidoJSON() {
+  generarObjetoPedidoJSON(codigoPedido = null) {
+    const codigo = codigoPedido || gestorAlmacenamiento.generarCodigoPedido();
     return {
       version: '2.0',
+      codigoPedido: codigo,
       creadoEn: new Date().toISOString(),
       cliente: {
         whatsapp: estado.datos.clienteWhatsApp || '',

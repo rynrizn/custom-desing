@@ -17,6 +17,7 @@ import { gestorImagenes } from './imagenes.js';
 import { gestorTexto } from './texto.js';
 import { gestorPedido } from './pedido.js';
 import { UNIDADES } from './unidades.js';
+import { gestorAlmacenamiento } from './almacenamiento.js';
 
 export class ExportadorArchivos {
   constructor() {}
@@ -24,11 +25,12 @@ export class ExportadorArchivos {
   /**
    * Genera el paquete ZIP de VISTA PREVIA (para el cliente) con marca de agua "ZAIRENLAB".
    */
-  async generarZipVistaPreviaCliente() {
+  async generarZipVistaPreviaCliente(codigoPedido = null) {
     if (typeof JSZip === 'undefined') {
       throw new Error('La librería JSZip no está disponible en la página.');
     }
 
+    const codigo = codigoPedido || gestorAlmacenamiento.generarCodigoPedido();
     const zip = new JSZip();
     let totalImagenesAgregadas = 0;
 
@@ -63,11 +65,10 @@ export class ExportadorArchivos {
     }
 
     // Agregar resumen de pedido en el ZIP de vista previa
-    zip.file('resumen_pedido.txt', this.generarResumenCliente());
+    zip.file('resumen_pedido.txt', this.generarResumenCliente(codigo));
 
     const blobZip = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-    const fecha = new Date().toISOString().split('T')[0];
-    const nombreDescarga = `ZAIREN-VistaPrevia-${fecha}.zip`;
+    const nombreDescarga = `vista-previa-${codigo}.zip`;
 
     this.descargarBlobEnNavegador(blobZip, nombreDescarga);
     return blobZip;
@@ -76,18 +77,19 @@ export class ExportadorArchivos {
   /**
    * Empaqueta el ZIP técnico interno para el pedido (que luego será cifrado en .zrn).
    */
-  async empaquetarZipTecnicoPedido() {
+  async empaquetarZipTecnicoPedido(codigoPedido = null) {
     if (typeof JSZip === 'undefined') {
       throw new Error('La librería JSZip no está disponible.');
     }
 
+    const codigo = codigoPedido || gestorAlmacenamiento.generarCodigoPedido();
     const zip = new JSZip();
 
     // 1. LEEME.txt en raíz
     zip.file('LEEME.txt', this.generarLeemeTaller());
 
     // 2. pedido.json y proyecto.json en raíz
-    zip.file('pedido.json', JSON.stringify(gestorPedido.generarObjetoPedidoJSON(), null, 2));
+    zip.file('pedido.json', JSON.stringify(gestorPedido.generarObjetoPedidoJSON(codigo), null, 2));
     zip.file('proyecto.json', JSON.stringify(estado.datos, null, 2));
 
     // 3. Carpetas por polera: polera-N-[talla]-[HEX]/
@@ -298,9 +300,10 @@ export class ExportadorArchivos {
     ctx.restore();
   }
 
-  generarResumenCliente() {
-    const pedido = gestorPedido.generarObjetoPedidoJSON();
+  generarResumenCliente(codigoPedido = null) {
+    const pedido = gestorPedido.generarObjetoPedidoJSON(codigoPedido);
     return `ZAIREN CAD TEXTIL v2 — VISTA PREVIA DE PEDIDO
+Código de pedido: ${pedido.codigoPedido}
 Fecha: ${new Date().toLocaleDateString('es-ES')}
 WhatsApp: ${pedido.cliente.whatsapp}
 Total prendas: ${pedido.resumen.totalUnidadesPrenda}
