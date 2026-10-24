@@ -173,8 +173,13 @@ export class ControladorUI {
         if (mangaBtn) {
           mangaBtn.style.display = esManga ? 'inline-flex' : 'none';
         }
+        if (esManga) {
+          this.mesa.modoManga = 'plana';
+          const span = mangaBtn?.querySelector('span');
+          if (span) span.textContent = 'PATRÓN PLANO';
+        }
 
-        // Al cambiar de superficie, ajustar la mesa a la nueva pieza
+        // Al cambiar de superficie, ajustar la mesa a la nueva pieza (zoom al ~75% para mangas)
         this.mesa.ajustarAPantalla();
         this.actualizarListaCapas();
         this.actualizarHUDMedidas();
@@ -575,7 +580,9 @@ export class ControladorUI {
     document.getElementById('switchSleeveSideBtn')?.addEventListener('click', () => {
       const supActual = estado.datos.superficieActiva;
       const nuevaSup = supActual === 'manga_izquierda' ? 'manga_derecha' : 'manga_izquierda';
+      this.mesa.modoManga = 'plana';
       estado.setSuperficieActiva(nuevaSup);
+      this.mesa.ajustarAPantalla();
     });
 
     // Botón de alternancia rápida de Modo Espejo en la mesa

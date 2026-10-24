@@ -25,8 +25,8 @@ export class MesaDeTrabajo {
     this.panX = 0;
     this.panY = 0;
 
-    // Modo de manga: 'prenda' (vista anatómica en la polera) o 'plana' (patrón plano)
-    this.modoManga = 'prenda';
+    // Modo de manga: 'prenda' (vista anatómica en la polera) o 'plana' (patrón plano predeterminado)
+    this.modoManga = 'plana';
 
     // Estado de gestos
     this.isPanning = false;
@@ -101,24 +101,28 @@ export class MesaDeTrabajo {
     const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
     const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
 
-    let anchoPrenda, altoPrenda;
-    if (esManga && modoManga === 'plana') {
-      const { altoMangaCm, unionMangaCm } = motorPoleraSVG.obtenerEscalasTalla();
-      anchoPrenda = (unionMangaCm || 18.5) + 12.0;
-      altoPrenda = (altoMangaCm || 19.0) + 8.0;
-    } else {
-      const { anchoCm, largoCm } = motorPoleraSVG.obtenerEscalasTalla();
-      anchoPrenda = (anchoCm || 53.0) + 40.0; // Margen lateral para mangas en perspectiva
-      altoPrenda = (largoCm || 71.0) + 14.0;  // Polera 71 cm base
-    }
-
     const w = this.anchoLogico;
     const h = this.altoLogico;
 
-    const zoomX = (w * 0.90) / (anchoPrenda * this.pxPorCmBase);
-    const zoomY = (h * 0.86) / (altoPrenda * this.pxPorCmBase);
+    if (esManga && modoManga === 'plana') {
+      const { altoMangaCm, unionMangaCm, bocaMangaCm } = motorPoleraSVG.obtenerEscalasTalla();
+      const patronW = Math.max(unionMangaCm || 18.5, bocaMangaCm || 16.5);
+      const patronH = altoMangaCm || 19.0;
 
-    this.zoom = Math.max(0.35, Math.min(2.5, Math.min(zoomX, zoomY)));
+      // El patrón plano de manga ocupa ~75% del ancho y alto de la mesa
+      const zoomX = (w * 0.75) / (patronW * this.pxPorCmBase);
+      const zoomY = (h * 0.75) / (patronH * this.pxPorCmBase);
+      this.zoom = Math.max(0.35, Math.min(3.5, Math.min(zoomX, zoomY)));
+    } else {
+      const { anchoCm, largoCm } = motorPoleraSVG.obtenerEscalasTalla();
+      const anchoPrenda = (anchoCm || 53.0) + 40.0; // Margen lateral para mangas en perspectiva
+      const altoPrenda = (largoCm || 71.0) + 14.0;  // Polera 71 cm base
+
+      const zoomX = (w * 0.90) / (anchoPrenda * this.pxPorCmBase);
+      const zoomY = (h * 0.86) / (altoPrenda * this.pxPorCmBase);
+      this.zoom = Math.max(0.35, Math.min(2.5, Math.min(zoomX, zoomY)));
+    }
+
     this.panX = 0;
     this.panY = 0;
 

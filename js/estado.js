@@ -27,7 +27,7 @@ function crearPoleraInicial(id = 'polera-1', nombre = 'Polera 1') {
       manga_derecha: { capas: [] }
     },
     mangasEspejo: false,
-    mangasVoltear: false,
+    mangasVoltear: true,
     envolvente: false
   };
 }
