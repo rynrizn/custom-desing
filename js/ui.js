@@ -595,10 +595,7 @@ export class ControladorUI {
 
     // Botón para centrar en manga activa
     document.getElementById('sleevePresetCenterBtn')?.addEventListener('click', () => {
-      const sel = estado.capaSeleccionada;
-      if (sel) {
-        estado.actualizarCapa(sel.id, { xCm: 0, yCm: 9.5 });
-      }
+      gestorCapas.alinearCapa('center-zone');
     });
 
     // Deshacer y Rehacer
@@ -607,8 +604,7 @@ export class ControladorUI {
 
     // Barra Flotante Contextual
     document.getElementById('floatCenterBtn')?.addEventListener('click', () => {
-      gestorCapas.alinearCapa('center-h');
-      gestorCapas.alinearCapa('center-v');
+      gestorCapas.alinearCapa('center-zone');
     });
 
     document.getElementById('floatDupBtn')?.addEventListener('click', () => {

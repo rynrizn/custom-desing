@@ -392,26 +392,29 @@
       <section class="stage-container" aria-label="Lienzo de diseño interactivo">
         <!-- Barra Superior de Herramientas de Mesa -->
         <div class="stage-toolbar-top">
-          <!-- Alineación rápida respecto a la silueta -->
+          <!-- Alineación rápida respecto a la silueta y zona de impresión -->
           <div class="ribbon-group" aria-label="Alineación">
             <span class="ribbon-label">ALINEAR:</span>
-            <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda" disabled>
+            <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda de la zona" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="4" y2="20"/><rect x="8" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente" disabled>
+            <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente (eje central)" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><rect x="6" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="right" title="Alinear a la derecha" disabled>
+            <button type="button" class="btn-icon" data-align="right" title="Alinear a la derecha de la zona" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="20" y1="4" x2="20" y2="20"/><rect x="4" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="top" title="Alinear arriba (base cuello)" disabled>
+            <button type="button" class="btn-icon" data-align="top" title="Alinear arriba (tope zona impresión)" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="20" y2="4"/><rect x="7" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente" disabled>
+            <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente en la zona" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><rect x="7" y="6" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="bottom" title="Alinear al ruedo inferior" disabled>
+            <button type="button" class="btn-icon" data-align="bottom" title="Alinear abajo (fondo zona impresión)" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="20"/><rect x="7" y="4" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
+            </button>
+            <button type="button" class="btn-icon" data-align="center-zone" title="Centrar en zona de impresión" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="2"/></svg>
             </button>
           </div>
 
