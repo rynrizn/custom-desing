@@ -85,9 +85,9 @@ export class ControladorUI {
     // Al cambiar la altura del lienzo en móvil, reajustar resolución y centrado para que el elemento siga visible
     setTimeout(() => {
       if (this.app) {
-        this.app.ajustarResolucionCanvas();
-        this.mesa.ajustarAPantalla();
-        this.app.solicitarRender();
+        this.app.ajustarResolucionCanvas?.();
+        this.mesa?.ajustarAPantalla?.();
+        this.app.solicitarRender?.();
       }
     }, 60);
   }
@@ -812,10 +812,9 @@ export class ControladorUI {
   }
 
   sincronizarTema() {
-    if (estado.datos.tema === 'oscuro' || (estado.datos.tema === 'sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
+    const esOscuro = estado.datos.tema === 'oscuro' || (estado.datos.tema === 'sistema' && typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
+    if (document.documentElement) {
+      document.documentElement.setAttribute('data-theme', esOscuro ? 'dark' : 'light');
     }
   }
 
