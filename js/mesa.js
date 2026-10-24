@@ -64,8 +64,8 @@ export class MesaDeTrabajo {
     const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
     const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
 
-    // En patrón de manga plana centramos en y=9.5 cm. En torso (91.5 cm) centramos en y=44.0 cm.
-    const centroYPrenda = (esManga && modoManga === 'plana') ? 9.5 : 44.0;
+    // En patrón de manga plana centramos en y=9.5 cm. En torso (71 cm base) centramos en y=35.5 cm.
+    const centroYPrenda = (esManga && modoManga === 'plana') ? 9.5 : 35.5;
     const centroY = this.altoLogico / 2.0 - (centroYPrenda * escala) + this.panY;
 
     return {
@@ -84,7 +84,7 @@ export class MesaDeTrabajo {
     const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
     const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
 
-    const centroYPrenda = (esManga && modoManga === 'plana') ? 9.5 : 44.0;
+    const centroYPrenda = (esManga && modoManga === 'plana') ? 9.5 : 35.5;
     const centroY = this.altoLogico / 2.0 - (centroYPrenda * escala) + this.panY;
 
     return {
@@ -109,7 +109,7 @@ export class MesaDeTrabajo {
     } else {
       const { anchoCm, largoCm } = motorPoleraSVG.obtenerEscalasTalla();
       anchoPrenda = (anchoCm || 53.0) + 40.0; // Margen lateral para mangas en perspectiva
-      altoPrenda = (largoCm || 91.5) + 14.0;  // Polera alargada
+      altoPrenda = (largoCm || 71.0) + 14.0;  // Polera 71 cm base
     }
 
     const w = this.anchoLogico;
@@ -344,7 +344,10 @@ export class MesaDeTrabajo {
 
   dibujarCotasPrenda() {
     if (!estado.datos.mostrarCotas) return;
-    const { anchoCm, largoCm, altoCm } = motorPoleraSVG.obtenerEscalasTalla();
+    const superficie = estado.datos.superficieActiva;
+    const esManga = superficie === 'manga_izquierda' || superficie === 'manga_derecha';
+    const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
+    const { anchoCm, largoCm, altoMangaCm, bocaMangaCm, unionMangaCm, sy } = motorPoleraSVG.obtenerEscalasTalla();
     const unidad = estado.datos.unidades;
 
     this.ctx.save();
@@ -353,20 +356,37 @@ export class MesaDeTrabajo {
     this.ctx.lineWidth = 1;
     this.ctx.font = '11px monospace';
 
-    if (altoCm) {
-      // Manga plana
-      const { cx: xA, cy: yA } = this.mundoACanvas(0, 0);
-      const { cx: xB, cy: yB } = this.mundoACanvas(0, altoCm);
-      this.dibujarLineaCota(xA + 60, yA, xA + 60, yB, `ALTO: ${UNIDADES.formatear(altoCm, unidad)}`);
+    if (esManga && modoManga === 'plana') {
+      // Cotas de manga plana: ALTO, BOCA, UNIÓN
+      const semiBoca = (bocaMangaCm || 16.5) / 2;
+      const semiUnion = (unionMangaCm || 18.5) / 2;
+      const alto = altoMangaCm || 19.0;
+
+      // Cota de alto (lateral derecha)
+      const { cx: xA, cy: yA } = this.mundoACanvas(semiUnion + 2.5, 0);
+      const { cx: xB, cy: yB } = this.mundoACanvas(semiUnion + 2.5, alto);
+      this.dibujarLineaCota(xA, yA, xB, yB, `ALTO: ${UNIDADES.formatear(alto, unidad)}`);
+
+      // Cota de boca (puño inferior)
+      const { cx: xBocIzq, cy: yBoc } = this.mundoACanvas(-semiBoca, alto + 2.0);
+      const { cx: xBocDer } = this.mundoACanvas(semiBoca, alto + 2.0);
+      this.dibujarLineaCota(xBocIzq, yBoc, xBocDer, yBoc, `BOCA: ${UNIDADES.formatear(bocaMangaCm, unidad)}`);
+
+      // Cota de unión (sisa superior)
+      const { cx: xUniIzq, cy: yUni } = this.mundoACanvas(-semiUnion, -1.8);
+      const { cx: xUniDer } = this.mundoACanvas(semiUnion, -1.8);
+      this.dibujarLineaCota(xUniIzq, yUni, xUniDer, yUni, `UNIÓN: ${UNIDADES.formatear(unionMangaCm, unidad)}`);
     } else {
-      // Cuerpo Ancho
-      const { cx: xIzq, cy: yPecho } = this.mundoACanvas(-anchoCm / 2, 38.0);
-      const { cx: xDer } = this.mundoACanvas(anchoCm / 2, 38.0);
+      // Cuerpo Ancho (bajo axila a y = 28 * sy)
+      const yAxila = 28.0 * (sy || 1.0);
+      const { cx: xIzq, cy: yPecho } = this.mundoACanvas(-anchoCm / 2, yAxila);
+      const { cx: xDer } = this.mundoACanvas(anchoCm / 2, yAxila);
       this.dibujarLineaCota(xIzq, yPecho, xDer, yPecho, `ANCHO: ${UNIDADES.formatear(anchoCm, unidad)}`);
 
-      // Cuerpo Largo
-      const { cx: xEje, cy: yHombro } = this.mundoACanvas(anchoCm / 2 + 6, 0);
-      const { cy: yRuedo } = this.mundoACanvas(anchoCm / 2 + 6, largoCm);
+      // Cuerpo Largo (punto alto hombro y=0 a ruedo y=largoCm)
+      const offsetMargenX = anchoCm / 2 + 3.5;
+      const { cx: xEje, cy: yHombro } = this.mundoACanvas(offsetMargenX, 0);
+      const { cy: yRuedo } = this.mundoACanvas(offsetMargenX, largoCm);
       this.dibujarLineaCota(xEje, yHombro, xEje, yRuedo, `LARGO: ${UNIDADES.formatear(largoCm, unidad)}`);
     }
 
@@ -458,10 +478,10 @@ export class MesaDeTrabajo {
         this.guiasActivas.push({ tipo: 'horizontal', yCm: cuelloY, label: 'Base Cuello' });
       }
 
-      // Centro vertical del torso (pecho/espalda útil entre sisa y ombligo ~ 32 cm)
-      if (Math.abs(yCm - 32.0) < umbral) {
-        nuevoY = 32.0;
-        this.guiasActivas.push({ tipo: 'horizontal', yCm: 32.0, label: 'Centro Pecho' });
+      // Centro vertical del torso (pecho/espalda útil en zona de 30x40 cm a y = 28 cm)
+      if (Math.abs(yCm - 28.0) < umbral) {
+        nuevoY = 28.0;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 28.0, label: 'Centro Pecho' });
       }
 
       // Ruedo inferior
