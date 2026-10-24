@@ -16,6 +16,7 @@ import { gestorMangas } from './mangas.js';
 import { motorEnvolvente } from './envolvente.js';
 import { ControladorUI } from './ui.js';
 import { tourGuiado } from './tour.js';
+import { gestorAlmacenamiento } from './almacenamiento.js';
 
 class AplicacionCADTextil {
   constructor() {
@@ -57,7 +58,7 @@ class AplicacionCADTextil {
     this.enlazarEventosLienzo();
     this.enlazarAtajosTeclado();
 
-    // Suscribir render a cambios de estado
+    // Suscribir render y autoguardado a cambios de estado
     estado.suscribir((evento, payload) => {
       if (evento === 'cambio-superficie') {
         const esManga = payload === 'manga_izquierda' || payload === 'manga_derecha';
@@ -70,6 +71,11 @@ class AplicacionCADTextil {
         this.mesa.ajustarAPantalla();
       }
       this.solicitarRender();
+
+      // Programar autoguardado con debounce de 800 ms (omitir eventos meramente de vista/navegación)
+      if (!['zoom', 'pan', 'sesion-restaurada', 'cambio-superficie'].includes(evento)) {
+        gestorAlmacenamiento.programarAutoguardado(estado, this.ui);
+      }
     });
 
     // Ajustar prenda inicial al centro de la pantalla

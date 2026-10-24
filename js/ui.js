@@ -18,6 +18,7 @@ import { gestorPedido } from './pedido.js';
 import { exportadorArchivos } from './exportar.js';
 import { motorCifradoZRN } from './cifrado.js';
 import { tourGuiado } from './tour.js';
+import { gestorAlmacenamiento } from './almacenamiento.js';
 
 export class ControladorUI {
   constructor(mesa, app = null) {
@@ -50,6 +51,18 @@ export class ControladorUI {
 
     // Exponer globalmente para Driver.js en móvil
     window.appUI = this;
+
+    // Comprobar sesión previa guardada en IndexedDB
+    setTimeout(async () => {
+      try {
+        const tienePrevia = await gestorAlmacenamiento.comprobarSesionPrevia();
+        if (tienePrevia) {
+          document.getElementById('restoreSessionModalBackdrop')?.classList.add('open');
+        }
+      } catch (err) {
+        console.warn('Comprobación de sesión previa omitida:', err);
+      }
+    }, 150);
   }
 
   // --- Hojas Deslizables (Móvil) y Pestañas (Escritorio) ---
@@ -547,6 +560,37 @@ export class ControladorUI {
       estado.datos.indicaciones = e.target.value;
     });
 
+    // Guardar Proyecto JSON
+    document.getElementById('saveProjectBtn')?.addEventListener('click', () => {
+      try {
+        gestorAlmacenamiento.guardarProyectoJSON(estado);
+        this.mostrarNotificacion('Proyecto guardado exitosamente.');
+      } catch (err) {
+        this.mostrarNotificacion(`Error al guardar: ${err.message}`);
+      }
+    });
+
+    // Abrir Proyecto JSON
+    const fileInput = document.getElementById('projectFileInput');
+    document.getElementById('openProjectBtn')?.addEventListener('click', () => {
+      fileInput?.click();
+    });
+
+    fileInput?.addEventListener('change', async (e) => {
+      const archivo = e.target.files?.[0];
+      if (archivo) {
+        try {
+          await gestorAlmacenamiento.abrirProyectoJSON(archivo, estado, this);
+          this.mesa?.ajustarAPantalla?.();
+          this.app?.solicitarRender?.();
+        } catch (_) {
+          // El aviso de error ya lo muestra abrirProyectoJSON
+        } finally {
+          fileInput.value = '';
+        }
+      }
+    });
+
     // Botón Descargar Vista Previa ZIP
     document.getElementById('downloadPreviewZipBtn')?.addEventListener('click', async () => {
       try {
@@ -786,12 +830,13 @@ export class ControladorUI {
       btn.textContent = 'Cifrando pedido...';
 
       try {
-        const zipArrayBuffer = await exportadorArchivos.empaquetarZipTecnicoPedido();
+        const codigo = gestorAlmacenamiento.generarCodigoPedido();
+        const zipArrayBuffer = await exportadorArchivos.empaquetarZipTecnicoPedido(codigo);
         const zrnBlob = await motorCifradoZRN.cifrarPaqueteZRN(zipArrayBuffer);
-        const metadata = gestorPedido.generarObjetoPedidoJSON();
+        const metadata = gestorPedido.generarObjetoPedidoJSON(codigo);
 
-        await motorCifradoZRN.enviarPedidoAZairenLab(zrnBlob, metadata);
-        this.mostrarNotificacion('¡Pedido cifrado generado con éxito!');
+        await motorCifradoZRN.enviarPedidoAZairenLab(zrnBlob, metadata, codigo);
+        this.mostrarNotificacion(`¡Pedido cifrado generado con éxito! Código: ${codigo}`);
         document.getElementById('exportModalBackdrop').classList.remove('open');
       } catch (err) {
         this.mostrarNotificacion(`Error: ${err.message}`);
@@ -799,6 +844,27 @@ export class ControladorUI {
         btn.disabled = false;
         btn.textContent = txt;
       }
+    });
+
+    // Modal de Restauración de Sesión Previa (IndexedDB)
+    document.getElementById('restoreSessionBtn')?.addEventListener('click', async () => {
+      document.getElementById('restoreSessionModalBackdrop')?.classList.remove('open');
+      const ok = await gestorAlmacenamiento.restaurarSesion(estado);
+      if (ok) {
+        this.mostrarNotificacion('Diseño anterior restaurado con éxito.');
+        this.mesa?.ajustarAPantalla?.();
+        this.app?.solicitarRender?.();
+      }
+    });
+
+    document.getElementById('startFreshBtn')?.addEventListener('click', async () => {
+      document.getElementById('restoreSessionModalBackdrop')?.classList.remove('open');
+      await gestorAlmacenamiento.limpiarSesion();
+      this.mostrarNotificacion('Nuevo diseño iniciado.');
+    });
+
+    document.getElementById('restoreModalCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('restoreSessionModalBackdrop')?.classList.remove('open');
     });
 
     // Tema

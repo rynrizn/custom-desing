@@ -386,8 +386,17 @@
               <textarea id="notesTextarea" class="textarea-input" rows="3" placeholder="Detalles de costura, posición o empaque especial..."></textarea>
             </div>
 
-            <!-- Botones Principales de Salida -->
+            <!-- Botones de Guardar / Abrir Proyecto JSON y Salida -->
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <button type="button" id="saveProjectBtn" class="btn btn-secondary" style="font-size:11px;" title="Guardar proyecto completo en archivo .json sin cifrar">
+                  <span>💾 GUARDAR PROYECTO</span>
+                </button>
+                <button type="button" id="openProjectBtn" class="btn btn-secondary" style="font-size:11px;" title="Abrir y continuar un proyecto .json previo">
+                  <span>📂 ABRIR PROYECTO</span>
+                </button>
+              </div>
+              <input type="file" id="projectFileInput" accept=".json,application/json" style="display:none;">
               <button type="button" id="downloadPreviewZipBtn" class="btn btn-ghost" style="width:100%;">
                 <span>DESCARGAR VISTA PREVIA (ZIP)</span>
               </button>
@@ -614,6 +623,23 @@
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
         <button type="button" class="btn btn-ghost modal-close-btn">Seguir editando</button>
         <button type="button" id="confirmDownloadBtn" class="btn btn-crimson">Generar y Descargar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE RECUPERACIÓN DE SESIÓN (AUTOGUARDADO INDEXEDDB) -->
+  <div class="modal-backdrop" id="restoreSessionModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="restoreSessionModalTitle">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span id="restoreSessionModalTitle">🎨 Diseño anterior detectado</span>
+        <button type="button" class="btn-icon modal-close-btn" id="restoreModalCloseBtn" aria-label="Cerrar">✕</button>
+      </div>
+      <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+        Se encontró un proyecto guardado automáticamente en tu navegador. ¿Deseas retomar tu diseño o empezar una nueva prenda desde cero?
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+        <button type="button" id="startFreshBtn" class="btn btn-ghost">Empezar de cero</button>
+        <button type="button" id="restoreSessionBtn" class="btn btn-crimson">Continuar donde lo dejaste</button>
       </div>
     </div>
   </div>
