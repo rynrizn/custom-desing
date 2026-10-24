@@ -17,26 +17,26 @@ export const CONFIG = {
   // Este campo queda vacío por seguridad; solo se usa como fallback en desarrollo local offline.
   RSA_PUBLIC_KEY: '',
 
-  // Tabla de Tallas del Cuerpo (en centímetros reales para la polera base alargada 53x91.5 cm)
-  // Medidas: ancho de sisa a sisa / largo desde el punto alto del hombro al ruedo
+  // Tabla de Tallas del Cuerpo (en centímetros reales, Talla M base: 53 × 71 cm)
+  // Medidas: ancho de sisa a sisa (bajo axila) / largo desde punto alto del hombro (y=0) al ruedo
   TALLAS_CUERPO: {
-    S:   { ancho: 50, largo: 89.0, estimada: true },
-    M:   { ancho: 53, largo: 91.5, estimada: false }, // Talla M es la base de referencia SVG
-    L:   { ancho: 54, largo: 92.5, estimada: false },
-    XL:  { ancho: 57, largo: 94.5, estimada: true },
-    XXL: { ancho: 60, largo: 96.5, estimada: true }
+    S:   { ancho: 50, largo: 69, estimada: true },
+    M:   { ancho: 53, largo: 71, estimada: false }, // Medida real física de taller (fuente de verdad)
+    L:   { ancho: 54, largo: 72, estimada: false }, // Medida real física de taller
+    XL:  { ancho: 57, largo: 74, estimada: true },
+    XXL: { ancho: 60, largo: 76, estimada: true }
   },
 
   // Dimensiones Paramétricas de las Mangas Planas (en centímetros)
-  // alto: largo de la manga desde la sisa al puño
-  // boca: ancho de la abertura de la manga (puño plano)
+  // alto: largo de la manga por el borde superior
+  // boca: ancho real plano de la abertura (puño)
   // union: ancho en la costura de unión con el cuerpo
   TALLAS_MANGAS: {
-    S:   { alto: 18, boca: 15.5, union: 17.5 },
-    M:   { alto: 19, boca: 16.5, union: 18.5 },
-    L:   { alto: 21, boca: 18.5, union: 20.5 },
-    XL:  { alto: 22, boca: 19.5, union: 21.5 },
-    XXL: { alto: 23, boca: 20.5, union: 22.5 }
+    S:   { alto: 18, boca: 15.5, union: 17.5, estimada: true },
+    M:   { alto: 19, boca: 16.5, union: 18.5, estimada: false },
+    L:   { alto: 21, boca: 18.5, union: 20.5, estimada: false }, // Manga +2 cm respecto a M
+    XL:  { alto: 22, boca: 19.5, union: 21.5, estimada: true },
+    XXL: { alto: 23, boca: 20.5, union: 22.5, estimada: true }
   },
 
   // Zonas Máximas de Estampado Recomendadas (en centímetros)
