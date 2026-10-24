@@ -36,8 +36,12 @@ export class GestorMangas {
       clon.id = `espejo-${capa.id}`;
       clon.xCm = -capa.xCm;
 
-      // Si "voltear" está activado, invierte el reflejo para que el texto se lea al derecho
+      // "No invertir texto al reflejar" (mangasVoltear = true):
+      // Mantiene el texto legible al derecho (clon.flipH = capa.flipH).
+      // Si mangasVoltear es false, invierte simétricamente (clon.flipH = !capa.flipH).
       if (polera.mangasVoltear) {
+        clon.flipH = capa.flipH;
+      } else {
         clon.flipH = !capa.flipH;
       }
       return clon;

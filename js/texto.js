@@ -78,22 +78,28 @@ export class GestorTexto {
     const fontWeight = capa.bold ? 'bold' : 'normal';
     const fontSizePx = (capa.tamanoPt / 72.0) * 2.54 * pxPorCm * (capa.scaleY || 1.0);
 
-    this.ctxMedicion.save();
-    this.ctxMedicion.font = `${fontStyle} ${fontWeight} ${fontSizePx}px "${capa.fuente}", sans-serif`;
-
     const lineas = (capa.texto || '').split('\n');
     let maxAnchoPx = 0;
     const altoLineaPx = fontSizePx * (capa.lineHeight || 1.25);
 
-    for (const l of lineas) {
-      const metricas = this.ctxMedicion.measureText(l);
-      let anchoL = metricas.width;
-      if (capa.letterSpacing) {
-        anchoL += (l.length - 1) * capa.letterSpacing;
+    if (this.ctxMedicion) {
+      this.ctxMedicion.save();
+      this.ctxMedicion.font = `${fontStyle} ${fontWeight} ${fontSizePx}px "${capa.fuente}", sans-serif`;
+      for (const l of lineas) {
+        const metricas = this.ctxMedicion.measureText(l);
+        let anchoL = metricas.width;
+        if (capa.letterSpacing) {
+          anchoL += (l.length - 1) * capa.letterSpacing;
+        }
+        if (anchoL > maxAnchoPx) maxAnchoPx = anchoL;
       }
-      if (anchoL > maxAnchoPx) maxAnchoPx = anchoL;
+      this.ctxMedicion.restore();
+    } else {
+      for (const l of lineas) {
+        let anchoL = l.length * fontSizePx * 0.6;
+        if (anchoL > maxAnchoPx) maxAnchoPx = anchoL;
+      }
     }
-    this.ctxMedicion.restore();
 
     const altoTotalPx = Math.max(fontSizePx, lineas.length * altoLineaPx);
     // Margen adicional de seguridad para trazos acentuados o sombras

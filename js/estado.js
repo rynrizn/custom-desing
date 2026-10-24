@@ -248,7 +248,12 @@ class EstadoApp {
       clon.id = `espejo-${c.id}`;
       // Invertir posición horizontal respecto al eje central
       clon.xCm = -c.xCm;
+      // "No invertir texto al reflejar" (mangasVoltear = true):
+      // Mantiene el texto legible al derecho (clon.flipH = c.flipH).
+      // Si mangasVoltear es false, invierte simétricamente (clon.flipH = !c.flipH).
       if (p.mangasVoltear) {
+        clon.flipH = c.flipH;
+      } else {
         clon.flipH = !c.flipH;
       }
       return clon;
