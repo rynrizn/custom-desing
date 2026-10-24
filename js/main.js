@@ -25,11 +25,22 @@ class AplicacionCADTextil {
     this.ui = null;
 
     // Estado de interacción interactiva sobre capas
-    this.operacionActiva = null; // null | 'mover' | 'rotar' | 'manija' | 'pan'
+    this.operacionActiva = null; // null | 'mover' | 'rotar' | 'manija' | 'pan' | 'vacio' | 'gesto-elemento' | 'gesto-mesa'
     this.capaInteraccion = null;
     this.manijaInteraccion = null;
     this.inicioPuntero = { x: 0, y: 0 };
     this.estadoInicialCapa = null;
+    this.arrastreIniciado = false;
+
+    // Gestor multitáctil con mapa de punteros activos
+    this.punterosActivos = new Map();
+    this.gestoElementoInicial = null;
+    this.gestoMesaInicial = null;
+
+    // Herramienta mano y detección de doble toque
+    this.modoMano = false;
+    this.espacioPresionado = false;
+    this.ultimoTap = { tiempo: 0, x: 0, y: 0 };
 
     this.renderPendiente = false;
   }
@@ -196,6 +207,68 @@ class AplicacionCADTextil {
     this.canvas.setPointerCapture(e.pointerId);
     const { x, y } = this.obtenerCoordenadasCanvas(e);
 
+    this.punterosActivos.set(e.pointerId, {
+      id: e.pointerId,
+      x,
+      y,
+      startX: x,
+      startY: y,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      tiempo: performance.now()
+    });
+
+    // 1. Caso Multitáctil (2 dedos): Gesto de zoom/pan de mesa o escalar/girar elemento
+    if (this.punterosActivos.size === 2) {
+      const punteros = Array.from(this.punterosActivos.values());
+      const p1 = punteros[0];
+      const p2 = punteros[1];
+
+      const midX = (p1.x + p2.x) / 2;
+      const midY = (p1.y + p2.y) / 2;
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+      const sel = estado.capaSeleccionada;
+      // Comprobar si los dedos interactúan directamente sobre el elemento seleccionado
+      const hit1 = sel ? gestorImagenes.obtenerHitTest(p1.startX, p1.startY, sel, this.mesa) : null;
+      const hit2 = sel ? gestorImagenes.obtenerHitTest(p2.startX, p2.startY, sel, this.mesa) : null;
+
+      if (sel && !sel.locked && (hit1 || hit2)) {
+        this.operacionActiva = 'gesto-elemento';
+        this.gestoElementoInicial = {
+          dist,
+          angle,
+          capa: sel,
+          widthCm: sel.widthCm,
+          heightCm: sel.heightCm,
+          angleDeg: sel.angleDeg || 0,
+          tamanoPt: sel.tamanoPt || 36
+        };
+      } else {
+        this.operacionActiva = 'gesto-mesa';
+        this.gestoMesaInicial = {
+          dist,
+          midX,
+          midY,
+          zoomInicial: this.mesa.zoom,
+          panXInicial: this.mesa.panX,
+          panYInicial: this.mesa.panY,
+          puntoMundo: this.mesa.canvasAMundo(midX, midY)
+        };
+      }
+      this.solicitarRender();
+      return;
+    }
+
+    if (this.punterosActivos.size > 2) {
+      return;
+    }
+
+    // 2. Caso de 1 Dedo o Puntero Único
+
     // 0. Interacción con miniatura PiP de manga (alternar vista polera / patrón plano)
     if (gestorMangas.esHitEnMiniaturaPiP(x, y, this.mesa)) {
       this.mesa.modoManga = this.mesa.modoManga === 'plana' ? 'prenda' : 'plana';
@@ -209,8 +282,8 @@ class AplicacionCADTextil {
       return;
     }
 
-    // Si se pulsa botón secundario o central, o la barra espaciadora, iniciar desplazamiento (Pan)
-    if (e.button === 1 || e.button === 2 || e.spaceKey) {
+    // Modo Mano, botón central (1), botón derecho (2) o barra espaciadora -> Iniciar desplazamiento (Pan)
+    if (this.modoMano || e.button === 1 || e.button === 2 || this.espacioPresionado) {
       this.operacionActiva = 'pan';
       this.mesa.iniciarPan(e.clientX, e.clientY);
       return;
@@ -219,7 +292,7 @@ class AplicacionCADTextil {
     const capas = estado.capasSuperficieActiva;
     let hit = null;
 
-    // Primero comprobar la capa actualmente seleccionada (sus manijas tienen prioridad)
+    // Primero comprobar la capa actualmente seleccionada (sus manijas tienen prioridad con 44 px hit target)
     const sel = estado.capaSeleccionada;
     if (sel) {
       hit = gestorImagenes.obtenerHitTest(x, y, sel, this.mesa);
@@ -243,11 +316,9 @@ class AplicacionCADTextil {
       const pMundo = this.mesa.canvasAMundo(x, y);
       if (pMundo.yCm >= 4.0 && pMundo.yCm <= 42.0) {
         if (pMundo.xCm <= -26.0 && pMundo.xCm >= -48.0) {
-          // Clic directo sobre la manga izquierda
           estado.setSuperficieActiva('manga_izquierda');
           return;
         } else if (pMundo.xCm >= 26.0 && pMundo.xCm <= 48.0) {
-          // Clic directo sobre la manga derecha
           estado.setSuperficieActiva('manga_derecha');
           return;
         }
@@ -258,6 +329,7 @@ class AplicacionCADTextil {
       const capa = hit.capa;
       this.capaInteraccion = capa;
       this.inicioPuntero = { x, y };
+      this.arrastreIniciado = false;
       this.estadoInicialCapa = {
         xCm: capa.xCm,
         yCm: capa.yCm,
@@ -275,9 +347,8 @@ class AplicacionCADTextil {
         this.operacionActiva = 'mover';
       }
     } else {
-      // Clic en vacío: deseleccionar capa e iniciar arrastre de la mesa
-      estado.seleccionarCapa(null);
-      this.operacionActiva = 'pan';
+      // Toque en vacío: preparar deselección al soltar si no se arrastra, o iniciar pan si se mueve > 3 px
+      this.operacionActiva = 'vacio';
       this.mesa.iniciarPan(e.clientX, e.clientY);
     }
 
@@ -286,6 +357,74 @@ class AplicacionCADTextil {
 
   onPointerMove(e) {
     const { x, y } = this.obtenerCoordenadasCanvas(e);
+    const p = this.punterosActivos.get(e.pointerId);
+    if (p) {
+      p.x = x;
+      p.y = y;
+      p.clientX = e.clientX;
+      p.clientY = e.clientY;
+    }
+
+    // --- Caso 2 Dedos: Zoom y desplazamiento simultáneo o transformar elemento ---
+    if (this.punterosActivos.size === 2) {
+      const punteros = Array.from(this.punterosActivos.values());
+      const p1 = punteros[0];
+      const p2 = punteros[1];
+
+      const midX = (p1.x + p2.x) / 2;
+      const midY = (p1.y + p2.y) / 2;
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+      if (this.operacionActiva === 'gesto-elemento' && this.gestoElementoInicial) {
+        const init = this.gestoElementoInicial;
+        const factor = Math.max(0.1, dist / (init.dist || 1));
+        const deltaRad = angle - init.angle;
+        let deltaDeg = Math.round((deltaRad * 180) / Math.PI);
+
+        const capa = init.capa;
+        const nuevoW = Math.max(1.5, Math.min(70.0, init.widthCm * factor));
+        const nuevoH = Math.max(1.5, Math.min(70.0, init.heightCm * factor));
+        capa.widthCm = parseFloat(nuevoW.toFixed(2));
+        capa.heightCm = parseFloat(nuevoH.toFixed(2));
+        capa.angleDeg = (init.angleDeg + deltaDeg) % 360;
+
+        if (capa.tipo === 'texto') {
+          capa.tamanoPt = Math.max(8, Math.round(init.tamanoPt * factor));
+        }
+        estado.notificar('capa-escalada', capa);
+      } else if (this.operacionActiva === 'gesto-mesa' && this.gestoMesaInicial) {
+        const init = this.gestoMesaInicial;
+        const factor = dist / (init.dist || 1);
+        const nuevoZoom = Math.max(0.30, Math.min(8.00, init.zoomInicial * factor));
+
+        this.mesa.zoom = nuevoZoom;
+        const puntoCanvasDespues = this.mesa.mundoACanvas(init.puntoMundo.xCm, init.puntoMundo.yCm);
+        this.mesa.panX += (midX - puntoCanvasDespues.cx);
+        this.mesa.panY += (midY - puntoCanvasDespues.cy);
+
+        estado.datos.zoom = this.mesa.zoom;
+        estado.datos.panX = this.mesa.panX;
+        estado.datos.panY = this.mesa.panY;
+        estado.notificar('zoom', this.mesa.zoom);
+        estado.notificar('pan');
+      }
+
+      this.solicitarRender();
+      return;
+    }
+
+    // --- Caso 1 Dedo o Ratón ---
+    if (this.operacionActiva === 'vacio') {
+      const dist = p ? Math.hypot(x - p.startX, y - p.startY) : 0;
+      if (dist >= 3.0) {
+        // Superó el umbral de 3 px: pasar a pan de mesa
+        this.operacionActiva = 'pan';
+        this.mesa.moverPan(e.clientX, e.clientY);
+        this.solicitarRender();
+      }
+      return;
+    }
 
     if (this.operacionActiva === 'pan') {
       this.mesa.moverPan(e.clientX, e.clientY);
@@ -311,13 +450,19 @@ class AplicacionCADTextil {
     const dyPx = y - this.inicioPuntero.y;
 
     if (this.operacionActiva === 'mover') {
+      // Umbral de 3 px para evitar micro-temblores en dispositivos táctiles
+      if (!this.arrastreIniciado && Math.hypot(dxPx, dyPx) < 3.0) {
+        return;
+      }
+      this.arrastreIniciado = true;
+
       const dxCm = dxPx / escala;
       const dyCm = dyPx / escala;
 
       const posXCm = inicial.xCm + dxCm;
       const posYCm = inicial.yCm + dyCm;
 
-      // Evaluar atracción magnética
+      // Evaluar atracción magnética con distancias en vivo
       const snap = this.mesa.evaluarImanes(posXCm, posYCm, capa.widthCm, capa.heightCm);
       capa.xCm = parseFloat(snap.xCm.toFixed(2));
       capa.yCm = parseFloat(snap.yCm.toFixed(2));
@@ -367,13 +512,15 @@ class AplicacionCADTextil {
     }
 
     const aspectoOriginal = inicial.widthCm / (inicial.heightCm || 1);
-    const bloquearAspecto = shiftKey ? !capa.lockAspect : capa.lockAspect;
+    const esEsquina = ['tl', 'tr', 'bl', 'br'].includes(id);
+
+    // En esquinas la escala es proporcional por defecto; Shift (o interruptor móvil) la alterna
+    const mantenerProporcion = shiftKey ? !capa.lockAspect : (capa.lockAspect !== false);
 
     let nuevoW = Math.max(1.5, inicial.widthCm + deltaW);
     let nuevoH = Math.max(1.5, inicial.heightCm + deltaH);
 
-    // En manijas de esquina, mantener proporción si está bloqueada
-    if (['tl', 'tr', 'bl', 'br'].includes(id) && bloquearAspecto) {
+    if (esEsquina && mantenerProporcion) {
       if (Math.abs(deltaW) > Math.abs(deltaH)) {
         nuevoH = nuevoW / aspectoOriginal;
       } else {
@@ -386,22 +533,69 @@ class AplicacionCADTextil {
 
     if (capa.tipo === 'texto') {
       // Ajustar tamaño tipográfico proporcional
-      capa.tamanoPt = Math.round((nuevoH / inicial.heightCm) * (capa.tamanoPt || 36));
+      capa.tamanoPt = Math.max(8, Math.round((nuevoH / inicial.heightCm) * (capa.tamanoPt || 36)));
     }
 
     estado.notificar('capa-escalada', capa);
   }
 
   onPointerUp(e) {
-    if (this.operacionActiva && this.operacionActiva !== 'pan') {
+    const { x, y } = this.obtenerCoordenadasCanvas(e);
+    const p = this.punterosActivos.get(e.pointerId);
+    const ahora = performance.now();
+
+    if (this.canvas.hasPointerCapture && this.canvas.hasPointerCapture(e.pointerId)) {
+      this.canvas.releasePointerCapture(e.pointerId);
+    }
+
+    // Si fue toque en vacío (< 3 px): deseleccionar y verificar doble toque
+    if (this.operacionActiva === 'vacio' && p) {
+      const dist = Math.hypot(x - p.startX, y - p.startY);
+      if (dist < 3.0) {
+        estado.seleccionarCapa(null);
+
+        // Doble toque en vacío: ajustar a pantalla
+        if (ahora - this.ultimoTap.tiempo < 350 && Math.hypot(x - this.ultimoTap.x, y - this.ultimoTap.y) < 20) {
+          this.mesa.ajustarAPantalla();
+          this.ultimoTap = { tiempo: 0, x: 0, y: 0 };
+        } else {
+          this.ultimoTap = { tiempo: ahora, x, y };
+        }
+      }
+    } else if (this.operacionActiva === 'mover' && !this.arrastreIniciado && p) {
+      // Toque sin arrastrar sobre elemento: registrar para posible doble toque
+      const sel = estado.capaSeleccionada;
+      if (sel && sel.tipo === 'texto') {
+        if (ahora - this.ultimoTap.tiempo < 350 && Math.hypot(x - this.ultimoTap.x, y - this.ultimoTap.y) < 20) {
+          this.abrirEditorTextoDirecto();
+          this.ultimoTap = { tiempo: 0, x: 0, y: 0 };
+        } else {
+          this.ultimoTap = { tiempo: ahora, x, y };
+        }
+      }
+    }
+
+    if (this.operacionActiva && !['pan', 'vacio', 'gesto-mesa'].includes(this.operacionActiva)) {
       estado.guardarSnapshotHistorial(`Modificar ${this.capaInteraccion?.nombre || 'elemento'}`);
     }
 
-    this.operacionActiva = null;
-    this.capaInteraccion = null;
-    this.manijaInteraccion = null;
-    this.mesa.finalizarPan();
-    this.mesa.limpiarGuias();
+    this.punterosActivos.delete(e.pointerId);
+
+    if (this.punterosActivos.size === 0) {
+      this.operacionActiva = null;
+      this.capaInteraccion = null;
+      this.manijaInteraccion = null;
+      this.gestoElementoInicial = null;
+      this.gestoMesaInicial = null;
+      this.arrastreIniciado = false;
+      this.mesa.finalizarPan();
+      this.mesa.limpiarGuias();
+    } else if (this.punterosActivos.size === 1) {
+      this.operacionActiva = null;
+      this.gestoElementoInicial = null;
+      this.gestoMesaInicial = null;
+    }
+
     this.solicitarRender();
   }
 
@@ -412,14 +606,22 @@ class AplicacionCADTextil {
     if (sel && sel.tipo === 'texto') {
       const hit = gestorImagenes.obtenerHitTest(x, y, sel, this.mesa);
       if (hit) {
-        // Enfocar el campo de texto en el panel
-        if (this.ui) this.ui.abrirHoja('diseno');
-        const input = document.getElementById('textInputContent');
-        if (input) {
-          input.focus();
-          input.select();
-        }
+        this.abrirEditorTextoDirecto();
+        return;
       }
+    }
+
+    // Doble clic en vacío: ajustar a pantalla
+    this.mesa.ajustarAPantalla();
+    this.solicitarRender();
+  }
+
+  abrirEditorTextoDirecto() {
+    if (this.ui) this.ui.abrirHoja('diseno');
+    const input = document.getElementById('textInputContent');
+    if (input) {
+      input.focus();
+      input.select();
     }
   }
 
@@ -430,7 +632,7 @@ class AplicacionCADTextil {
         return;
       }
 
-      // Deshacer / Rehacer
+      // Deshacer / Rehacer (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         if (e.shiftKey) estado.rehacer();
@@ -443,6 +645,22 @@ class AplicacionCADTextil {
         return;
       }
 
+      // Duplicar elemento (Ctrl+D / Cmd+D)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        if (estado.datos.capaSeleccionadaId) {
+          gestorCapas.duplicarCapa(estado.datos.capaSeleccionadaId);
+        }
+        return;
+      }
+
+      // Deseleccionar (Esc)
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        estado.seleccionarCapa(null);
+        return;
+      }
+
       // Eliminar capa (Supr / Backspace)
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (estado.datos.capaSeleccionadaId) {
@@ -452,8 +670,8 @@ class AplicacionCADTextil {
         return;
       }
 
-      // Nudge con flechas del teclado
-      const paso = e.shiftKey ? 1.0 : 0.1; // 1 cm con Shift, 1 mm sin Shift
+      // Nudge con flechas del teclado: 1 mm (0.1 cm); Shift = 10 mm (1.0 cm)
+      const paso = e.shiftKey ? 1.0 : 0.1;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         gestorCapas.moverConTeclado(-paso, 0);
@@ -468,6 +686,24 @@ class AplicacionCADTextil {
         gestorCapas.moverConTeclado(0, paso);
       }
     });
+
+    // Barra espaciadora para mover la mesa temporalmente
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        this.espacioPresionado = true;
+        const viewport = document.getElementById('canvasViewport');
+        if (viewport) viewport.classList.add('panning');
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        this.espacioPresionado = false;
+        const viewport = document.getElementById('canvasViewport');
+        if (viewport) viewport.classList.remove('panning');
+      }
+    });
+  }
   }
 }
 

@@ -291,6 +291,7 @@ export class MesaDeTrabajo {
 
     const w = this.anchoLogico;
     const h = this.altoLogico;
+    const unidad = estado.datos.unidades;
 
     this.ctx.save();
     this.ctx.strokeStyle = '#BA002C'; // Carmesí Zairen
@@ -304,15 +305,39 @@ export class MesaDeTrabajo {
         this.ctx.moveTo(cx, 0);
         this.ctx.lineTo(cx, h);
         this.ctx.stroke();
+
+        // Placa / Badge con distancia en vivo
+        const texto = `${g.label} (${UNIDADES.formatear(g.xCm, unidad)})`;
+        this.dibujarBadgeGuia(cx, Math.min(h - 24, Math.max(34, 40)), texto);
       } else if (g.tipo === 'horizontal') {
         const { cy } = this.mundoACanvas(0, g.yCm);
         this.ctx.beginPath();
         this.ctx.moveTo(0, cy);
         this.ctx.lineTo(w, cy);
         this.ctx.stroke();
+
+        // Placa / Badge con distancia en vivo
+        const texto = `${g.label} (${UNIDADES.formatear(g.yCm, unidad)})`;
+        this.dibujarBadgeGuia(Math.min(w - 70, Math.max(70, 75)), cy, texto);
       }
     }
 
+    this.ctx.restore();
+  }
+
+  dibujarBadgeGuia(x, y, texto) {
+    this.ctx.save();
+    this.ctx.font = '9px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    const textW = this.ctx.measureText(texto).width;
+    const pad = 4;
+
+    this.ctx.fillStyle = 'rgba(186, 0, 44, 0.92)';
+    this.ctx.fillRect(x - textW / 2 - pad, y - 8, textW + pad * 2, 16);
+
+    this.ctx.fillStyle = '#FAF9F6';
+    this.ctx.fillText(texto, x, y);
     this.ctx.restore();
   }
 
@@ -432,7 +457,7 @@ export class MesaDeTrabajo {
     let nuevoX = xCm;
     let nuevoY = yCm;
 
-    const { anchoCm: anchoCuerpo, largoCm, altoCm: altoManga } = motorPoleraSVG.obtenerEscalasTalla();
+    const { anchoCm: anchoCuerpo, largoCm, altoMangaCm } = motorPoleraSVG.obtenerEscalasTalla();
     const superficie = estado.datos.superficieActiva;
     const esManga = superficie === 'manga_izquierda' || superficie === 'manga_derecha';
 
@@ -445,7 +470,7 @@ export class MesaDeTrabajo {
 
     if (!esManga) {
       // Costados del torso
-      const semiAncho = anchoCuerpo / 2;
+      const semiAncho = (anchoCuerpo || 53.0) / 2;
       const bordeIzq = xCm - anchoCm / 2;
       const bordeDer = xCm + anchoCm / 2;
 
@@ -456,15 +481,45 @@ export class MesaDeTrabajo {
         nuevoX = semiAncho - anchoCm / 2;
         this.guiasActivas.push({ tipo: 'vertical', xCm: semiAncho, label: 'Costado Der' });
       }
+
+      // Zona de impresión 30x40 (bordes laterales en x = -15 y x = 15)
+      if (Math.abs(bordeIzq - (-15.0)) < umbral) {
+        nuevoX = -15.0 + anchoCm / 2;
+        this.guiasActivas.push({ tipo: 'vertical', xCm: -15.0, label: 'Zona Impresión' });
+      } else if (Math.abs(bordeDer - 15.0) < umbral) {
+        nuevoX = 15.0 - anchoCm / 2;
+        this.guiasActivas.push({ tipo: 'vertical', xCm: 15.0, label: 'Zona Impresión' });
+      }
+    } else {
+      // Zona de impresión en manga (bordes laterales en x = -5 y x = 5)
+      const bordeIzq = xCm - anchoCm / 2;
+      const bordeDer = xCm + anchoCm / 2;
+      if (Math.abs(bordeIzq - (-5.0)) < umbral) {
+        nuevoX = -5.0 + anchoCm / 2;
+        this.guiasActivas.push({ tipo: 'vertical', xCm: -5.0, label: 'Zona Impresión' });
+      } else if (Math.abs(bordeDer - 5.0) < umbral) {
+        nuevoX = 5.0 - anchoCm / 2;
+        this.guiasActivas.push({ tipo: 'vertical', xCm: 5.0, label: 'Zona Impresión' });
+      }
     }
 
     // 2. Imanes Horizontales (Eje Y)
     if (esManga) {
-      const altoTotal = altoManga || 19.0;
-      // Mitad de la manga
-      if (Math.abs(yCm - altoTotal / 2) < umbral) {
-        nuevoY = altoTotal / 2;
-        this.guiasActivas.push({ tipo: 'horizontal', yCm: altoTotal / 2, label: 'Centro Manga' });
+      const altoTotal = altoMangaCm || 19.0;
+      // Mitad de la manga / centro de zona útil (y = 9.5 cm)
+      if (Math.abs(yCm - 9.5) < umbral) {
+        nuevoY = 9.5;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 9.5, label: 'Centro Manga' });
+      }
+      // Límites de zona de impresión manga (y = 3.5 y y = 15.5)
+      const bordeSuperior = yCm - altoCm / 2;
+      const bordeInferior = yCm + altoCm / 2;
+      if (Math.abs(bordeSuperior - 3.5) < umbral) {
+        nuevoY = 3.5 + altoCm / 2;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 3.5, label: 'Tope Zona' });
+      } else if (Math.abs(bordeInferior - 15.5) < umbral) {
+        nuevoY = 15.5 - altoCm / 2;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 15.5, label: 'Base Zona' });
       }
     } else {
       const largoTotal = largoCm || 71.0;
@@ -484,8 +539,17 @@ export class MesaDeTrabajo {
         this.guiasActivas.push({ tipo: 'horizontal', yCm: 28.0, label: 'Centro Pecho' });
       }
 
-      // Ruedo inferior
+      // Límites de zona de impresión torso (y = 8.0 y y = 48.0)
       const bordeInferior = yCm + altoCm / 2;
+      if (Math.abs(bordeSuperior - 8.0) < umbral) {
+        nuevoY = 8.0 + altoCm / 2;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 8.0, label: 'Tope Zona 30x40' });
+      } else if (Math.abs(bordeInferior - 48.0) < umbral) {
+        nuevoY = 48.0 - altoCm / 2;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 48.0, label: 'Fondo Zona 30x40' });
+      }
+
+      // Ruedo inferior
       if (Math.abs(bordeInferior - largoTotal) < umbral) {
         nuevoY = largoTotal - altoCm / 2;
         this.guiasActivas.push({ tipo: 'horizontal', yCm: largoTotal, label: 'Ruedo' });
@@ -513,7 +577,7 @@ export class MesaDeTrabajo {
 
     const puntoAntes = this.canvasAMundo(mouseX, mouseY);
     const factor = e.deltaY < 0 ? 1.12 : 0.89;
-    const nuevoZoom = Math.max(0.2, Math.min(6.0, this.zoom * factor));
+    const nuevoZoom = Math.max(0.30, Math.min(8.00, this.zoom * factor));
 
     this.zoom = nuevoZoom;
     const puntoDespues = this.mundoACanvas(puntoAntes.xCm, puntoAntes.yCm);
