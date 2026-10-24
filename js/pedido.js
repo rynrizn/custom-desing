@@ -134,10 +134,14 @@ export class GestorPedido {
     lineas.push(`Desglose de unidades a fabricar:`);
     if (p.cantidades && p.cantidades.length) {
       for (const fila of p.cantidades) {
-        lineas.push(`  - Talla ${fila.talla}: ${fila.cantidad} unidad(es)`);
+        const infoT = CONFIG.TALLAS_CUERPO[fila.talla];
+        const marca = infoT?.estimada ? ' (estimada)' : ' (medida real de taller)';
+        lineas.push(`  - Talla ${fila.talla} (${infoT?.ancho || 53} × ${infoT?.largo || 71} cm): ${fila.cantidad} unidad(es)${marca}`);
       }
     } else {
-      lineas.push(`  - Talla ${p.tallaVista}: 1 unidad`);
+      const infoT = CONFIG.TALLAS_CUERPO[p.tallaVista];
+      const marca = infoT?.estimada ? ' (estimada)' : ' (medida real de taller)';
+      lineas.push(`  - Talla ${p.tallaVista} (${infoT?.ancho || 53} × ${infoT?.largo || 71} cm): 1 unidad${marca}`);
     }
     lineas.push(`Continuidad envolvente lateral: ${p.envolvente ? 'SÍ' : 'NO'}`);
     lineas.push(`Sincronización espejo de mangas: ${p.mangasEspejo ? 'SÍ' : 'NO'}\n`);
