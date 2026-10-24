@@ -12,9 +12,10 @@ export const CONFIG = {
   APP_VERSION: 'v2.0',
   WHATSAPP_NEGOCIO: '+59174522654', // Número del taller para recibir pedidos
 
-  // Clave Pública RSA-OAEP 2048 bits (SHA-256) en formato SPKI Base64.
-  // Permite a cualquier cliente cifrar su pedido de forma segura hacia el taller.
-  RSA_PUBLIC_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjj60c4dhmDvZXvbtSZhC0e75SBoDI6LJZ5N/5C1sdLVjSKbMbJPgq5Sdd/L//OK0v1XIFHW3qtQDxYA5suim/lqQX0iy4czJRSNuhyRSLUnJmSvZQWwFeQN+RJ9Nli917a+cculPLE329/H3xqMAbDXgX/lSeS3NDzcCTFlItZEURmPly84bK6T1Xqnm2YKQxuI808T7HhgqvgJGtPzLB55rMbRY6tN5IVZWbwXUBXeM2xO6WNyVGHu2SE4HA5SARg45KfzHjr/sM8DEjEcLGCPdH/Ublaf9v4d8GmQWGLuInB6ytfjYJFKTx/2VYkkyeAth85ueW57Hyhu8R8zyQIDAQAB',
+  // Clave Pública RSA-OAEP (SHA-256) en formato SPKI Base64.
+  // En producción se obtiene dinámicamente vía GET /api/publica desde Cloudflare Pages.
+  // Este campo queda vacío por seguridad; solo se usa como fallback en desarrollo local offline.
+  RSA_PUBLIC_KEY: '',
 
   // Tabla de Tallas del Cuerpo (en centímetros reales para la polera base alargada 53x91.5 cm)
   // Medidas: ancho de sisa a sisa / largo desde el punto alto del hombro al ruedo

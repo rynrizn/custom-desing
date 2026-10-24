@@ -76,7 +76,15 @@ export async function onRequestPost(context) {
     }
 
     // 3. Emitir Cookie Firmada con HMAC-SHA256 (Vence en 8 horas = 28800s)
-    const sessionSecret = env.SESSION_SECRET || 'zairen-temp-secret-change-in-prod';
+    const sessionSecret = env.SESSION_SECRET || '';
+    if (!sessionSecret) {
+      return new Response(JSON.stringify({
+        error: 'SESSION_SECRET no configurado en Cloudflare Pages.'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const expiresAt = Date.now() + 8 * 3600 * 1000;
     const payload = JSON.stringify({ admin: true, exp: expiresAt });
     const payloadB64 = btoa(payload);
