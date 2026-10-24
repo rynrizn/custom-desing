@@ -252,18 +252,54 @@ export class GestorCapas {
       return;
     }
 
+    const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
+
     if (floatingEl) {
-      const { cx, cy } = mesa.mundoACanvas(capa.xCm, capa.yCm);
-      const escala = mesa.pxPorCmBase * mesa.zoom;
-      const hPx = capa.heightCm * escala;
-
-      // Posicionar 45 px arriba de la manija de rotación
-      const topPx = cy - hPx / 2 - 48;
-      const leftPx = cx;
-
       floatingEl.style.display = 'flex';
-      floatingEl.style.left = `${leftPx}px`;
-      floatingEl.style.top = `${Math.max(56, topPx)}px`;
+
+      if (esMovil) {
+        // En móvil: fija al borde inferior de la mesa (nunca tapa el elemento de diseño)
+        floatingEl.style.left = '50%';
+        floatingEl.style.transform = 'translateX(-50%)';
+        floatingEl.style.top = 'auto';
+        const bottomOffset = (fineTuneEl && fineTuneEl.style.display !== 'none') ? 56 : 14;
+        floatingEl.style.bottom = `${bottomOffset}px`;
+      } else {
+        // En escritorio: fuera de la pieza y dentro del área visible del lienzo
+        const { cx, cy } = mesa.mundoACanvas(capa.xCm, capa.yCm);
+        const escala = mesa.pxPorCmBase * mesa.zoom;
+        const wPx = capa.widthCm * escala;
+        const hPx = capa.heightCm * escala;
+
+        const canvasW = mesa.anchoLogico || 800;
+        const canvasH = mesa.altoLogico || 800;
+        const barW = floatingEl.offsetWidth || 280;
+        const barH = floatingEl.offsetHeight || 36;
+
+        // Intentar colocarla 48 px arriba del elemento (fuera de la manija de rotación)
+        let topPx = cy - hPx / 2 - 48;
+        let leftPx = cx;
+
+        // Si queda fuera de la pantalla por arriba (< 54 px), colocarla a un lado o debajo
+        if (topPx < 54) {
+          if (cx + wPx / 2 + barW / 2 + 20 < canvasW) {
+            leftPx = cx + wPx / 2 + barW / 2 + 14;
+            topPx = Math.max(54, cy - barH / 2);
+          } else {
+            topPx = cy + hPx / 2 + 24;
+          }
+        }
+
+        // Sujeción (clamping) dentro del área visible del canvas
+        const margen = 12;
+        const clampedX = Math.max(barW / 2 + margen, Math.min(canvasW - barW / 2 - margen, leftPx));
+        const clampedY = Math.max(50, Math.min(canvasH - barH - margen, topPx));
+
+        floatingEl.style.bottom = 'auto';
+        floatingEl.style.left = `${clampedX}px`;
+        floatingEl.style.top = `${clampedY}px`;
+        floatingEl.style.transform = 'translateX(-50%)';
+      }
     }
 
     if (fineTuneEl) {
