@@ -58,7 +58,19 @@ class AplicacionCADTextil {
     this.enlazarAtajosTeclado();
 
     // Suscribir render a cambios de estado
-    estado.suscribir(() => this.solicitarRender());
+    estado.suscribir((evento, payload) => {
+      if (evento === 'cambio-superficie') {
+        const esManga = payload === 'manga_izquierda' || payload === 'manga_derecha';
+        if (esManga) {
+          this.mesa.modoManga = 'plana';
+          const mangaBtn = document.getElementById('mangaModeBtn');
+          const span = mangaBtn?.querySelector('span');
+          if (span) span.textContent = 'PATRÓN PLANO';
+        }
+        this.mesa.ajustarAPantalla();
+      }
+      this.solicitarRender();
+    });
 
     // Ajustar prenda inicial al centro de la pantalla
     setTimeout(() => {
@@ -119,43 +131,62 @@ class AplicacionCADTextil {
       modoManga
     );
 
-    // 3. Zona máxima de estampado recomendada
-    this.mesa.dibujarZonaMaximaEstampado();
+    // 3. Zona máxima de estampado recomendada (solo en patrón plano o torso)
+    const esManga = superficie === 'manga_izquierda' || superficie === 'manga_derecha';
+    if (!esManga || modoManga === 'plana') {
+      this.mesa.dibujarZonaMaximaEstampado();
+    }
 
-    // 4. Continuación lateral envolvente (si está activada)
-    motorEnvolvente.dibujarContinuacionEnvolvente(this.ctx, superficie, this.mesa);
+    // 4. Continuación lateral envolvente (si está activada en torso)
+    if (!esManga) {
+      motorEnvolvente.dibujarContinuacionEnvolvente(this.ctx, superficie, this.mesa);
+    }
 
-    // 5. Proyección visual de mangas sobre anverso/reverso
-    gestorMangas.dibujarProyeccionEnTorso(this.ctx, superficie, this.mesa);
+    // 5. Proyección visual de mangas sobre anverso/reverso o sobre vista polera
+    if (!esManga) {
+      gestorMangas.dibujarProyeccionEnTorso(this.ctx, superficie, this.mesa);
+    } else if (modoManga === 'prenda') {
+      // En modo 'prenda' para mangas, proyectar los diseños de ESTA manga sobre la polera
+      const ladoVista = (superficie === 'manga_izquierda') ? 'der' : 'izq'; // en vista anverso
+      const capasManga = estado.capasSuperficieActiva;
+      gestorMangas.proyectarDisenosEnMangaPerspectiva(this.ctx, capasManga, ladoVista, true, this.mesa);
+    }
 
     // 6. Recorte o referencia a la silueta para los estampados de esta superficie
-    this.ctx.save();
-    const centroMundo = this.mesa.mundoACanvas(0, 0);
-    const escala = this.mesa.pxPorCmBase * this.mesa.zoom;
-    this.ctx.translate(centroMundo.cx, centroMundo.cy);
-    this.ctx.scale(escala, escala);
-    motorPoleraSVG.trazarContornoRecorte(this.ctx, superficie, polera.tallaVista, modoManga);
-    this.ctx.restore();
+    if (!esManga || modoManga === 'plana') {
+      this.ctx.save();
+      const centroMundo = this.mesa.mundoACanvas(0, 0);
+      const escala = this.mesa.pxPorCmBase * this.mesa.zoom;
+      this.ctx.translate(centroMundo.cx, centroMundo.cy);
+      this.ctx.scale(escala, escala);
+      motorPoleraSVG.trazarContornoRecorte(this.ctx, superficie, polera.tallaVista, modoManga);
+      this.ctx.restore();
 
-    // Dibujar cada capa de esta superficie
-    const capas = estado.capasSuperficieActiva;
-    for (const c of capas) {
-      if (!c.visible) continue;
-      if (c.tipo === 'imagen') {
-        gestorImagenes.dibujarCapa(this.ctx, c, this.mesa);
-      } else if (c.tipo === 'texto') {
-        gestorTexto.dibujarCapa(this.ctx, c, this.mesa);
+      // Dibujar cada capa de esta superficie
+      const capas = estado.capasSuperficieActiva;
+      for (const c of capas) {
+        if (!c.visible) continue;
+        if (c.tipo === 'imagen') {
+          gestorImagenes.dibujarCapa(this.ctx, c, this.mesa);
+        } else if (c.tipo === 'texto') {
+          gestorTexto.dibujarCapa(this.ctx, c, this.mesa);
+        }
       }
+
+      // 7. Manijas de selección sobre la capa activa
+      const sel = estado.capaSeleccionada;
+      if (sel && sel.visible) {
+        gestorImagenes.dibujarManijasTransformacion(this.ctx, sel, this.mesa);
+      }
+    } else {
+      // En vista polera de manga (solo lectura): NO se dibujan capas planas sobre el pecho ni manijas
+      this.dibujarAvisoModoPrendaManga();
     }
 
-    // 7. Manijas de selección sobre la capa activa
-    const sel = estado.capaSeleccionada;
-    if (sel && sel.visible) {
-      gestorImagenes.dibujarManijasTransformacion(this.ctx, sel, this.mesa);
+    // 8. Guías magnéticas activas en rojo carmesí (solo en edición)
+    if (!esManga || modoManga === 'plana') {
+      this.mesa.dibujarGuiasMagneticas();
     }
-
-    // 8. Guías magnéticas activas en rojo carmesí
-    this.mesa.dibujarGuiasMagneticas();
 
     // 9. Cotas dimensionales de la prenda
     this.mesa.dibujarCotasPrenda();
@@ -168,7 +199,43 @@ class AplicacionCADTextil {
 
     // Actualizar posición de la barra flotante contextual
     const floatingEl = document.getElementById('floatingContextBar');
-    gestorCapas.actualizarBarraFlotante(floatingEl, this.mesa);
+    if (esManga && modoManga === 'prenda') {
+      if (floatingEl) floatingEl.style.display = 'none';
+      const fineTuneEl = document.getElementById('fineTuneBar');
+      if (fineTuneEl) fineTuneEl.style.display = 'none';
+    } else {
+      gestorCapas.actualizarBarraFlotante(floatingEl, this.mesa);
+    }
+  }
+
+  dibujarAvisoModoPrendaManga() {
+    const w = this.mesa.anchoLogico;
+    const badgeW = Math.min(420, w - 32);
+    const badgeH = 34;
+    const badgeX = (w - badgeW) / 2;
+    const badgeY = 56;
+
+    this.ctx.save();
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+    this.ctx.shadowBlur = 8;
+    this.ctx.shadowOffsetY = 2;
+
+    this.ctx.fillStyle = 'rgba(20, 21, 24, 0.90)';
+    this.ctx.beginPath();
+    this.ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
+    this.ctx.fill();
+
+    this.ctx.shadowColor = 'transparent';
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    this.ctx.lineWidth = 1;
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = '#FAF9F6';
+    this.ctx.font = '500 12px Inter, sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText('👁️ Vista polera (solo lectura) — Toca para volver al patrón plano', badgeX + badgeW / 2, badgeY + badgeH / 2);
+    this.ctx.restore();
   }
 
   // --- Manejo de Puntero (Mouse y Touch) ---
@@ -204,6 +271,20 @@ class AplicacionCADTextil {
   }
 
   onPointerDown(e) {
+    const superficie = estado.datos.superficieActiva;
+    const esManga = superficie === 'manga_izquierda' || superficie === 'manga_derecha';
+
+    // Si está en vista polera de manga (solo lectura), al tocar vuelve inmediatamente al patrón plano
+    if (esManga && this.mesa.modoManga === 'prenda') {
+      this.mesa.modoManga = 'plana';
+      const mangaBtn = document.getElementById('mangaModeBtn');
+      const span = mangaBtn?.querySelector('span');
+      if (span) span.textContent = 'PATRÓN PLANO';
+      this.mesa.ajustarAPantalla();
+      this.solicitarRender();
+      return;
+    }
+
     this.canvas.setPointerCapture(e.pointerId);
     const { x, y } = this.obtenerCoordenadasCanvas(e);
 

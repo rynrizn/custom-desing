@@ -364,10 +364,15 @@ export class MesaDeTrabajo {
     this.ctx.setLineDash([5, 4]);
     this.ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
 
-    // Etiqueta formal
+    // Etiqueta formal con sujeción (clamping) dentro del área visible del canvas
     this.ctx.fillStyle = 'rgba(58, 74, 92, 0.85)';
     this.ctx.font = '10px monospace';
-    this.ctx.fillText(`ÁREA IMPRESIÓN MÁX: ${zona.label}`, x1 + 6, y1 + 13);
+    const labelTexto = `ÁREA IMPRESIÓN MÁX: ${zona.label}`;
+    const labelW = this.ctx.measureText(labelTexto).width;
+    const margin = 8;
+    const clampedX = Math.max(margin, Math.min(this.anchoLogico - labelW - margin, x1 + 6));
+    const clampedY = Math.max(margin + 10, Math.min(this.altoLogico - margin, y1 + 13));
+    this.ctx.fillText(labelTexto, clampedX, clampedY);
     this.ctx.restore();
   }
 
@@ -405,6 +410,25 @@ export class MesaDeTrabajo {
       const { cx: xUniIzq, cy: yUni } = this.mundoACanvas(-semiUnion, -1.8);
       const { cx: xUniDer } = this.mundoACanvas(semiUnion, -1.8);
       this.dibujarLineaCota(xUniIzq, yUni, xUniDer, yUni, `UNIÓN: ${UNIDADES.formatear(unionMangaCm, unidad)}`);
+
+      // Cota de costura superior de manga (y = 3.5 cm)
+      const { cx: xCostIzq, cy: yCost } = this.mundoACanvas(-semiUnion + 0.6, 3.5);
+      const { cx: xCostDer } = this.mundoACanvas(semiUnion - 0.6, 3.5);
+      this.ctx.save();
+      this.ctx.setLineDash([3, 3]);
+      this.ctx.strokeStyle = 'rgba(186, 0, 44, 0.50)';
+      this.dibujarLineaCota(xCostIzq, yCost, xCostDer, yCost, `COSTURA: ${UNIDADES.formatear(3.5, unidad)}`);
+      this.ctx.restore();
+
+      // Cota de dobladillo del puño (a 2.0 cm del borde inferior)
+      const yDobl = alto - 2.0;
+      const { cx: xDoblIzq, cy: yDoblPx } = this.mundoACanvas(-semiBoca + 0.5, yDobl);
+      const { cx: xDoblDer } = this.mundoACanvas(semiBoca - 0.5, yDobl);
+      this.ctx.save();
+      this.ctx.setLineDash([3, 3]);
+      this.ctx.strokeStyle = 'rgba(58, 74, 92, 0.50)';
+      this.dibujarLineaCota(xDoblIzq, yDoblPx, xDoblDer, yDoblPx, `DOBLADILLO: ${UNIDADES.formatear(2.0, unidad)}`);
+      this.ctx.restore();
     } else {
       // Cuerpo Ancho (bajo axila a y = 28 * sy)
       const yAxila = 28.0 * (sy || 1.0);
