@@ -704,11 +704,12 @@ class AplicacionCADTextil {
       }
     });
   }
-  }
 }
 
 // Arranque al cargar el DOM
-document.addEventListener('DOMContentLoaded', () => {
-  const app = new AplicacionCADTextil();
-  app.iniciar();
-});
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = new AplicacionCADTextil();
+    app.iniciar();
+  });
+}

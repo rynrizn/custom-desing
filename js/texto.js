@@ -12,14 +12,19 @@ import { estado } from './estado.js';
 
 export class GestorTexto {
   constructor() {
-    this.canvasMedicion = document.createElement('canvas');
-    this.ctxMedicion = this.canvasMedicion.getContext('2d');
+    if (typeof document !== 'undefined') {
+      this.canvasMedicion = document.createElement('canvas');
+      this.ctxMedicion = this.canvasMedicion?.getContext('2d');
+    }
   }
 
   /**
    * Crea una nueva capa de texto predeterminada.
    */
   crearCapaTexto(textoInicial = 'TU TEXTO AQUÍ', fuente = 'Poppins') {
+    const supActiva = estado.datos?.superficieActiva;
+    const esManga = supActiva === 'manga_izquierda' || supActiva === 'manga_derecha';
+
     const capa = {
       id: `txt-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       nombre: textoInicial.split('\n')[0].substr(0, 16) || 'Texto',
@@ -44,9 +49,6 @@ export class GestorTexto {
       shadowOffsetY: 0,
 
       // Geometría en centímetros adaptada a la superficie activa (manga centrada a 9.5 cm, torso a 28 cm)
-      const supActiva = estado.datos.superficieActiva;
-      const esManga = supActiva === 'manga_izquierda' || supActiva === 'manga_derecha';
-
       xCm: 0,
       yCm: esManga ? 9.5 : 28.0,
       widthCm: esManga ? 10.0 : 18.0,
