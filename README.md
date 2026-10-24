@@ -89,31 +89,28 @@ custom-desing/
 
 ## 3. Guía de Configuración en Cloudflare Pages
 
-Para activar el sistema de pedidos cifrados y el panel administrativo, sigue estos pasos en el panel de Cloudflare:
+Para la guía detallada con capturas y fichas técnicas de cada parámetro, consulta el documento completo:  
+👉 **[Guía Maestra de Cloudflare Pages](docs/CLOUDFLARE.md)**
 
-### Paso 1: Configurar Variables Secretas en Cloudflare Pages
-1. Ve a **Cloudflare Dashboard** > **Workers & Pages** > Tu proyecto (`customytee`).
-2. Entra en **Settings** > **Variables and Secrets**.
-3. Añade las siguientes 3 variables de tipo **Secret**:
+### Resumen de los 5 Parámetros del Sistema:
 
-| Variable | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `ADMIN_PASSWORD` | **Secret** | Contraseña de acceso al panel `/acceso`. Elige una contraseña segura. |
-| `SESSION_SECRET` | **Secret** | Cadena aleatoria de 32+ caracteres para firmar las cookies HMAC de sesión. |
-| `PRIVATE_KEY_ENC` | **Secret** | Texto JSON cifrado de tu clave privada generado en `/lector/configurar` (ver Paso 2). |
+1. **`ADMIN_PASSWORD`** (*Secret*): Contraseña de acceso al login administrativo en `/acceso`.
+2. **`SESSION_SECRET`** (*Secret*): Cadena aleatoria de 64 caracteres hex (32 bytes) para firma HMAC-SHA256 de cookies.
+3. **`PRIVATE_KEY_ENC`** (*Secret*): Clave privada RSA-3072 PKCS#8 cifrada con PBKDF2 (600.000 iteraciones) + AES-GCM, con prefijo `ZRNK1:`.
+4. **`CLAVE_PUBLICA`** (*PlainText*): Clave pública RSA-3072 SPKI Base64 con prefijo `ZRNP1:` (servida dinámicamente vía `GET /api/publica`).
+5. **`LOGIN_KV`** (*KV Binding, opcional*): Namespace KV para mitigar ataques de fuerza bruta (máximo 5 intentos en 15 min).
 
-*(Opcional)*: Para protección contra ataques de fuerza bruta en el login (límite de 5 intentos por 15 min), crea un namespace KV llamado `LOGIN_KV` y vincúlalo en **Settings** > **Functions** > **KV namespace bindings** con el nombre de variable `LOGIN_KV`. Si no se vincula, el sistema usa un retardo fijo de seguridad.
+> **IMPORTANTE:** Cada vez que agregues o modifiques variables o secretos en Cloudflare Pages, debes re-desplegar (*Retry deployment* o hacer un nuevo push) para que las funciones tomen los nuevos valores.
 
 ---
 
 ### Paso 2: Generar tus Claves Criptográficas y Frase Secreta
-1. Abre en tu navegador la ruta: `https://dev-editor-svg.customytee.pages.dev/lector/configurar`
-2. Escribe una **Frase Secreta** memorable y segura para tu taller (ej. `zairen-tarija-silueta-2026-corte-silencioso`).
+1. Inicia sesión en `/acceso` y abre `/lector/configurar`.
+2. Escribe una **Frase Secreta** fuerte (el asistente exige al menos 16 caracteres o 5 palabras).
 3. Haz clic en **GENERAR CLAVES CRIPTOGRÁFICAS**.
-4. El asistente te entregará:
-   - **Clave Pública (Base64):** Cópiala y pégala en `js/config.js` en la variable `RSA_PUBLIC_KEY`.
-   - **Clave Privada Cifrada (JSON):** Cópiala y pégala en Cloudflare Pages como el secreto `PRIVATE_KEY_ENC`.
-   - **Descargar Respaldo JSON:** Guarda este archivo en tu disco duro o unidad segura.
+4. Copia `CLAVE_PUBLICA` (prefijo `ZRNP1:`) y `PRIVATE_KEY_ENC` (prefijo `ZRNK1:`) y configúralas en Cloudflare Pages.
+5. Descarga la copia de seguridad `.json` para custodia offline.
+6. Usa la **Caja de comprobación** integrada para verificar que las claves y la frase coincidan antes de recibir pedidos reales.
 
 ---
 
@@ -121,8 +118,7 @@ Para activar el sistema de pedidos cifrados y el panel administrativo, sigue est
 En `js/config.js`:
 ```javascript
 export const CONFIG = {
-  WHATSAPP_NEGOCIO: '+591XXXXXXXX', // Tu número con código de país para recibir pedidos
-  RSA_PUBLIC_KEY: 'PEGAR_AQUI_LA_CLAVE_PUBLICA_BASE64',
+  WHATSAPP_NEGOCIO: '+59174522654', // Número del taller para recibir pedidos directos
   // ...
 };
 ```
