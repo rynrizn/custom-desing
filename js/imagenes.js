@@ -54,9 +54,12 @@ export class GestorImagenes {
       anchoOriginalPx: imgEl.naturalWidth,
       altoOriginalPx: imgEl.naturalHeight,
 
-      // Geometría en centímetros centrada en el pecho/espalda (y ≈ 26 cm)
+      // Geometría en centímetros adaptada a la superficie activa (manga centrada a 9.5 cm, torso a 30 cm)
+      const supActiva = estado.datos.superficieActiva;
+      const esManga = supActiva === 'manga_izquierda' || supActiva === 'manga_derecha';
+
       xCm: 0,
-      yCm: 26.0,
+      yCm: esManga ? 9.5 : 30.0,
       widthCm: parseFloat(initWidthCm.toFixed(2)),
       heightCm: parseFloat(initHeightCm.toFixed(2)),
       scaleX: 1.0,

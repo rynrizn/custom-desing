@@ -43,11 +43,14 @@ export class GestorTexto {
       shadowOffsetX: 0,
       shadowOffsetY: 0,
 
-      // Geometría en centímetros centrada en el pecho (y ≈ 24 cm)
+      // Geometría en centímetros adaptada a la superficie activa (manga centrada a 9.5 cm, torso a 28 cm)
+      const supActiva = estado.datos.superficieActiva;
+      const esManga = supActiva === 'manga_izquierda' || supActiva === 'manga_derecha';
+
       xCm: 0,
-      yCm: 24.0,
-      widthCm: 18.0,
-      heightCm: 6.0,
+      yCm: esManga ? 9.5 : 28.0,
+      widthCm: esManga ? 10.0 : 18.0,
+      heightCm: esManga ? 4.0 : 6.0,
       scaleX: 1.0,
       scaleY: 1.0,
       angleDeg: 0,

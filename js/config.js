@@ -10,22 +10,20 @@ export const CONFIG = {
   // Información de Marca y Negocio
   APP_NAME: 'ZAIREN CAD Textil',
   APP_VERSION: 'v2.0',
-  WHATSAPP_NEGOCIO: '+591XXXXXXXX', // Número del taller para recibir pedidos
+  WHATSAPP_NEGOCIO: '+59174522654', // Número del taller para recibir pedidos
 
-  // Clave Pública RSA-OAEP 3072 bits (SHA-256) en formato SPKI Base64.
-  // Puede ser pública de forma segura; solo el administrador con su frase secreta
-  // puede descifrar los pedidos .zrn generados con ella.
-  // Reemplazar con la clave generada en /lector/configurar
-  RSA_PUBLIC_KEY: '',
+  // Clave Pública RSA-OAEP 2048 bits (SHA-256) en formato SPKI Base64.
+  // Permite a cualquier cliente cifrar su pedido de forma segura hacia el taller.
+  RSA_PUBLIC_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjj60c4dhmDvZXvbtSZhC0e75SBoDI6LJZ5N/5C1sdLVjSKbMbJPgq5Sdd/L//OK0v1XIFHW3qtQDxYA5suim/lqQX0iy4czJRSNuhyRSLUnJmSvZQWwFeQN+RJ9Nli917a+cculPLE329/H3xqMAbDXgX/lSeS3NDzcCTFlItZEURmPly84bK6T1Xqnm2YKQxuI808T7HhgqvgJGtPzLB55rMbRY6tN5IVZWbwXUBXeM2xO6WNyVGHu2SE4HA5SARg45KfzHjr/sM8DEjEcLGCPdH/Ublaf9v4d8GmQWGLuInB6ytfjYJFKTx/2VYkkyeAth85ueW57Hyhu8R8zyQIDAQAB',
 
-  // Tabla de Tallas del Cuerpo (en centímetros reales para la polera base)
+  // Tabla de Tallas del Cuerpo (en centímetros reales para la polera base alargada 53x91.5 cm)
   // Medidas: ancho de sisa a sisa / largo desde el punto alto del hombro al ruedo
   TALLAS_CUERPO: {
-    S:   { ancho: 50, largo: 69, estimada: true },
-    M:   { ancho: 53, largo: 71, estimada: false }, // Talla M es la base de referencia (53 x 71 cm)
-    L:   { ancho: 54, largo: 72, estimada: false },
-    XL:  { ancho: 57, largo: 74, estimada: true },
-    XXL: { ancho: 60, largo: 76, estimada: true }
+    S:   { ancho: 50, largo: 89.0, estimada: true },
+    M:   { ancho: 53, largo: 91.5, estimada: false }, // Talla M es la base de referencia SVG
+    L:   { ancho: 54, largo: 92.5, estimada: false },
+    XL:  { ancho: 57, largo: 94.5, estimada: true },
+    XXL: { ancho: 60, largo: 96.5, estimada: true }
   },
 
   // Dimensiones Paramétricas de las Mangas Planas (en centímetros)

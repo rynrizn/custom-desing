@@ -60,8 +60,13 @@ export class MesaDeTrabajo {
   mundoACanvas(xCm, yCm) {
     const escala = this.pxPorCmBase * this.zoom;
     const centroX = this.anchoLogico / 2.0 + this.panX;
-    // Anclamos y=0 ligeramente arriba del centro para que la prenda se vea balanceada
-    const centroY = this.altoLogico / 2.0 - (35.0 * escala / 2.0) + this.panY;
+    const sup = estado.datos.superficieActiva;
+    const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
+    const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
+
+    // En patrón de manga plana centramos en y=9.5 cm. En torso (91.5 cm) centramos en y=44.0 cm.
+    const centroYPrenda = (esManga && modoManga === 'plana') ? 9.5 : 44.0;
+    const centroY = this.altoLogico / 2.0 - (centroYPrenda * escala) + this.panY;
 
     return {
       cx: centroX + xCm * escala,
@@ -75,7 +80,12 @@ export class MesaDeTrabajo {
   canvasAMundo(cx, cy) {
     const escala = this.pxPorCmBase * this.zoom;
     const centroX = this.anchoLogico / 2.0 + this.panX;
-    const centroY = this.altoLogico / 2.0 - (35.0 * escala / 2.0) + this.panY;
+    const sup = estado.datos.superficieActiva;
+    const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
+    const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
+
+    const centroYPrenda = (esManga && modoManga === 'plana') ? 9.5 : 44.0;
+    const centroY = this.altoLogico / 2.0 - (centroYPrenda * escala) + this.panY;
 
     return {
       xCm: (cx - centroX) / escala,
@@ -89,7 +99,7 @@ export class MesaDeTrabajo {
   ajustarAPantalla() {
     const sup = estado.datos.superficieActiva;
     const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
-    const modoManga = this.modoManga || 'prenda';
+    const modoManga = this.modoManga || (esManga ? 'plana' : 'prenda');
 
     let anchoPrenda, altoPrenda;
     if (esManga && modoManga === 'plana') {
@@ -99,7 +109,7 @@ export class MesaDeTrabajo {
     } else {
       const { anchoCm, largoCm } = motorPoleraSVG.obtenerEscalasTalla();
       anchoPrenda = (anchoCm || 53.0) + 40.0; // Margen lateral para mangas en perspectiva
-      altoPrenda = (largoCm || 71.0) + 12.0;
+      altoPrenda = (largoCm || 91.5) + 14.0;  // Polera alargada
     }
 
     const w = this.anchoLogico;

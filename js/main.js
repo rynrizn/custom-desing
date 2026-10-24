@@ -152,6 +152,9 @@ class AplicacionCADTextil {
     // 10. Reglas graduadas perimetrales
     this.mesa.dibujarReglas();
 
+    // 11. Previsualización PiP en tiempo real de la polera para mangas
+    gestorMangas.dibujarMiniaturaPolera(this.ctx, superficie, this.mesa);
+
     // Actualizar posición de la barra flotante contextual
     const floatingEl = document.getElementById('floatingContextBar');
     gestorCapas.actualizarBarraFlotante(floatingEl, this.mesa);
@@ -181,6 +184,19 @@ class AplicacionCADTextil {
     this.canvas.setPointerCapture(e.pointerId);
     const { x, y } = this.obtenerCoordenadasCanvas(e);
 
+    // 0. Interacción con miniatura PiP de manga (alternar vista polera / patrón plano)
+    if (gestorMangas.esHitEnMiniaturaPiP(x, y, this.mesa)) {
+      this.mesa.modoManga = this.mesa.modoManga === 'plana' ? 'prenda' : 'plana';
+      const mangaBtn = document.getElementById('mangaModeBtn');
+      if (mangaBtn) {
+        const span = mangaBtn.querySelector('span');
+        if (span) span.textContent = this.mesa.modoManga === 'plana' ? 'PATRÓN PLANO' : 'VISTA POLERA';
+      }
+      this.mesa.ajustarAPantalla();
+      this.solicitarRender();
+      return;
+    }
+
     // Si se pulsa botón secundario o central, o la barra espaciadora, iniciar desplazamiento (Pan)
     if (e.button === 1 || e.button === 2 || e.spaceKey) {
       this.operacionActiva = 'pan';
@@ -205,6 +221,23 @@ class AplicacionCADTextil {
         if (hit) {
           estado.seleccionarCapa(c.id);
           break;
+        }
+      }
+    }
+
+    // Si no se tocó ninguna capa, verificar clic directo sobre mangas en torso para saltar a editarlas
+    const sup = estado.datos.superficieActiva;
+    if (!hit && (sup === 'anverso' || sup === 'reverso')) {
+      const pMundo = this.mesa.canvasAMundo(x, y);
+      if (pMundo.yCm >= 4.0 && pMundo.yCm <= 42.0) {
+        if (pMundo.xCm <= -26.0 && pMundo.xCm >= -48.0) {
+          // Clic directo sobre la manga izquierda
+          estado.setSuperficieActiva('manga_izquierda');
+          return;
+        } else if (pMundo.xCm >= 26.0 && pMundo.xCm <= 48.0) {
+          // Clic directo sobre la manga derecha
+          estado.setSuperficieActiva('manga_derecha');
+          return;
         }
       }
     }

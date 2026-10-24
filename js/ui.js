@@ -522,6 +522,36 @@ export class ControladorUI {
       estado.notificar('modo-manga', this.mesa.modoManga);
     });
 
+    // Botón para alternar a la otra manga con un toque
+    document.getElementById('switchSleeveSideBtn')?.addEventListener('click', () => {
+      const supActual = estado.datos.superficieActiva;
+      const nuevaSup = supActual === 'manga_izquierda' ? 'manga_derecha' : 'manga_izquierda';
+      estado.setSuperficieActiva(nuevaSup);
+    });
+
+    // Botón de alternancia rápida de Modo Espejo en la mesa
+    const quickMirrorBtn = document.getElementById('quickMirrorBtn');
+    quickMirrorBtn?.addEventListener('click', () => {
+      estado.poleraActiva.mangasEspejo = !estado.poleraActiva.mangasEspejo;
+      gestorMangas.sincronizarEspejo(estado.datos.superficieActiva);
+      const mirrorToggle = document.getElementById('mirrorSleevesToggle');
+      if (mirrorToggle) mirrorToggle.checked = estado.poleraActiva.mangasEspejo;
+      if (quickMirrorBtn) {
+        quickMirrorBtn.querySelector('span').textContent = estado.poleraActiva.mangasEspejo ? '🪞 ESPEJO: ON' : '🪞 ESPEJO: OFF';
+        quickMirrorBtn.classList.toggle('active', estado.poleraActiva.mangasEspejo);
+      }
+      estado.guardarSnapshotHistorial(`Espejo mangas ${estado.poleraActiva.mangasEspejo ? 'activado' : 'desactivado'}`);
+      estado.notificar('cambio-espejo');
+    });
+
+    // Botón para centrar en manga activa
+    document.getElementById('sleevePresetCenterBtn')?.addEventListener('click', () => {
+      const sel = estado.capaSeleccionada;
+      if (sel) {
+        estado.actualizarCapa(sel.id, { xCm: 0, yCm: 9.5 });
+      }
+    });
+
     // Deshacer y Rehacer
     document.getElementById('undoBtn')?.addEventListener('click', () => estado.deshacer());
     document.getElementById('redoBtn')?.addEventListener('click', () => estado.rehacer());
@@ -677,6 +707,34 @@ export class ControladorUI {
     this.actualizarListaCapas();
     this.actualizarMatrizCantidades();
     this.actualizarSelectPoleras();
+
+    // Sincronizar pills de superficie y barra rápida de manga
+    const sup = estado.datos.superficieActiva;
+    document.querySelectorAll('.surface-pill').forEach(p => {
+      const act = p.dataset.surface === sup;
+      p.classList.toggle('active', act);
+      p.setAttribute('aria-selected', act ? 'true' : 'false');
+    });
+
+    const chip = document.getElementById('activeSurfaceLabelChip');
+    if (chip) chip.textContent = sup.toUpperCase().replace('_', ' ');
+
+    const esManga = sup === 'manga_izquierda' || sup === 'manga_derecha';
+    const mangaQuickBar = document.getElementById('mangaQuickBar');
+    const mangaDivider = document.getElementById('mangaDivider');
+    if (mangaQuickBar) mangaQuickBar.style.display = esManga ? 'inline-flex' : 'none';
+    if (mangaDivider) mangaDivider.style.display = esManga ? 'block' : 'none';
+
+    const switchLabel = document.getElementById('switchSleeveSideLabel');
+    if (switchLabel) {
+      switchLabel.textContent = sup === 'manga_izquierda' ? '👉 A MANGA DER' : '👈 A MANGA IZQ';
+    }
+
+    const quickMirrorBtn = document.getElementById('quickMirrorBtn');
+    if (quickMirrorBtn) {
+      quickMirrorBtn.classList.toggle('active', !!estado.poleraActiva.mangasEspejo);
+      quickMirrorBtn.querySelector('span').textContent = estado.poleraActiva.mangasEspejo ? '🪞 ESPEJO: ON' : '🪞 ESPEJO: OFF';
+    }
 
     // Sincronizar barra flotante
     const floatingEl = document.getElementById('floatingContextBar');
