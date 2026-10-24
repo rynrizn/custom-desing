@@ -145,6 +145,20 @@ assert.doesNotThrow(() => {
 }, 'El renderizado con clamping y cotas de costura no debe lanzar errores');
 console.log('   ✓ Clamping de etiquetas y cotas de costura verificado');
 
+// 6. Verificar ajuste de tamaño de letra numérico (8 pt, 12 pt)
+console.log('6. Verificando ajuste de tamaño de letra numérico (8 pt, 12 pt)...');
+capaTextoManga.tamanoPt = 12;
+gestorTexto.recalcularDimensionesCm(capaTextoManga);
+const alto12 = capaTextoManga.heightCm;
+
+capaTextoManga.tamanoPt = 8;
+gestorTexto.recalcularDimensionesCm(capaTextoManga);
+const alto8 = capaTextoManga.heightCm;
+
+assert(alto8 < alto12, 'El alto a 8 pt debe ser menor que a 12 pt');
+assert.strictEqual(capaTextoManga.tamanoPt, 8, 'El tamaño de letra debe poder fijarse a 8 pt');
+console.log('   ✓ Ajuste de tamaño de letra numérico (8 pt, 12 pt) verificado correctamente');
+
 console.log('\n===============================================================');
 console.log('TODAS LAS PRUEBAS DE LA FASE 5 PASARON CON ÉXITO');
 console.log('===============================================================\n');

@@ -300,16 +300,33 @@ export class GestorCapas {
         floatingEl.style.top = `${clampedY}px`;
         floatingEl.style.transform = 'translateX(-50%)';
       }
+
+      // Grupo de tamaño de letra en la barra flotante
+      const floatTextGroup = document.getElementById('floatTextSizeGroup');
+      if (floatTextGroup) {
+        floatTextGroup.style.display = (capa.tipo === 'texto') ? 'inline-flex' : 'none';
+        if (capa.tipo === 'texto') {
+          const lbl = document.getElementById('floatTextPtLabel');
+          if (lbl) lbl.textContent = `${Math.round(capa.tamanoPt || 36)}pt`;
+        }
+      }
     }
 
     if (fineTuneEl) {
       fineTuneEl.style.display = 'flex';
       const sizeGroup = document.getElementById('fineTuneSizeGroup');
       const sizeDivider = document.getElementById('fineTuneSizeDivider');
-      if (sizeGroup) sizeGroup.style.display = (capa.tipo === 'texto') ? 'none' : 'flex';
-      if (sizeDivider) sizeDivider.style.display = (capa.tipo === 'texto') ? 'none' : 'block';
+      if (sizeGroup) sizeGroup.style.display = 'flex';
+      if (sizeDivider) sizeDivider.style.display = 'block';
+
+      const tuneLabel = sizeGroup?.querySelector('.tune-label');
+      if (tuneLabel) {
+        tuneLabel.textContent = (capa.tipo === 'texto') ? `${Math.round(capa.tamanoPt || 36)}pt` : 'TAMAÑO';
+      }
+
       const aspectBtn = document.getElementById('toggleAspectBtn');
       if (aspectBtn) {
+        aspectBtn.style.display = (capa.tipo === 'texto') ? 'none' : 'inline-flex';
         aspectBtn.textContent = (capa.lockAspect !== false) ? '🔒' : '🔓';
       }
     }

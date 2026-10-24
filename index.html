@@ -293,15 +293,42 @@
                 </div>
 
                 <div class="form-row">
-                  <div class="field-group" id="textPtFieldGroup" style="display:none;">
-                    <label class="field-label" for="textPtInput">Tamaño (pt)</label>
-                    <input type="number" id="textPtInput" class="ribbon-input" min="10" max="200" step="2" value="42">
+                  <div class="field-group" id="textPtFieldGroup" style="flex:1;">
+                    <label class="field-label" for="textPtInput">Tamaño de letra (pt)</label>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <button type="button" id="textPtDecBtn" class="btn-icon" title="Reducir tamaño de letra" style="min-width:30px; height:32px; font-weight:bold;">−</button>
+                      <input type="number" id="textPtInput" class="ribbon-input" min="6" max="250" step="1" value="36" style="width:52px; text-align:center; font-weight:700;">
+                      <button type="button" id="textPtIncBtn" class="btn-icon" title="Aumentar tamaño de letra" style="min-width:30px; height:32px; font-weight:bold;">+</button>
+                      <select id="textPtSelect" class="select-input" style="flex:1; height:32px; font-size:11px; padding:0 4px;" title="Seleccionar tamaño">
+                        <option value="8">8 pt</option>
+                        <option value="9">9 pt</option>
+                        <option value="10">10 pt</option>
+                        <option value="11">11 pt</option>
+                        <option value="12">12 pt</option>
+                        <option value="14">14 pt</option>
+                        <option value="16">16 pt</option>
+                        <option value="18">18 pt</option>
+                        <option value="20">20 pt</option>
+                        <option value="24">24 pt</option>
+                        <option value="28">28 pt</option>
+                        <option value="32">32 pt</option>
+                        <option value="36">36 pt</option>
+                        <option value="42">42 pt</option>
+                        <option value="48">48 pt</option>
+                        <option value="56">56 pt</option>
+                        <option value="64">64 pt</option>
+                        <option value="72">72 pt</option>
+                        <option value="80">80 pt</option>
+                        <option value="96">96 pt</option>
+                        <option value="120">120 pt</option>
+                      </select>
+                    </div>
                   </div>
-                  <div class="field-group">
+                  <div class="field-group" style="max-width:80px;">
                     <label class="field-label">Estilo</label>
                     <div style="display:flex; gap:4px;">
-                      <button type="button" id="textBoldBtn" class="btn-icon" title="Negrita"><strong>B</strong></button>
-                      <button type="button" id="textItalicBtn" class="btn-icon" title="Cursiva"><em>I</em></button>
+                      <button type="button" id="textBoldBtn" class="btn-icon" title="Negrita" style="min-width:34px; height:32px;"><strong>B</strong></button>
+                      <button type="button" id="textItalicBtn" class="btn-icon" title="Cursiva" style="min-width:34px; height:32px;"><em>I</em></button>
                     </div>
                   </div>
                 </div>
@@ -484,6 +511,11 @@
 
           <!-- Barra Flotante Contextual sobre la Capa Seleccionada -->
           <div class="floating-context-bar" id="floatingContextBar" style="display:none;" role="toolbar" aria-label="Acciones de elemento">
+            <div id="floatTextSizeGroup" style="display:none; align-items:center; gap:2px; margin-right:4px;">
+              <button type="button" id="floatTextDecBtn" class="btn-micro" title="Disminuir tamaño de letra (A-)">A−</button>
+              <span id="floatTextPtLabel" style="font-family:var(--font-mono); font-size:11px; font-weight:700; padding:0 3px;">36pt</span>
+              <button type="button" id="floatTextIncBtn" class="btn-micro" title="Aumentar tamaño de letra (A+)">A+</button>
+            </div>
             <button type="button" id="floatCenterBtn" class="btn-micro" title="Centrar elemento">CENTRAR</button>
             <button type="button" id="floatDupBtn" class="btn-micro" title="Duplicar elemento">DUPLICAR</button>
             <button type="button" id="floatLockBtn" class="btn-micro" title="Bloquear / Desbloquear">BLOQUEAR</button>

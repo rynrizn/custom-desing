@@ -462,12 +462,52 @@ export class ControladorUI {
       }
     });
 
+    // Tamaño de letra (pt)
     document.getElementById('textPtInput')?.addEventListener('input', (e) => {
       const capa = estado.capaSeleccionada;
       if (capa && capa.tipo === 'texto') {
-        capa.tamanoPt = parseFloat(e.target.value) || 36;
-        gestorTexto.recalcularDimensionesCm(capa);
-        estado.notificar('capa-modificada', capa);
+        const val = Math.max(6, Math.min(250, parseFloat(e.target.value) || 8));
+        this.cambiarTamanoTexto(val);
+      }
+    });
+
+    document.getElementById('textPtSelect')?.addEventListener('change', (e) => {
+      const capa = estado.capaSeleccionada;
+      if (capa && capa.tipo === 'texto') {
+        const val = parseFloat(e.target.value);
+        if (val) this.cambiarTamanoTexto(val);
+      }
+    });
+
+    document.getElementById('textPtDecBtn')?.addEventListener('click', () => {
+      const capa = estado.capaSeleccionada;
+      if (capa && capa.tipo === 'texto') {
+        const paso = (capa.tamanoPt || 36) <= 16 ? 1 : 2;
+        this.cambiarTamanoTexto((capa.tamanoPt || 36) - paso);
+      }
+    });
+
+    document.getElementById('textPtIncBtn')?.addEventListener('click', () => {
+      const capa = estado.capaSeleccionada;
+      if (capa && capa.tipo === 'texto') {
+        const paso = (capa.tamanoPt || 36) < 16 ? 1 : 2;
+        this.cambiarTamanoTexto((capa.tamanoPt || 36) + paso);
+      }
+    });
+
+    document.getElementById('floatTextDecBtn')?.addEventListener('click', () => {
+      const capa = estado.capaSeleccionada;
+      if (capa && capa.tipo === 'texto') {
+        const paso = (capa.tamanoPt || 36) <= 16 ? 1 : 2;
+        this.cambiarTamanoTexto((capa.tamanoPt || 36) - paso);
+      }
+    });
+
+    document.getElementById('floatTextIncBtn')?.addEventListener('click', () => {
+      const capa = estado.capaSeleccionada;
+      if (capa && capa.tipo === 'texto') {
+        const paso = (capa.tamanoPt || 36) < 16 ? 1 : 2;
+        this.cambiarTamanoTexto((capa.tamanoPt || 36) + paso);
       }
     });
 
@@ -1107,7 +1147,9 @@ export class ControladorUI {
       const color = document.getElementById('textColorPicker');
       if (color) color.value = capa.color || '#0A0A0A';
       const pt = document.getElementById('textPtInput');
-      if (pt) pt.value = capa.tamanoPt || 42;
+      if (pt && document.activeElement !== pt) pt.value = capa.tamanoPt || 36;
+      const ptSelect = document.getElementById('textPtSelect');
+      if (ptSelect) ptSelect.value = String(capa.tamanoPt || 36);
     } else {
       if (textControls) textControls.style.display = 'none';
       const esBaja = gestorImagenes.tieneCalidadBaja(capa);
@@ -1185,10 +1227,37 @@ export class ControladorUI {
     if (totalEl) totalEl.textContent = gestorPedido.calcularTotalPrendas();
   }
 
+  cambiarTamanoTexto(nuevoPt) {
+    const sel = estado.capaSeleccionada;
+    if (sel && sel.tipo === 'texto' && !sel.locked) {
+      const ptClamped = Math.max(6, Math.min(250, Math.round(nuevoPt)));
+      sel.tamanoPt = ptClamped;
+      gestorTexto.recalcularDimensionesCm(sel);
+
+      const input = document.getElementById('textPtInput');
+      if (input && document.activeElement !== input) input.value = ptClamped;
+      const select = document.getElementById('textPtSelect');
+      if (select) select.value = String(ptClamped);
+      const floatLabel = document.getElementById('floatTextPtLabel');
+      if (floatLabel) floatLabel.textContent = `${ptClamped}pt`;
+      const fineTuneSize = document.getElementById('fineTuneSizeGroup');
+      const tuneLabel = fineTuneSize?.querySelector('.tune-label');
+      if (tuneLabel && sel.tipo === 'texto') tuneLabel.textContent = `${ptClamped}pt`;
+
+      estado.notificar('capa-modificada', sel);
+    }
+  }
+
   escalarCapaSeleccionada(factor) {
     const sel = estado.capaSeleccionada;
     if (sel && !sel.locked) {
-      if (sel.tipo === 'texto') return; // El texto no se escala ni estira
+      if (sel.tipo === 'texto') {
+        const paso = (sel.tamanoPt || 36) < 16 ? 1 : 2;
+        const delta = factor > 1 ? paso : -paso;
+        this.cambiarTamanoTexto((sel.tamanoPt || 36) + delta);
+        estado.guardarSnapshotHistorial(`Tamaño texto ${sel.tamanoPt} pt`);
+        return;
+      }
       sel.widthCm = parseFloat(Math.max(1.5, Math.min(70.0, sel.widthCm * factor)).toFixed(2));
       sel.heightCm = parseFloat(Math.max(1.5, Math.min(70.0, sel.heightCm * factor)).toFixed(2));
       estado.notificar('capa-escalada', sel);
