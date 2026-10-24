@@ -85,6 +85,33 @@
       background: #101114;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
+    .security-banner {
+      background: #0D0E10;
+      border: 1px solid #383a42;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #8F8F8C;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .security-banner strong {
+      color: #FAF9F6;
+    }
+    .meter-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #252830;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .meter-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+      background: #df2842;
+    }
     @media (max-width: 900px) {
       .lector-container {
         grid-template-columns: 1fr;
@@ -101,6 +128,7 @@
       <span class="tag-chip" style="background:#24262c; color:#D6D6D3;">LECTOR .ZRN</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
+      <button type="button" id="openChangePassphraseBtn" class="btn btn-ghost" style="height:32px; font-size:11px;">🔑 Cambiar Frase</button>
       <a href="/lector/configurar" class="btn btn-ghost" style="height:32px; font-size:11px;">⚙️ Generar Claves</a>
       <a href="/" class="btn btn-ghost" style="height:32px; font-size:11px;">Abrir Editor</a>
       <a href="/api/logout" class="btn btn-micro btn-danger" style="height:32px; padding:0 10px; display:inline-flex; align-items:center;">Cerrar Sesión</a>
@@ -111,6 +139,14 @@
   <main class="lector-container">
     <!-- Panel Izquierdo: Carga y Metadatos -->
     <aside class="sidebar-pane">
+      <!-- Banner Informativo de Seguridad -->
+      <div class="security-banner">
+        <div><strong>SEGURIDAD CERO-CONOCIMIENTO:</strong></div>
+        <div>• <strong>Contraseña Admin:</strong> Acceso web al lector (Cloudflare).</div>
+        <div>• <strong>Frase Secreta:</strong> Descifra los pedidos en tu navegador (solo en tu memoria).</div>
+        <div>• <strong>Claves Criptográficas:</strong> Transporte de pedidos cifrados cliente-taller.</div>
+      </div>
+
       <!-- Dropzone para .zrn -->
       <div class="dropzone" id="zrnDropzone" role="button" tabindex="0" style="background:#1c1d22; border-color:#383a42; padding:32px 16px;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--accent-crimson)">
@@ -173,7 +209,7 @@
 
   <!-- Modal para Solicitar Frase Secreta en la Primera Carga -->
   <div class="passphrase-modal" id="passphraseModal">
-    <div class="modal-card" style="background:#141518; border-color:#383a42; max-width:420px;">
+    <div class="modal-card" style="background:#141518; border-color:#383a42; max-width:440px;">
       <div class="modal-title" style="color:#FAF9F6; border-color:#383a42;">
         <span>DESBLOQUEAR CLAVE PRIVADA</span>
       </div>
@@ -185,10 +221,56 @@
         <label class="field-label" for="secretPassphraseInput" style="color:#D6D6D3;">Frase Secreta del Taller</label>
         <input type="password" id="secretPassphraseInput" class="select-input" placeholder="••••••••••••" style="background:#0D0E10; border-color:#383a42; color:#FAF9F6;" autofocus>
       </div>
-      <div id="passphraseError" style="color:var(--error); font-size:11px; display:none;"></div>
+      <div id="passphraseError" style="color:var(--error); font-size:11px; display:none; line-height:1.5;"></div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
         <button type="button" id="unlockPrivateKeyBtn" class="btn btn-crimson" style="height:38px;">
           <span>DESBLOQUEAR CLAVE</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Cambiar Frase Secreta -->
+  <div class="passphrase-modal" id="changePassphraseModal" style="display:none;">
+    <div class="modal-card" style="background:#141518; border-color:#383a42; max-width:480px; width:100%;">
+      <div class="modal-title" style="color:#FAF9F6; border-color:#383a42; display:flex; justify-content:space-between; align-items:center;">
+        <span>CAMBIAR FRASE SECRETA</span>
+        <button type="button" id="closeChangeModalBtn" class="btn-micro" style="background:transparent; border:none; color:#8F8F8C; font-size:16px; cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:12px; color:#D6D6D3; line-height:1.5;">
+        Descifra tu clave privada con la frase actual y genera un nuevo paquete cifrado para Cloudflare con una nueva frase secreta.
+      </p>
+
+      <div class="field-group">
+        <label class="field-label" for="currentPassphraseInput" style="color:#D6D6D3;">Frase Secreta Actual</label>
+        <input type="password" id="currentPassphraseInput" class="select-input" placeholder="Tu frase actual" style="background:#0D0E10; border-color:#383a42; color:#FAF9F6;">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="newPassphraseInput" style="color:#D6D6D3;">Nueva Frase Secreta</label>
+        <input type="password" id="newPassphraseInput" class="select-input" placeholder="Mínimo 16 caracteres o 5 palabras" style="background:#0D0E10; border-color:#383a42; color:#FAF9F6;">
+        <div class="meter-bar-bg">
+          <div id="changeMeterBarFill" class="meter-bar-fill"></div>
+        </div>
+        <div id="changeMeterFeedback" style="font-family:var(--font-mono); font-size:10px; color:#8F8F8C; margin-top:4px;">
+          Introduce al menos 16 caracteres o 5 palabras.
+        </div>
+      </div>
+
+      <div id="changePassphraseError" style="color:var(--error); font-size:11px; display:none; line-height:1.4;"></div>
+
+      <div id="changeResultBox" style="display:none; flex-direction:column; gap:8px; background:#0D0E10; border:1px solid #383a42; padding:12px; margin-top:4px;">
+        <div style="font-size:11px; color:#a5d6a7; font-weight:700;">✅ ¡Clave privada re-cifrada con éxito!</div>
+        <div style="font-size:10px; color:#D6D6D3; line-height:1.4;">
+          Actualiza el valor del secreto <code>PRIVATE_KEY_ENC</code> en Cloudflare Pages con esta nueva cadena:
+        </div>
+        <div id="newPrivKeyDisplay" style="background:#141518; border:1px solid #383a42; padding:8px; font-family:var(--font-mono); font-size:10px; color:#FAF9F6; word-break:break-all; max-height:80px; overflow-y:auto; user-select:all;"></div>
+        <button type="button" id="copyNewPrivKeyBtn" class="btn btn-micro btn-primary" style="align-self:flex-start;">COPIAR NUEVO VALOR</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+        <button type="button" id="executeChangePassphraseBtn" class="btn btn-crimson" style="height:38px;" disabled>
+          <span>RE-CIFRAR CLAVE PRIVADA</span>
         </button>
       </div>
     </div>

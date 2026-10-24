@@ -199,7 +199,7 @@ export class MotorCifradoZRN {
         wrappedKey
       );
     } catch (err) {
-      throw new Error('No se pudo descifrar la clave del pedido. Asegúrate de que la clave privada corresponda al taller.');
+      throw new Error('Este pedido fue cifrado con una clave pública distinta a la configurada en este lector. Verifica que las claves en Cloudflare coincidan.');
     }
 
     // 5. Importar clave AES

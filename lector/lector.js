@@ -33,6 +33,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const previewGallery = document.getElementById('previewGallery');
   const previewCountBadge = document.getElementById('previewCountBadge');
 
+  // Elementos para Cambiar Frase Secreta
+  const openChangePassphraseBtn = document.getElementById('openChangePassphraseBtn');
+  const changePassphraseModal = document.getElementById('changePassphraseModal');
+  const closeChangeModalBtn = document.getElementById('closeChangeModalBtn');
+  const currentPassphraseInput = document.getElementById('currentPassphraseInput');
+  const newPassphraseInput = document.getElementById('newPassphraseInput');
+  const changeMeterBarFill = document.getElementById('changeMeterBarFill');
+  const changeMeterFeedback = document.getElementById('changeMeterFeedback');
+  const executeChangePassphraseBtn = document.getElementById('executeChangePassphraseBtn');
+  const changePassphraseError = document.getElementById('changePassphraseError');
+  const changeResultBox = document.getElementById('changeResultBox');
+  const newPrivKeyDisplay = document.getElementById('newPrivKeyDisplay');
+  const copyNewPrivKeyBtn = document.getElementById('copyNewPrivKeyBtn');
+
   // 1. Obtener la clave privada cifrada desde /api/clave
   let encryptedPrivateKeyJSON = null;
 
@@ -54,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (res.ok && data.encryptedPrivateKey) {
       let rawKey = data.encryptedPrivateKey.trim();
       if (rawKey.startsWith('ZRNK1:')) {
-        rawKey = rawKey.slice(6);
+        rawKey = rawKey.slice(6).trim();
       }
       encryptedPrivateKeyJSON = rawKey;
     } else {
@@ -65,7 +79,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     mostrarAvisoClavesFaltantes();
   }
 
-  // 2. Desbloquear la clave privada con la Frase Secreta
+  // 2. Función auxiliar para descifrar PKCS#8 de clave privada con frase
+  async function descifrarClavePrivadaConFrase(rawJsonStr, frase) {
+    const encObj = typeof rawJsonStr === 'string' ? JSON.parse(rawJsonStr) : rawJsonStr;
+    const salt = new Uint8Array(atob(encObj.salt).split('').map(c => c.charCodeAt(0)));
+    const iv = new Uint8Array(atob(encObj.iv).split('').map(c => c.charCodeAt(0)));
+    const ciphertext = new Uint8Array(atob(encObj.ciphertext).split('').map(c => c.charCodeAt(0)));
+
+    const baseKey = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(frase),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+    );
+
+    const aesKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: encObj.iterations || 600000,
+        hash: 'SHA-256'
+      },
+      baseKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+
+    return await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      aesKey,
+      ciphertext
+    );
+  }
+
+  // 3. Desbloquear la clave privada con la Frase Secreta
   unlockBtn.addEventListener('click', async () => {
     const frase = secretPassphraseInput.value.trim();
     if (!frase) return;
@@ -79,42 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error('No hay secreto PRIVATE_KEY_ENC configurado en Cloudflare. Genéralo en /lector/configurar');
       }
 
-      const encObj = typeof encryptedPrivateKeyJSON === 'string'
-        ? JSON.parse(encryptedPrivateKeyJSON)
-        : encryptedPrivateKeyJSON;
-
-      const salt = new Uint8Array(atob(encObj.salt).split('').map(c => c.charCodeAt(0)));
-      const iv = new Uint8Array(atob(encObj.iv).split('').map(c => c.charCodeAt(0)));
-      const ciphertext = new Uint8Array(atob(encObj.ciphertext).split('').map(c => c.charCodeAt(0)));
-
-      // Derivar clave AES con PBKDF2
-      const baseKey = await crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(frase),
-        { name: 'PBKDF2' },
-        false,
-        ['deriveKey']
-      );
-
-      const aesKey = await crypto.subtle.deriveKey(
-        {
-          name: 'PBKDF2',
-          salt: salt,
-          iterations: encObj.iterations || 600000,
-          hash: 'SHA-256'
-        },
-        baseKey,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['decrypt']
-      );
-
-      // Descifrar PKCS#8 de la clave privada RSA
-      const pkcs8Buffer = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: iv },
-        aesKey,
-        ciphertext
-      );
+      const pkcs8Buffer = await descifrarClavePrivadaConFrase(encryptedPrivateKeyJSON, frase);
 
       // Importar clave privada RSA-OAEP
       rsaPrivateKeyDesbloqueada = await crypto.subtle.importKey(
@@ -124,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           name: 'RSA-OAEP',
           hash: 'SHA-256'
         },
-        false,
+        true, // exportable para permitir re-cifrado al cambiar de frase
         ['decrypt']
       );
 
@@ -140,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 3. Carga y Descifrado de archivos .zrn
+  // 4. Carga y Descifrado de archivos .zrn
   zrnDropzone.addEventListener('click', () => zrnFileInput.click());
 
   zrnDropzone.addEventListener('dragover', (e) => {
@@ -203,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       orderSummaryBox.style.display = 'flex';
 
     } catch (err) {
-      alert('Error al abrir archivo .zrn: ' + err.message);
+      alert(err.message);
     }
   }
 
@@ -230,7 +244,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     previewGallery.innerHTML = '';
     let count = 0;
 
-    // Buscar archivos de imagen en el ZIP
     const files = Object.keys(zip.files);
     for (const path of files) {
       if (path.match(/\.(png|jpe?g|webp|svg)$/i)) {
@@ -283,6 +296,168 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.href = '/';
     } catch (err) {
       alert('No se pudo cargar el proyecto en el editor: ' + err.message);
+    }
+  });
+
+  // 5. Gestión del Modal "Cambiar Frase Secreta"
+  openChangePassphraseBtn?.addEventListener('click', () => {
+    changePassphraseModal.style.display = 'flex';
+    changePassphraseError.style.display = 'none';
+    changeResultBox.style.display = 'none';
+    currentPassphraseInput.value = '';
+    newPassphraseInput.value = '';
+    currentPassphraseInput.focus();
+  });
+
+  closeChangeModalBtn?.addEventListener('click', () => {
+    changePassphraseModal.style.display = 'none';
+  });
+
+  function evaluarFuerzaNuevaFrase(frase) {
+    const f = frase.trim();
+    if (!f) return { score: 0, texto: 'Mínimo 16 caracteres o 5 palabras.', valida: false };
+
+    const comunes = ['zairen2026', 'zairen', 'admin', '123456', 'password', 'qwerty', 'taller2026'];
+    const fLower = f.toLowerCase();
+    for (const c of comunes) {
+      if (fLower === c || (fLower.includes(c) && f.length < 18)) {
+        return { score: 15, texto: '⚠️ Frase predecible o contiene términos prohibidos.', valida: false };
+      }
+    }
+
+    const palabras = f.split(/[\s\-_.,;:]+/).filter(p => p.length >= 2);
+    const cumple = f.length >= 16 || palabras.length >= 5;
+    let score = Math.min(100, f.length * 4 + palabras.length * 5);
+
+    if (!cumple) {
+      return { score: Math.min(score, 35), texto: `Débil (${f.length} car., ${palabras.length} pal.). Mínimo 16 car. o 5 pal.`, valida: false };
+    }
+
+    return { score, texto: `Fuerte (${f.length} car., ${palabras.length} pal.). Nivel adecuado.`, valida: true };
+  }
+
+  newPassphraseInput?.addEventListener('input', () => {
+    const ev = evaluarFuerzaNuevaFrase(newPassphraseInput.value);
+    changeMeterBarFill.style.width = `${ev.score}%`;
+    changeMeterBarFill.style.backgroundColor = ev.score < 40 ? '#df2842' : (ev.score < 70 ? '#e0a800' : '#2e7d32');
+    changeMeterFeedback.textContent = ev.texto;
+    changeMeterFeedback.style.color = ev.valida ? '#a5d6a7' : '#ff897d';
+    executeChangePassphraseBtn.disabled = !ev.valida;
+  });
+
+  executeChangePassphraseBtn?.addEventListener('click', async () => {
+    const fraseActual = currentPassphraseInput.value.trim();
+    const fraseNueva = newPassphraseInput.value.trim();
+
+    changePassphraseError.style.display = 'none';
+    changeResultBox.style.display = 'none';
+
+    if (!fraseActual) {
+      changePassphraseError.textContent = 'Por favor introduce la frase secreta actual.';
+      changePassphraseError.style.display = 'block';
+      return;
+    }
+
+    const ev = evaluarFuerzaNuevaFrase(fraseNueva);
+    if (!ev.valida) {
+      changePassphraseError.textContent = ev.texto;
+      changePassphraseError.style.display = 'block';
+      return;
+    }
+
+    executeChangePassphraseBtn.disabled = true;
+    executeChangePassphraseBtn.textContent = 'RE-CIFRANDO...';
+
+    try {
+      if (!encryptedPrivateKeyJSON) {
+        throw new Error('No hay clave privada cargada desde Cloudflare Pages.');
+      }
+
+      // 1. Descifrar clave con la frase actual
+      let pkcs8Buffer;
+      try {
+        pkcs8Buffer = await descifrarClavePrivadaConFrase(encryptedPrivateKeyJSON, fraseActual);
+      } catch (e) {
+        throw new Error('La frase secreta actual no es correcta.');
+      }
+
+      // 2. Derivar nueva clave AES con la nueva frase
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const saltB64 = btoa(String.fromCharCode(...salt));
+
+      const baseKey = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(fraseNueva),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+      );
+
+      const aesKey = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 600000,
+          hash: 'SHA-256'
+        },
+        baseKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt']
+      );
+
+      // 3. Cifrar con AES-GCM
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ivB64 = btoa(String.fromCharCode(...iv));
+
+      const encryptedPkcs8Buffer = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        aesKey,
+        pkcs8Buffer
+      );
+
+      const ciphertextB64 = btoa(String.fromCharCode(...new Uint8Array(encryptedPkcs8Buffer)));
+
+      const newEncJSON = JSON.stringify({
+        salt: saltB64,
+        iv: ivB64,
+        ciphertext: ciphertextB64,
+        iterations: 600000,
+        hash: 'SHA-256'
+      });
+
+      const newPrivKeyPrefixed = `ZRNK1:${newEncJSON}`;
+
+      // 4. Actualizar estado local en memoria
+      encryptedPrivateKeyJSON = newEncJSON;
+      rsaPrivateKeyDesbloqueada = await crypto.subtle.importKey(
+        'pkcs8',
+        pkcs8Buffer,
+        { name: 'RSA-OAEP', hash: 'SHA-256' },
+        true,
+        ['decrypt']
+      );
+
+      // 5. Mostrar resultado para copiar a Cloudflare
+      newPrivKeyDisplay.textContent = newPrivKeyPrefixed;
+      changeResultBox.style.display = 'flex';
+      executeChangePassphraseBtn.textContent = 'RE-CIFRADO COMPLETADO';
+
+    } catch (err) {
+      changePassphraseError.textContent = err.message;
+      changePassphraseError.style.display = 'block';
+      executeChangePassphraseBtn.disabled = false;
+      executeChangePassphraseBtn.textContent = 'RE-CIFRAR CLAVE PRIVADA';
+    }
+  });
+
+  copyNewPrivKeyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(newPrivKeyDisplay.textContent.trim());
+      copyNewPrivKeyBtn.textContent = '¡COPIADO!';
+      setTimeout(() => copyNewPrivKeyBtn.textContent = 'COPIAR NUEVO VALOR', 2000);
+    } catch (e) {
+      alert('Copia el texto manualmente del recuadro.');
     }
   });
 });
