@@ -88,6 +88,17 @@
     <main class="workspace-grid">
       <!-- PANEL LATERAL DE CONTROLES (EN MÓVIL SE CONVIERTE EN HOJA DESLIZABLE) -->
       <aside class="controls-panel" id="controlsPanel" aria-label="Panel de configuración y diseño">
+        <!-- Barra de arrastre y control de posición para móvil (3 posiciones: cerrada, media, completa) -->
+        <div class="sheet-handle-bar" id="sheetHandleBar" role="toolbar" aria-label="Control de altura de la hoja">
+          <div class="sheet-drag-pill" title="Desliza para ajustar altura"></div>
+          <div class="sheet-quick-actions">
+            <button type="button" id="sheetExpandBtn" class="sheet-btn-toggle" title="Alternar entre altura media y completa" aria-label="Expandir o reducir hoja">
+              <span id="sheetExpandIcon">⤢</span>
+            </button>
+            <button type="button" id="sheetCloseBtn" class="sheet-btn-toggle" title="Cerrar hoja de herramientas" aria-label="Cerrar hoja">✕</button>
+          </div>
+        </div>
+
         <!-- Pestañas de sección para Escritorio -->
         <div class="desktop-panel-tabs" role="tablist">
           <button type="button" class="desktop-tab-btn active" data-tab="prenda">1. PRENDA</button>

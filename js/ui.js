@@ -24,6 +24,7 @@ export class ControladorUI {
     this.mesa = mesa;
     this.app = app;
     this.hojaActiva = null; // 'prenda' | 'diseno' | 'capas' | 'pedido' | null
+    this.sheetPosition = 'cerrada'; // 'cerrada' | 'media' | 'completa'
     this.inicializar();
   }
 
@@ -53,17 +54,62 @@ export class ControladorUI {
 
   // --- Hojas Deslizables (Móvil) y Pestañas (Escritorio) ---
 
-  abrirHoja(nombreHoja) {
+  setSheetPosition(posicion) {
+    const panel = document.getElementById('controlsPanel');
+    const grid = document.querySelector('.workspace-grid');
+    if (!panel) return;
+
+    this.sheetPosition = posicion;
+
+    panel.classList.remove('sheet-pos-media', 'sheet-pos-completa', 'sheet-open');
+    if (grid) grid.classList.remove('sheet-media-active');
+
+    const expandBtn = document.getElementById('sheetExpandBtn');
+    const expandIcon = document.getElementById('sheetExpandIcon');
+
+    if (posicion === 'media') {
+      panel.classList.add('sheet-open', 'sheet-pos-media');
+      if (grid) grid.classList.add('sheet-media-active');
+      if (expandBtn) expandBtn.title = 'Expandir a pantalla completa';
+      if (expandIcon) expandIcon.textContent = '⤢';
+    } else if (posicion === 'completa') {
+      panel.classList.add('sheet-open', 'sheet-pos-completa');
+      if (expandBtn) expandBtn.title = 'Reducir a vista media';
+      if (expandIcon) expandIcon.textContent = '⤡';
+    } else {
+      // cerrada
+      this.hojaActiva = null;
+      document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+    }
+
+    // Al cambiar la altura del lienzo en móvil, reajustar resolución y centrado para que el elemento siga visible
+    setTimeout(() => {
+      if (this.app) {
+        this.app.ajustarResolucionCanvas();
+        this.mesa.ajustarAPantalla();
+        this.app.solicitarRender();
+      }
+    }, 60);
+  }
+
+  abrirHoja(nombreHoja, posForzada = null) {
     const panel = document.getElementById('controlsPanel');
     if (!panel) return;
 
-    if (this.hojaActiva === nombreHoja && panel.classList.contains('sheet-open')) {
-      this.cerrarTodasLasHojas();
-      return;
+    const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    // Si ya está abierta la misma hoja en móvil: alternar de media a completa o cerrar
+    if (esMovil && this.hojaActiva === nombreHoja && panel.classList.contains('sheet-open')) {
+      if (this.sheetPosition === 'media') {
+        this.setSheetPosition('completa');
+        return;
+      } else {
+        this.cerrarTodasLasHojas();
+        return;
+      }
     }
 
     this.hojaActiva = nombreHoja;
-    panel.classList.add('sheet-open');
 
     // Activar sección
     document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
@@ -79,13 +125,16 @@ export class ControladorUI {
     document.querySelectorAll('.desktop-tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === nombreHoja);
     });
+
+    if (esMovil) {
+      this.setSheetPosition(posForzada || 'media');
+    } else {
+      panel.classList.add('sheet-open');
+    }
   }
 
   cerrarTodasLasHojas() {
-    const panel = document.getElementById('controlsPanel');
-    if (panel) panel.classList.remove('sheet-open');
-    this.hojaActiva = null;
-    document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+    this.setSheetPosition('cerrada');
   }
 
   capitalizar(str) {
@@ -201,6 +250,55 @@ export class ControladorUI {
         this.abrirHoja(btn.dataset.sheet);
       });
     });
+
+    // Controles de posición de la hoja deslizable (3 posiciones)
+    document.getElementById('sheetExpandBtn')?.addEventListener('click', () => {
+      if (this.sheetPosition === 'media') {
+        this.setSheetPosition('completa');
+      } else {
+        this.setSheetPosition('media');
+      }
+    });
+
+    document.getElementById('sheetCloseBtn')?.addEventListener('click', () => {
+      this.cerrarTodasLasHojas();
+    });
+
+    // Gestos táctiles de arrastre sobre la barra de la hoja (#sheetHandleBar)
+    const handleBar = document.getElementById('sheetHandleBar');
+    if (handleBar) {
+      let touchStartY = 0;
+      let touchDistY = 0;
+
+      handleBar.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) {
+          touchStartY = e.touches[0].clientY;
+          touchDistY = 0;
+        }
+      }, { passive: true });
+
+      handleBar.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches.length === 1) {
+          touchDistY = e.touches[0].clientY - touchStartY;
+        }
+      }, { passive: true });
+
+      handleBar.addEventListener('touchend', () => {
+        if (touchDistY > 35) {
+          // Deslizar abajo
+          if (this.sheetPosition === 'completa') {
+            this.setSheetPosition('media');
+          } else if (this.sheetPosition === 'media') {
+            this.setSheetPosition('cerrada');
+          }
+        } else if (touchDistY < -35) {
+          // Deslizar arriba
+          if (this.sheetPosition === 'media') {
+            this.setSheetPosition('completa');
+          }
+        }
+      });
+    }
   }
 
   enlazarEventosPrenda() {

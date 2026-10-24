@@ -421,6 +421,10 @@ button, select, input, textarea {
   flex-shrink: 0;
 }
 
+.sheet-handle-bar {
+  display: none;
+}
+
 .desktop-tab-btn {
   padding: 10px 4px;
   border: none;
@@ -1123,23 +1127,91 @@ input:checked + .toggle-slider:before {
     display: none;
   }
 
-  /* El panel de controles se convierte en Hoja Deslizable (Bottom Sheet) */
+  /* Barra de arrastre de la hoja deslizable móvil */
+  .sheet-handle-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 38px;
+    padding: 0 12px;
+    background: var(--surface-solid);
+    border-bottom: 1px solid var(--border-subtle);
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .sheet-drag-pill {
+    width: 44px;
+    height: 5px;
+    background: var(--border-strong);
+    border-radius: 3px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .sheet-quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .sheet-btn-toggle {
+    min-height: 38px;
+    min-width: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .sheet-btn-toggle:active {
+    background: var(--surface-high);
+  }
+
+  /* El panel de controles con 3 posiciones: cerrada, media (~44dvh) y completa (~82dvh) */
   .controls-panel {
     position: fixed;
     bottom: 56px;
     left: 0;
     right: 0;
-    height: 72vh;
-    height: 72dvh;
+    height: 44dvh;
     border-top: 1px solid var(--border-strong);
     box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.25);
     transform: translateY(110%);
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), height 0.24s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 45;
   }
 
-  .controls-panel.sheet-open {
+  /* Posición 1: CERRADA (transform: translateY(110%)) */
+
+  /* Posición 2: MEDIA (~44dvh): el panel sube y el lienzo superior reduce su altura */
+  .controls-panel.sheet-pos-media {
     transform: translateY(0%);
+    height: 44dvh;
+  }
+
+  /* En posición media, la mesa reduce su altura para no superponerse y dejar visible el elemento */
+  .workspace-grid.sheet-media-active {
+    height: calc(100dvh - 44px - 38px - 56px - 44dvh);
+    transition: height 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Posición 3: COMPLETA: hoja a pantalla casi completa */
+  .controls-panel.sheet-pos-completa {
+    transform: translateY(0%);
+    height: calc(100dvh - 44px - 56px);
+    z-index: 55;
   }
 
   /* La mesa ocupa la pantalla completa */
