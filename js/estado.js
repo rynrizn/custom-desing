@@ -316,13 +316,16 @@ class EstadoApp {
         clienteWhatsApp: this.datos.clienteWhatsApp,
         indicaciones: this.datos.indicaciones
       });
-      localStorage.setItem(STORAGE_KEY, serializado);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, serializado);
+      }
     } catch (err) {
       console.warn('No se pudo guardar automáticamente en localStorage:', err);
     }
   }
 
   cargarDesdeLocalStorage() {
+    if (typeof localStorage === 'undefined') return;
     try {
       const guardado = localStorage.getItem(STORAGE_KEY);
       if (guardado) {
