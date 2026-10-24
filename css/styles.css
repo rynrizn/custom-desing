@@ -812,6 +812,84 @@ input:checked + .toggle-slider:before {
   pointer-events: auto;
 }
 
+/* Barra de Ajuste Fino en Móvil y Escritorio (Flechas 1 mm, Escala, Giro 1° y 15°) */
+.fine-tune-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  padding: 4px 8px;
+  z-index: 26;
+  max-width: calc(100% - 16px);
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fine-tune-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.fine-tune-v {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.btn-tune {
+  min-width: 30px;
+  min-height: 28px;
+  padding: 2px 6px;
+  background: var(--surface-low);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: manipulation;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.btn-tune:hover, .btn-tune:active {
+  background: var(--surface-high);
+  border-color: var(--border-strong);
+}
+
+.fine-tune-v .btn-tune {
+  min-height: 14px;
+  height: 14px;
+  font-size: 7px;
+  padding: 0 4px;
+}
+
+.tune-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-strong);
+  margin: 0 3px;
+}
+
+.tune-label {
+  font-size: 8px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+
 /* HUD Inferior */
 .stage-hud-bottom {
   display: flex;

@@ -20,8 +20,9 @@ import { motorCifradoZRN } from './cifrado.js';
 import { tourGuiado } from './tour.js';
 
 export class ControladorUI {
-  constructor(mesa) {
+  constructor(mesa, app = null) {
     this.mesa = mesa;
+    this.app = app;
     this.hojaActiva = null; // 'prenda' | 'diseno' | 'capas' | 'pedido' | null
     this.inicializar();
   }
@@ -494,6 +495,30 @@ export class ControladorUI {
       estado.notificar('zoom', this.mesa.zoom);
     });
 
+    // Herramienta Mano para mover la mesa
+    const handBtn = document.getElementById('toolHandBtn');
+    handBtn?.addEventListener('click', () => {
+      if (this.app) {
+        this.app.modoMano = !this.app.modoMano;
+        handBtn.classList.toggle('active', this.app.modoMano);
+        handBtn.setAttribute('aria-pressed', this.app.modoMano.toString());
+        const viewport = document.getElementById('canvasViewport');
+        if (viewport) viewport.classList.toggle('panning', this.app.modoMano);
+      }
+    });
+
+    // Interruptor de Guías Magnéticas Inteligentes
+    const snapBtn = document.getElementById('toggleSnapBtn');
+    if (snapBtn) {
+      snapBtn.classList.toggle('active', estado.datos.imanesGuias);
+      snapBtn.addEventListener('click', () => {
+        estado.datos.imanesGuias = !estado.datos.imanesGuias;
+        snapBtn.classList.toggle('active', estado.datos.imanesGuias);
+        snapBtn.setAttribute('aria-pressed', estado.datos.imanesGuias.toString());
+        estado.notificar('cambio-imanes');
+      });
+    }
+
     // Rejilla y Cotas
     const gridBtn = document.getElementById('toggleGridBtn');
     gridBtn?.addEventListener('click', () => {
@@ -508,6 +533,30 @@ export class ControladorUI {
       cotasBtn.classList.toggle('active', estado.datos.mostrarCotas);
       estado.notificar('cambio-cotas');
     });
+
+    // Controles de Barra de Ajuste Fino en Móvil / Táctil
+    document.getElementById('nudgeLeftBtn')?.addEventListener('click', () => gestorCapas.moverConTeclado(-0.1, 0));
+    document.getElementById('nudgeRightBtn')?.addEventListener('click', () => gestorCapas.moverConTeclado(0.1, 0));
+    document.getElementById('nudgeUpBtn')?.addEventListener('click', () => gestorCapas.moverConTeclado(0, -0.1));
+    document.getElementById('nudgeDownBtn')?.addEventListener('click', () => gestorCapas.moverConTeclado(0, 0.1));
+
+    document.getElementById('scaleDownBtn')?.addEventListener('click', () => this.escalarCapaSeleccionada(0.95));
+    document.getElementById('scaleUpBtn')?.addEventListener('click', () => this.escalarCapaSeleccionada(1.05));
+
+    document.getElementById('toggleAspectBtn')?.addEventListener('click', (e) => {
+      const sel = estado.capaSeleccionada;
+      if (sel) {
+        sel.lockAspect = !(sel.lockAspect !== false);
+        e.currentTarget.textContent = sel.lockAspect ? '🔒' : '🔓';
+        e.currentTarget.title = sel.lockAspect ? 'Proporción bloqueada (tocar para liberar)' : 'Proporción libre (tocar para bloquear)';
+        estado.notificar('capa-modificada', sel);
+      }
+    });
+
+    document.getElementById('rotMinus15Btn')?.addEventListener('click', () => this.rotarCapaSeleccionada(-15));
+    document.getElementById('rotMinus1Btn')?.addEventListener('click', () => this.rotarCapaSeleccionada(-1));
+    document.getElementById('rotPlus1Btn')?.addEventListener('click', () => this.rotarCapaSeleccionada(1));
+    document.getElementById('rotPlus15Btn')?.addEventListener('click', () => this.rotarCapaSeleccionada(15));
 
     // Alternar modo de manga (Vista Polera / Patrón Plano)
     const mangaBtn = document.getElementById('mangaModeBtn');
@@ -944,6 +993,28 @@ export class ControladorUI {
     });
 
     if (totalEl) totalEl.textContent = gestorPedido.calcularTotalPrendas();
+  }
+
+  escalarCapaSeleccionada(factor) {
+    const sel = estado.capaSeleccionada;
+    if (sel && !sel.locked) {
+      sel.widthCm = parseFloat(Math.max(1.5, Math.min(70.0, sel.widthCm * factor)).toFixed(2));
+      sel.heightCm = parseFloat(Math.max(1.5, Math.min(70.0, sel.heightCm * factor)).toFixed(2));
+      if (sel.tipo === 'texto') {
+        sel.tamanoPt = Math.max(8, Math.round((sel.tamanoPt || 36) * factor));
+      }
+      estado.notificar('capa-escalada', sel);
+      estado.guardarSnapshotHistorial('Escalar tamaño elemento');
+    }
+  }
+
+  rotarCapaSeleccionada(grados) {
+    const sel = estado.capaSeleccionada;
+    if (sel && !sel.locked) {
+      sel.angleDeg = ((Math.round((sel.angleDeg || 0) + grados) % 360) + 360) % 360;
+      estado.notificar('capa-rotada', sel);
+      estado.guardarSnapshotHistorial(`Rotar ${grados}°`);
+    }
   }
 
   mostrarNotificacion(mensaje) {

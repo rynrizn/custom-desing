@@ -47,7 +47,7 @@ class AplicacionCADTextil {
 
   iniciar() {
     this.ajustarResolucionCanvas();
-    this.ui = new ControladorUI(this.mesa);
+    this.ui = new ControladorUI(this.mesa, this);
 
     window.addEventListener('resize', () => {
       this.ajustarResolucionCanvas();

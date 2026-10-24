@@ -435,8 +435,14 @@
 
           <div class="ribbon-divider" id="mangaDivider" style="display:none;"></div>
 
-          <!-- Cuadrícula, Cotas y Ajustar a Pantalla con iconos limpios sin desbordar -->
+          <!-- Herramientas de Mesa: Mano, Imanes, Cuadrícula, Cotas y Ajustar a Pantalla -->
           <div style="display:flex; align-items:center; gap:4px;">
+            <button type="button" id="toolHandBtn" class="btn-icon" title="Herramienta Mano para mover la mesa" aria-label="Mover mesa" aria-pressed="false">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+            </button>
+            <button type="button" id="toggleSnapBtn" class="btn-icon active" title="Activar / desactivar guías magnéticas" aria-label="Guías magnéticas" aria-pressed="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 15-3-3 6.7-6.7a4 4 0 0 1 5.6 0l2.4 2.4a4 4 0 0 1 0 5.6L11 23l-3-3 4.7-4.7a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0Z"/><path d="m9 9 3 3"/></svg>
+            </button>
             <button type="button" id="toggleGridBtn" class="btn-icon" title="Mostrar / ocultar rejilla" aria-label="Rejilla" aria-pressed="false">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
             </button>
@@ -459,6 +465,36 @@
             <button type="button" id="floatDupBtn" class="btn-micro" title="Duplicar elemento">DUPLICAR</button>
             <button type="button" id="floatLockBtn" class="btn-micro" title="Bloquear / Desbloquear">BLOQUEAR</button>
             <button type="button" id="floatDeleteBtn" class="btn-micro btn-danger" title="Eliminar elemento">ELIMINAR</button>
+          </div>
+
+          <!-- Barra de Ajuste Fino para Móvil y Táctil (Flechas 1 mm, Escala, Giro 1° y 15°) -->
+          <div class="fine-tune-bar" id="fineTuneBar" style="display:none;" role="toolbar" aria-label="Ajuste fino de precisión">
+            <div class="fine-tune-group" title="Mover 1 mm">
+              <button type="button" id="nudgeLeftBtn" class="btn-tune" title="1 mm Izquierda" aria-label="1 mm Izquierda">◀</button>
+              <div class="fine-tune-v">
+                <button type="button" id="nudgeUpBtn" class="btn-tune" title="1 mm Arriba" aria-label="1 mm Arriba">▲</button>
+                <button type="button" id="nudgeDownBtn" class="btn-tune" title="1 mm Abajo" aria-label="1 mm Abajo">▼</button>
+              </div>
+              <button type="button" id="nudgeRightBtn" class="btn-tune" title="1 mm Derecha" aria-label="1 mm Derecha">▶</button>
+            </div>
+
+            <div class="tune-divider"></div>
+
+            <div class="fine-tune-group" title="Tamaño y Proporción">
+              <button type="button" id="scaleDownBtn" class="btn-tune" title="Reducir 5%" aria-label="Reducir tamaño">−</button>
+              <span class="tune-label">TAMAÑO</span>
+              <button type="button" id="scaleUpBtn" class="btn-tune" title="Aumentar 5%" aria-label="Aumentar tamaño">+</button>
+              <button type="button" id="toggleAspectBtn" class="btn-tune" title="Bloquear / Desbloquear Proporción" aria-label="Proporción">🔒</button>
+            </div>
+
+            <div class="tune-divider"></div>
+
+            <div class="fine-tune-group" title="Rotación">
+              <button type="button" id="rotMinus15Btn" class="btn-tune" title="Girar -15°" aria-label="-15°">-15°</button>
+              <button type="button" id="rotMinus1Btn" class="btn-tune" title="Girar -1°" aria-label="-1°">-1°</button>
+              <button type="button" id="rotPlus1Btn" class="btn-tune" title="Girar +1°" aria-label="+1°">+1°</button>
+              <button type="button" id="rotPlus15Btn" class="btn-tune" title="Girar +15°" aria-label="+15°">+15°</button>
+            </div>
           </div>
         </div>
 

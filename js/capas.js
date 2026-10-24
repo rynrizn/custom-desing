@@ -95,28 +95,39 @@ export class GestorCapas {
   }
 
   /**
-   * Posiciona la barra flotante contextual exactamente arriba de la capa seleccionada.
+   * Posiciona la barra flotante contextual y la barra de ajuste fino según la capa seleccionada.
    */
   actualizarBarraFlotante(floatingEl, mesa) {
-    if (!floatingEl) return;
+    const fineTuneEl = document.getElementById('fineTuneBar');
     const capa = estado.capaSeleccionada;
 
     if (!capa || !capa.visible) {
-      floatingEl.style.display = 'none';
+      if (floatingEl) floatingEl.style.display = 'none';
+      if (fineTuneEl) fineTuneEl.style.display = 'none';
       return;
     }
 
-    const { cx, cy } = mesa.mundoACanvas(capa.xCm, capa.yCm);
-    const escala = mesa.pxPorCmBase * mesa.zoom;
-    const hPx = capa.heightCm * escala;
+    if (floatingEl) {
+      const { cx, cy } = mesa.mundoACanvas(capa.xCm, capa.yCm);
+      const escala = mesa.pxPorCmBase * mesa.zoom;
+      const hPx = capa.heightCm * escala;
 
-    // Posicionar 45 px arriba de la manija de rotación
-    const topPx = cy - hPx / 2 - 48;
-    const leftPx = cx;
+      // Posicionar 45 px arriba de la manija de rotación
+      const topPx = cy - hPx / 2 - 48;
+      const leftPx = cx;
 
-    floatingEl.style.display = 'flex';
-    floatingEl.style.left = `${leftPx}px`;
-    floatingEl.style.top = `${Math.max(56, topPx)}px`;
+      floatingEl.style.display = 'flex';
+      floatingEl.style.left = `${leftPx}px`;
+      floatingEl.style.top = `${Math.max(56, topPx)}px`;
+    }
+
+    if (fineTuneEl) {
+      fineTuneEl.style.display = 'flex';
+      const aspectBtn = document.getElementById('toggleAspectBtn');
+      if (aspectBtn) {
+        aspectBtn.textContent = (capa.lockAspect !== false) ? '🔒' : '🔓';
+      }
+    }
   }
 }
 
