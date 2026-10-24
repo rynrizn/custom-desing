@@ -47,6 +47,10 @@ export class GestorImagenes {
       initWidthCm = initHeightCm * aspect;
     }
 
+    // Geometría en centímetros adaptada a la superficie activa (manga centrada a 9.5 cm, torso a 30 cm)
+    const supActiva = estado.datos?.superficieActiva;
+    const esManga = supActiva === 'manga_izquierda' || supActiva === 'manga_derecha';
+
     const capaImagen = {
       id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       nombre: file.name.replace(/\.[^/.]+$/, ''),
@@ -57,10 +61,6 @@ export class GestorImagenes {
       fileExt: file.name.split('.').pop().toLowerCase(),
       anchoOriginalPx: imgEl.naturalWidth,
       altoOriginalPx: imgEl.naturalHeight,
-
-      // Geometría en centímetros adaptada a la superficie activa (manga centrada a 9.5 cm, torso a 30 cm)
-      const supActiva = estado.datos.superficieActiva;
-      const esManga = supActiva === 'manga_izquierda' || supActiva === 'manga_derecha';
 
       xCm: 0,
       yCm: esManga ? 9.5 : 30.0,

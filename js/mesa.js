@@ -43,12 +43,12 @@ export class MesaDeTrabajo {
   // --- Dimensiones Lógicas Calibradas para DPR (Retina / Móvil) ---
 
   get anchoLogico() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
     return (this.canvas.width / dpr) || this.canvas.clientWidth || 800;
   }
 
   get altoLogico() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
     return (this.canvas.height / dpr) || this.canvas.clientHeight || 800;
   }
 
