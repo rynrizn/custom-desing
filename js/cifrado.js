@@ -18,13 +18,52 @@ export class MotorCifradoZRN {
   constructor() {}
 
   /**
+   * Obtiene la clave pública RSA en runtime consultando el endpoint /api/publica,
+   * con fallback a CONFIG.RSA_PUBLIC_KEY en desarrollo local.
+   */
+  async obtenerClavePublica() {
+    let rawClave = '';
+    try {
+      const res = await fetch('/api/publica', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.clavePublica) {
+          rawClave = data.clavePublica.trim();
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo obtener /api/publica, comprobando fallback de configuración local:', err);
+    }
+
+    if (!rawClave && CONFIG.RSA_PUBLIC_KEY) {
+      rawClave = CONFIG.RSA_PUBLIC_KEY.trim();
+    }
+
+    if (!rawClave) {
+      console.error('Error crítico de cifrado: No se encontró CLAVE_PUBLICA en /api/publica ni CONFIG.RSA_PUBLIC_KEY.');
+      throw new Error('El envío no está disponible en este momento. Por favor, avisa a ZAIRENLAB.');
+    }
+
+    if (rawClave.startsWith('ZRNP1:')) {
+      rawClave = rawClave.slice(6).trim();
+    }
+
+    return rawClave;
+  }
+
+  /**
    * Importa una clave pública RSA-OAEP desde Base64 (formato SPKI).
+   * Tolera prefijo ZRNP1: y encabezados PEM.
    */
   async importarClavePublica(base64Spki) {
     if (!base64Spki || typeof base64Spki !== 'string') {
-      throw new Error('No se ha configurado la clave pública RSA en js/config.js');
+      throw new Error('El envío no está disponible en este momento. Por favor, avisa a ZAIRENLAB.');
     }
-    const cleanB64 = base64Spki.replace(/-----[^\n]+-----|\s+/g, '');
+    let cleanB64 = base64Spki.trim();
+    if (cleanB64.startsWith('ZRNP1:')) {
+      cleanB64 = cleanB64.slice(6).trim();
+    }
+    cleanB64 = cleanB64.replace(/-----[^\n]+-----|\s+/g, '');
     const binaryStr = atob(cleanB64);
     const bytes = new Uint8Array(binaryStr.length);
     for (let i = 0; i < binaryStr.length; i++) {
@@ -46,13 +85,14 @@ export class MotorCifradoZRN {
   /**
    * Cifra un buffer ZIP en el formato binario protegido .zrn.
    */
-  async cifrarPaqueteZRN(zipArrayBuffer, rsaPublicKeyBase64 = CONFIG.RSA_PUBLIC_KEY) {
-    if (!rsaPublicKeyBase64) {
-      throw new Error('Se requiere la clave pública RSA para generar el archivo cifrado .zrn. Configúrala en js/config.js');
+  async cifrarPaqueteZRN(zipArrayBuffer, rsaPublicKeyBase64 = null) {
+    let claveBase64 = rsaPublicKeyBase64;
+    if (!claveBase64) {
+      claveBase64 = await this.obtenerClavePublica();
     }
 
     // 1. Cargar la clave pública RSA del taller
-    const rsaPublicKey = await this.importarClavePublica(rsaPublicKeyBase64);
+    const rsaPublicKey = await this.importarClavePublica(claveBase64);
 
     // 2. Generar clave simétrica aleatoria AES-256-GCM
     const aesKey = await crypto.subtle.generateKey(
