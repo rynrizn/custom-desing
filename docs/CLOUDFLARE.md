@@ -12,14 +12,14 @@ Para operar el sistema sin confusiones, es esencial distinguir estos tres elemen
 | Concepto | Dónde reside | Para qué sirve |
 | :--- | :--- | :--- |
 | **1. Contraseña de Administrador** (`ADMIN_PASSWORD`) | Cloudflare Pages (Secret) | Protege la pantalla de inicio de sesión `/acceso` y todas las rutas `/lector/*`. Permite ingresar al panel web. |
-| **2. Frase Secreta del Taller** | **Solo en tu memoria** (nunca en servidores) | Se introduce al abrir `/lector` para desbloquear la clave privada en la memoria RAM del navegador. Si Cloudflare fuese vulnerado, nadie podría descifrar los pedidos sin esta frase. |
-| **3. Claves Criptográficas** (`CLAVE_PUBLICA` y `PRIVATE_KEY_ENC`) | Cloudflare Pages (PlainText y Secret) | Par RSA-OAEP de 3072 bits. La pública cifra el pedido en el navegador del cliente; la privada cifrada permite al dueño descifrarlo en `/lector` tras ingresar la frase secreta. |
+| **2. Frase Secreta del Taller** | **En tu memoria o en Cloudflare Secrets** | Se utiliza para desbloquear la clave privada. Si configuras `FRASE_SECRETA` en Cloudflare Secrets o la introduces una vez en tu navegador, obtienes **Acceso Directo Total** (el lector se abre descifrado y listo). |
+| **3. Claves Criptográficas** (`CLAVE_PUBLICA` y `PRIVATE_KEY_ENC`) | Cloudflare Pages (PlainText y Secret) | Par RSA-OAEP de 3072 bits. La pública cifra el pedido en el navegador del cliente; la privada cifrada permite al dueño descifrarlo en `/lector`. |
 
 ---
 
-## 2. Las 5 Variables y Recursos en Cloudflare Pages
+## 2. Variables y Recursos en Cloudflare Pages
 
-El sistema utiliza exactamente **5 elementos** configurables en el panel de Cloudflare Pages:
+El sistema utiliza los siguientes elementos configurables en el panel de Cloudflare Pages:
 
 ### Ficha 1: `ADMIN_PASSWORD`
 - **Ubicación:** *Settings > Variables and Secrets*
@@ -59,7 +59,14 @@ El sistema utiliza exactamente **5 elementos** configurables en el panel de Clou
   ```
 - **Propósito:** Entregada por `functions/api/publica.js` a cualquier visitante para que su navegador pueda cifrar el archivo `.zrn` del pedido antes del envío.
 
-### Ficha 5: `LOGIN_KV` (Opcional pero recomendado)
+### Ficha 5: `FRASE_SECRETA` (Opcional — Acceso Directo Total)
+- **Ubicación:** *Settings > Variables and Secrets*
+- **Tipo:** **Secret** (Encriptada en Cloudflare)
+- **Entorno:** Production y Preview
+- **Valor:** La misma frase secreta utilizada al generar tus claves en `/lector/configurar`.
+- **Propósito:** Permite a `/api/clave` descifrar la clave privada en el servidor y entregarla automáticamente lista al lector tras iniciar sesión en `/acceso`. De este modo, **nunca tendrás que volver a escribir la frase secreta**. Si no agregas este secreto, tu navegador la recordará localmente tras ingresarla una sola vez.
+
+### Ficha 6: `LOGIN_KV` (Opcional pero recomendado)
 - **Ubicación:** *Settings > Functions > KV namespace bindings*
 - **Tipo:** **KV namespace binding**
 - **Nombre de la Variable:** `LOGIN_KV`
@@ -79,14 +86,11 @@ El sistema utiliza exactamente **5 elementos** configurables en el panel de Clou
 1. Ve a la pestaña **Settings** (Configuración) del proyecto.
 2. En el menú secundario izquierdo, selecciona **Variables and Secrets**.
 3. Haz clic en **Add variable** o **Edit variables** (para Production y Preview):
-   - Haz clic en **Add variable**.
-   - Nombre: `CLAVE_PUBLICA` | Tipo: **Text** | Valor: Pega tu clave con prefijo `ZRNP1:`.
-   - Haz clic en **Add variable**.
-   - Nombre: `ADMIN_PASSWORD` | Tipo: **Secret** (icono de candado) | Valor: Tu contraseña de administrador.
-   - Haz clic en **Add variable**.
-   - Nombre: `SESSION_SECRET` | Tipo: **Secret** | Valor: Tu cadena hexadecimal de 64 caracteres.
-   - Haz clic en **Add variable**.
-   - Nombre: `PRIVATE_KEY_ENC` | Tipo: **Secret** | Valor: Pega tu clave cifrada con prefijo `ZRNK1:`.
+   - `CLAVE_PUBLICA` | Tipo: **Text** | Valor: Pega tu clave con prefijo `ZRNP1:`.
+   - `ADMIN_PASSWORD` | Tipo: **Secret** (candado) | Valor: Tu contraseña de administrador.
+   - `SESSION_SECRET` | Tipo: **Secret** | Valor: Tu cadena hexadecimal de 64 caracteres.
+   - `PRIVATE_KEY_ENC` | Tipo: **Secret** | Valor: Pega tu clave cifrada con prefijo `ZRNK1:`.
+   - *(Opcional)* `FRASE_SECRETA` | Tipo: **Secret** | Valor: Tu frase secreta para Acceso Directo Total.
 4. Haz clic en **Save** (Guardar).
 
 ### Paso 3.3: Configurar el Enlace KV (LOGIN_KV)

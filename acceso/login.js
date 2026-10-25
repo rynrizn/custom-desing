@@ -6,9 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Si hay error en la URL (ej. sesión expirada)
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('error') === 'expired') {
+  const errorParam = urlParams.get('error');
+
+  if (errorParam === 'expired') {
     errorMsg.textContent = 'Tu sesión ha expirado. Por favor ingresa nuevamente.';
     errorMsg.style.display = 'block';
+  } else if (!errorParam) {
+    // Si ya existe sesión activa válida, redirigir directamente al lector
+    fetch('/api/clave', { method: 'GET' })
+      .then(res => {
+        if (res.ok) {
+          const redirect = urlParams.get('redirect') || '/lector';
+          window.location.replace(redirect);
+        }
+      })
+      .catch(() => {});
   }
 
   form.addEventListener('submit', async (e) => {

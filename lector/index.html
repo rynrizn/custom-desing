@@ -126,12 +126,14 @@
     <div style="display:flex; align-items:center; gap:10px;">
       <span style="font-family:var(--font-display); font-weight:700; font-size:15px; letter-spacing:0.12em;">ZAIREN | ザイレン</span>
       <span class="tag-chip" style="background:#24262c; color:#D6D6D3;">LECTOR .ZRN</span>
+      <span id="keyStatusBadge" class="tag-chip" style="background:#1b3820; color:#81c784; font-size:10px;">🟢 CLAVE LISTA</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
+      <button type="button" id="lockKeyBtn" class="btn btn-ghost" style="height:32px; font-size:11px;" title="Bloquear la clave en este navegador">🔒 Bloquear</button>
       <button type="button" id="openChangePassphraseBtn" class="btn btn-ghost" style="height:32px; font-size:11px;">🔑 Cambiar Frase</button>
       <a href="/lector/configurar" class="btn btn-ghost" style="height:32px; font-size:11px;">⚙️ Generar Claves</a>
       <a href="/" class="btn btn-ghost" style="height:32px; font-size:11px;">Abrir Editor</a>
-      <a href="/api/logout" class="btn btn-micro btn-danger" style="height:32px; padding:0 10px; display:inline-flex; align-items:center;">Cerrar Sesión</a>
+      <a href="/api/logout" id="logoutLink" class="btn btn-micro btn-danger" style="height:32px; padding:0 10px; display:inline-flex; align-items:center;">Cerrar Sesión</a>
     </div>
   </header>
 
@@ -141,10 +143,10 @@
     <aside class="sidebar-pane">
       <!-- Banner Informativo de Seguridad -->
       <div class="security-banner">
-        <div><strong>SEGURIDAD CERO-CONOCIMIENTO:</strong></div>
-        <div>• <strong>Contraseña Admin:</strong> Acceso web al lector (Cloudflare).</div>
-        <div>• <strong>Frase Secreta:</strong> Descifra los pedidos en tu navegador (solo en tu memoria).</div>
-        <div>• <strong>Claves Criptográficas:</strong> Transporte de pedidos cifrados cliente-taller.</div>
+        <div><strong>ACCESO DIRECTO TOTAL:</strong></div>
+        <div>• <strong>Sesión Web:</strong> Protegida con tu contraseña de administrador (8 horas).</div>
+        <div>• <strong>Clave Privada:</strong> Desbloqueada de forma continua para lectura instantánea de pedidos.</div>
+        <div>• <strong>Cifrado E2E:</strong> Los pedidos .zrn vienen blindados desde el navegador del cliente.</div>
       </div>
 
       <!-- Dropzone para .zrn -->
@@ -207,15 +209,15 @@
     </section>
   </main>
 
-  <!-- Modal para Solicitar Frase Secreta en la Primera Carga -->
-  <div class="passphrase-modal" id="passphraseModal">
+  <!-- Modal para Solicitar Frase Secreta en la Primera Carga (si no está ya desbloqueada) -->
+  <div class="passphrase-modal" id="passphraseModal" style="display:none;">
     <div class="modal-card" style="background:#141518; border-color:#383a42; max-width:440px;">
-      <div class="modal-title" style="color:#FAF9F6; border-color:#383a42;">
+      <div class="modal-title" style="color:#FAF9F6; border-color:#383a42; display:flex; justify-content:space-between; align-items:center;">
         <span>DESBLOQUEAR CLAVE PRIVADA</span>
+        <button type="button" id="closePassphraseModalBtn" class="btn-micro" style="background:transparent; border:none; color:#8F8F8C; font-size:16px; cursor:pointer;" title="Cerrar">✕</button>
       </div>
       <p style="font-size:12px; color:#D6D6D3; line-height:1.5;">
-        Para descifrar los pedidos .zrn, introduce la <strong>Frase Secreta</strong> de tu taller.
-        Tu clave privada se descifrará localmente en la memoria de este navegador.
+        Introduce la <strong>Frase Secreta</strong> de tu taller. Se recordará en este navegador para que tengas acceso directo continuo sin volver a pedirla.
       </p>
       <div class="field-group">
         <label class="field-label" for="secretPassphraseInput" style="color:#D6D6D3;">Frase Secreta del Taller</label>
@@ -224,7 +226,7 @@
       <div id="passphraseError" style="color:var(--error); font-size:11px; display:none; line-height:1.5;"></div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
         <button type="button" id="unlockPrivateKeyBtn" class="btn btn-crimson" style="height:38px;">
-          <span>DESBLOQUEAR CLAVE</span>
+          <span>DESBLOQUEAR Y RECORDAR</span>
         </button>
       </div>
     </div>

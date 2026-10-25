@@ -2,8 +2,14 @@
  * ============================================================================
  * Cloudflare Pages Function: GET /api/clave
  * ============================================================================
- * Entrega la clave privada cifrada (PRIVATE_KEY_ENC) ÚNICAMENTE a sesiones
- * con cookie HMAC válida. El servidor nunca conoce la frase secreta.
+ * Entrega la clave privada a sesiones con cookie HMAC válida.
+ * Soporta dos modalidades de acceso:
+ * 1. Acceso Directo Total: Si FRASE_SECRETA (o PRIVATE_KEY) está configurada
+ *    en Cloudflare Pages Secrets, el servidor descifra la clave vía Web Crypto
+ *    (PBKDF2 600.000 iteraciones + AES-GCM-256) y entrega `rawPrivateKey` (Base64 PKCS#8),
+ *    permitiendo al administrador entrar directo sin ingresar la frase manualmente.
+ * 2. Cero-Conocimiento: Si FRASE_SECRETA no está en el servidor, entrega
+ *    `encryptedPrivateKey` (PRIVATE_KEY_ENC) para descifrado local en navegador.
  */
 
 export async function onRequestGet(context) {
@@ -73,7 +79,21 @@ export async function onRequestGet(context) {
       });
     }
 
-    // 4. Retornar el secreto PRIVATE_KEY_ENC (protegido con la frase secreta del admin)
+    // 4. Modo Directo: Clave privada sin cifrar ya configurada en entorno
+    const rawDirectKey = env.PRIVATE_KEY || '';
+    if (rawDirectKey) {
+      let cleanKey = rawDirectKey.trim();
+      if (cleanKey.startsWith('ZRNK1:')) cleanKey = cleanKey.slice(6).trim();
+      return new Response(JSON.stringify({
+        rawPrivateKey: cleanKey,
+        modo: 'directo_env'
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+      });
+    }
+
+    // 5. Verificar si existe PRIVATE_KEY_ENC
     const privateKeyEnc = env.PRIVATE_KEY_ENC || '';
     if (!privateKeyEnc) {
       return new Response(JSON.stringify({
@@ -84,8 +104,79 @@ export async function onRequestGet(context) {
       });
     }
 
+    // 6. Modo Acceso Directo por Servidor: Si FRASE_SECRETA está en Cloudflare
+    const fraseSecreta = (env.FRASE_SECRETA || env.SECRET_PASSPHRASE || '').trim();
+    if (fraseSecreta) {
+      try {
+        let rawJsonStr = privateKeyEnc.trim();
+        if (rawJsonStr.startsWith('ZRNK1:')) rawJsonStr = rawJsonStr.slice(6).trim();
+        const encObj = JSON.parse(rawJsonStr);
+
+        const salt = new Uint8Array(atob(encObj.salt).split('').map(c => c.charCodeAt(0)));
+        const iv = new Uint8Array(atob(encObj.iv).split('').map(c => c.charCodeAt(0)));
+        const ciphertext = new Uint8Array(atob(encObj.ciphertext).split('').map(c => c.charCodeAt(0)));
+
+        const baseKey = await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder().encode(fraseSecreta),
+          { name: 'PBKDF2' },
+          false,
+          ['deriveKey']
+        );
+
+        const aesKey = await crypto.subtle.deriveKey(
+          {
+            name: 'PBKDF2',
+            salt: salt,
+            iterations: encObj.iterations || 600000,
+            hash: 'SHA-256'
+          },
+          baseKey,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['decrypt']
+        );
+
+        const decryptedBuf = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: iv },
+          aesKey,
+          ciphertext
+        );
+
+        const decBytes = new Uint8Array(decryptedBuf);
+        let binaryStr = '';
+        const chunk = 8192;
+        for (let i = 0; i < decBytes.length; i += chunk) {
+          binaryStr += String.fromCharCode.apply(null, decBytes.subarray(i, i + chunk));
+        }
+        const rawPrivateKeyB64 = btoa(binaryStr);
+
+        return new Response(JSON.stringify({
+          rawPrivateKey: rawPrivateKeyB64,
+          modo: 'directo_servidor'
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+        });
+
+      } catch (decryptErr) {
+        console.error('Error al descifrar con FRASE_SECRETA en Cloudflare:', decryptErr);
+        // Fallback defensivo a modo cero-conocimiento con advertencia
+        return new Response(JSON.stringify({
+          encryptedPrivateKey: privateKeyEnc,
+          aviso: 'La FRASE_SECRETA en Cloudflare no coincide con PRIVATE_KEY_ENC. Por favor introduce la frase manualmente.',
+          modo: 'cero_conocimiento'
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+        });
+      }
+    }
+
+    // 7. Modo Cero-Conocimiento: Retornar PRIVATE_KEY_ENC para desbloqueo local en navegador
     return new Response(JSON.stringify({
-      encryptedPrivateKey: privateKeyEnc
+      encryptedPrivateKey: privateKeyEnc,
+      modo: 'cero_conocimiento'
     }), {
       status: 200,
       headers: {

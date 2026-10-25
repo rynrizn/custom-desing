@@ -2,9 +2,11 @@
  * ============================================================================
  * ZAIREN CAD Textil v2 — Lógica del Lector Administrativo Privado
  * ============================================================================
- * Descifra paquetes .zrn en el navegador con la clave privada del taller
- * protegida por frase secreta (Cero-Conocimiento). Muestra resúmenes, WhatsApp
- * directo, mockups sin marca de agua y permite reabrir proyectos en el editor.
+ * Descifra paquetes .zrn en el navegador con la clave privada del taller.
+ * Soporta Acceso Directo Total:
+ * - Recuerda la clave privada en almacenamiento local seguro de este navegador.
+ * - Soporta entrega directa desde Cloudflare si FRASE_SECRETA está configurada.
+ * - Muestra resúmenes, WhatsApp directo, mockups sin marca de agua y reapertura en editor.
  */
 
 import { motorCifradoZRN } from '../js/cifrado.js';
@@ -13,8 +15,13 @@ let rsaPrivateKeyDesbloqueada = null;
 let ultimoZipDescifradoArrayBuffer = null;
 let ultimoProyectoJSON = null;
 
+const STORAGE_KEY_UNLOCKED = 'zairen_unlocked_privkey';
+
 document.addEventListener('DOMContentLoaded', async () => {
+  const keyStatusBadge = document.getElementById('keyStatusBadge');
+  const lockKeyBtn = document.getElementById('lockKeyBtn');
   const passphraseModal = document.getElementById('passphraseModal');
+  const closePassphraseModalBtn = document.getElementById('closePassphraseModalBtn');
   const secretPassphraseInput = document.getElementById('secretPassphraseInput');
   const unlockBtn = document.getElementById('unlockPrivateKeyBtn');
   const passphraseError = document.getElementById('passphraseError');
@@ -47,39 +54,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   const newPrivKeyDisplay = document.getElementById('newPrivKeyDisplay');
   const copyNewPrivKeyBtn = document.getElementById('copyNewPrivKeyBtn');
 
-  // 1. Obtener la clave privada cifrada desde /api/clave
-  let encryptedPrivateKeyJSON = null;
-
-  function mostrarAvisoClavesFaltantes(msg) {
-    const texto = msg || 'Configura primero tus claves en /lector/configurar y añádelas a Cloudflare Pages.';
-    passphraseError.innerHTML = `⚠️ <strong>Atención:</strong> ${texto} <br><br><a href="/lector/configurar" class="btn btn-micro btn-crimson" style="display:inline-block; margin-top:6px; text-decoration:none;">Ir a Generar Claves</a>`;
-    passphraseError.style.display = 'block';
-    secretPassphraseInput.disabled = true;
-    unlockBtn.disabled = true;
-  }
-
-  try {
-    const res = await fetch('/api/clave');
-    if (res.status === 401) {
-      window.location.href = '/acceso?redirect=/lector';
-      return;
-    }
-    const data = await res.json();
-    if (res.ok && data.encryptedPrivateKey) {
-      let rawKey = data.encryptedPrivateKey.trim();
-      if (rawKey.startsWith('ZRNK1:')) {
-        rawKey = rawKey.slice(6).trim();
-      }
-      encryptedPrivateKeyJSON = rawKey;
+  function actualizarEstadoClave(desbloqueada) {
+    if (!keyStatusBadge) return;
+    if (desbloqueada) {
+      keyStatusBadge.style.background = '#1b3820';
+      keyStatusBadge.style.color = '#81c784';
+      keyStatusBadge.textContent = '🟢 CLAVE LISTA';
+      keyStatusBadge.title = 'Clave privada activa. Arrastra archivos .zrn directamente.';
     } else {
-      mostrarAvisoClavesFaltantes(data.error);
+      keyStatusBadge.style.background = '#2e1f20';
+      keyStatusBadge.style.color = '#ff897d';
+      keyStatusBadge.textContent = '🔒 CLAVE BLOQUEADA';
+      keyStatusBadge.title = 'Haz clic para introducir la frase secreta.';
     }
-  } catch (err) {
-    console.error('Error al obtener la clave privada de /api/clave:', err);
-    mostrarAvisoClavesFaltantes();
   }
 
-  // 2. Función auxiliar para descifrar PKCS#8 de clave privada con frase
+  // Importar PKCS#8 Base64 en CryptoKey de RSA-OAEP
+  async function importarClavePrivada(pkcs8Base64) {
+    const cleanB64 = pkcs8Base64.trim();
+    const binaryStr = atob(cleanB64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+
+    rsaPrivateKeyDesbloqueada = await crypto.subtle.importKey(
+      'pkcs8',
+      bytes.buffer,
+      {
+        name: 'RSA-OAEP',
+        hash: 'SHA-256'
+      },
+      true, // exportable para permitir re-cifrado al cambiar de frase
+      ['decrypt']
+    );
+
+    actualizarEstadoClave(true);
+    passphraseModal.style.display = 'none';
+    return rsaPrivateKeyDesbloqueada;
+  }
+
+  // Función auxiliar para descifrar PKCS#8 de clave privada con frase
   async function descifrarClavePrivadaConFrase(rawJsonStr, frase) {
     const encObj = typeof rawJsonStr === 'string' ? JSON.parse(rawJsonStr) : rawJsonStr;
     const salt = new Uint8Array(atob(encObj.salt).split('').map(c => c.charCodeAt(0)));
@@ -114,13 +129,78 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
-  // 3. Desbloquear la clave privada con la Frase Secreta
+  function mostrarAvisoClavesFaltantes(msg) {
+    const texto = msg || 'Configura primero tus claves en /lector/configurar y añádelas a Cloudflare Pages.';
+    passphraseError.innerHTML = `⚠️ <strong>Atención:</strong> ${texto} <br><br><a href="/lector/configurar" class="btn btn-micro btn-crimson" style="display:inline-block; margin-top:6px; text-decoration:none;">Ir a Generar Claves</a>`;
+    passphraseError.style.display = 'block';
+    secretPassphraseInput.disabled = true;
+    unlockBtn.disabled = true;
+    passphraseModal.style.display = 'flex';
+  }
+
+  let encryptedPrivateKeyJSON = null;
+  let claveYaCargada = false;
+
+  // 1. Intentar restaurar clave previamente recordada en este navegador
+  const claveGuardada = localStorage.getItem(STORAGE_KEY_UNLOCKED);
+  if (claveGuardada) {
+    try {
+      await importarClavePrivada(claveGuardada);
+      claveYaCargada = true;
+    } catch (e) {
+      console.warn('Clave en localStorage no válida o expirada:', e);
+      localStorage.removeItem(STORAGE_KEY_UNLOCKED);
+      actualizarEstadoClave(false);
+    }
+  } else {
+    actualizarEstadoClave(false);
+  }
+
+  // 2. Obtener clave desde /api/clave
+  try {
+    const res = await fetch('/api/clave');
+    if (res.status === 401) {
+      window.location.href = '/acceso?redirect=/lector';
+      return;
+    }
+    const data = await res.json();
+
+    if (res.ok && data.rawPrivateKey) {
+      // Clave entregada lista desde Cloudflare
+      await importarClavePrivada(data.rawPrivateKey);
+      localStorage.setItem(STORAGE_KEY_UNLOCKED, data.rawPrivateKey);
+      claveYaCargada = true;
+    } else if (res.ok && data.encryptedPrivateKey) {
+      let rawKey = data.encryptedPrivateKey.trim();
+      if (rawKey.startsWith('ZRNK1:')) {
+        rawKey = rawKey.slice(6).trim();
+      }
+      encryptedPrivateKeyJSON = rawKey;
+
+      // Si no estaba desbloqueada desde localStorage ni por servidor, solicitarla
+      if (!claveYaCargada) {
+        passphraseModal.style.display = 'flex';
+        secretPassphraseInput.focus();
+      }
+    } else {
+      if (!claveYaCargada) {
+        mostrarAvisoClavesFaltantes(data.error);
+      }
+    }
+  } catch (err) {
+    console.error('Error al obtener la clave privada de /api/clave:', err);
+    if (!claveYaCargada) {
+      mostrarAvisoClavesFaltantes();
+    }
+  }
+
+  // 3. Desbloquear la clave privada con la Frase Secreta y recordarla
   unlockBtn.addEventListener('click', async () => {
     const frase = secretPassphraseInput.value.trim();
     if (!frase) return;
 
     unlockBtn.disabled = true;
-    unlockBtn.textContent = 'DESCIFRANDO CLAVE...';
+    unlockBtn.textContent = 'DESCIFRANDO...';
     passphraseError.style.display = 'none';
 
     try {
@@ -130,27 +210,60 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const pkcs8Buffer = await descifrarClavePrivadaConFrase(encryptedPrivateKeyJSON, frase);
 
-      // Importar clave privada RSA-OAEP
-      rsaPrivateKeyDesbloqueada = await crypto.subtle.importKey(
-        'pkcs8',
-        pkcs8Buffer,
-        {
-          name: 'RSA-OAEP',
-          hash: 'SHA-256'
-        },
-        true, // exportable para permitir re-cifrado al cambiar de frase
-        ['decrypt']
-      );
+      // Convertir ArrayBuffer a Base64 para almacenamiento local persistente
+      const decBytes = new Uint8Array(pkcs8Buffer);
+      let binaryStr = '';
+      const chunk = 8192;
+      for (let i = 0; i < decBytes.length; i += chunk) {
+        binaryStr += String.fromCharCode.apply(null, decBytes.subarray(i, i + chunk));
+      }
+      const rawPrivateKeyB64 = btoa(binaryStr);
 
-      // Cerrar modal
-      passphraseModal.style.display = 'none';
+      await importarClavePrivada(rawPrivateKeyB64);
+      localStorage.setItem(STORAGE_KEY_UNLOCKED, rawPrivateKeyB64);
+      secretPassphraseInput.value = '';
+
     } catch (err) {
       passphraseError.textContent = 'Frase secreta incorrecta o clave corrupta: ' + err.message;
       passphraseError.style.display = 'block';
       secretPassphraseInput.focus();
     } finally {
       unlockBtn.disabled = false;
-      unlockBtn.textContent = 'DESBLOQUEAR CLAVE';
+      unlockBtn.textContent = 'DESBLOQUEAR Y RECORDAR';
+    }
+  });
+
+  // Permitir desbloquear con tecla Enter
+  secretPassphraseInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      unlockBtn.click();
+    }
+  });
+
+  // Cerrar modal de frase
+  closePassphraseModalBtn?.addEventListener('click', () => {
+    passphraseModal.style.display = 'none';
+  });
+
+  // Bloquear / Olvidar clave en este navegador
+  lockKeyBtn?.addEventListener('click', () => {
+    const confirmar = confirm('¿Deseas bloquear la clave en este navegador? Se solicitará la frase secreta para volver a descifrar pedidos.');
+    if (!confirmar) return;
+
+    localStorage.removeItem(STORAGE_KEY_UNLOCKED);
+    rsaPrivateKeyDesbloqueada = null;
+    actualizarEstadoClave(false);
+    passphraseModal.style.display = 'flex';
+    secretPassphraseInput.value = '';
+    secretPassphraseInput.focus();
+  });
+
+  // Clic en badge de estado abre modal si está bloqueada
+  keyStatusBadge?.addEventListener('click', () => {
+    if (!rsaPrivateKeyDesbloqueada) {
+      passphraseModal.style.display = 'flex';
+      secretPassphraseInput.focus();
     }
   });
 
@@ -428,15 +541,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const newPrivKeyPrefixed = `ZRNK1:${newEncJSON}`;
 
-      // 4. Actualizar estado local en memoria
+      // 4. Actualizar estado local en memoria y en localStorage
       encryptedPrivateKeyJSON = newEncJSON;
-      rsaPrivateKeyDesbloqueada = await crypto.subtle.importKey(
-        'pkcs8',
-        pkcs8Buffer,
-        { name: 'RSA-OAEP', hash: 'SHA-256' },
-        true,
-        ['decrypt']
-      );
+      const decBytes = new Uint8Array(pkcs8Buffer);
+      let binaryStr = '';
+      const chunk = 8192;
+      for (let i = 0; i < decBytes.length; i += chunk) {
+        binaryStr += String.fromCharCode.apply(null, decBytes.subarray(i, i + chunk));
+      }
+      const rawPrivateKeyB64 = btoa(binaryStr);
+
+      await importarClavePrivada(rawPrivateKeyB64);
+      localStorage.setItem(STORAGE_KEY_UNLOCKED, rawPrivateKeyB64);
 
       // 5. Mostrar resultado para copiar a Cloudflare
       newPrivKeyDisplay.textContent = newPrivKeyPrefixed;
