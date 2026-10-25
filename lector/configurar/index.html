@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ZAIREN — Generador y Verificador de Claves</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      background-color: #0A0A0A;
+      color: #FAF9F6;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+    .config-card {
+      background: #141518;
+      border: 1px solid #383a42;
+      max-width: 720px;
+      width: 100%;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+    .code-box {
+      background: #0D0E10;
+      border: 1px solid #383a42;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #D6D6D3;
+      word-break: break-all;
+      user-select: all;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .step-box {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #18191D;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .meter-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #252830;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .meter-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+      background: #df2842;
+    }
+    .feedback-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .result-alert {
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.5;
+      display: none;
+    }
+    .result-alert.success {
+      background: rgba(46, 125, 50, 0.2);
+      border: 1px solid #4caf50;
+      color: #a5d6a7;
+    }
+    .result-alert.error {
+      background: rgba(223, 40, 66, 0.2);
+      border: 1px solid var(--accent-crimson);
+      color: #ff897d;
+    }
+  </style>
+</head>
+<body>
+  <div class="config-card">
+    <div class="modal-title" style="border-bottom:1px solid #383a42; padding-bottom:12px;">
+      <div>
+        <span style="font-family:var(--font-display); font-size:16px; font-weight:700;">ZAIREN | GENERADOR Y VERIFICADOR DE CLAVES</span>
+        <div style="font-family:var(--font-mono); font-size:10px; color:#8F8F8C; margin-top:3px;">
+          SEGURIDAD CERO-CONOCIMIENTO • RSA-OAEP 3072 BITS • PBKDF2 (600.000 ITERACIONES) + AES-GCM
+        </div>
+      </div>
+      <a href="/lector" class="btn btn-ghost" style="height:30px; font-size:11px;">← Volver al Lector</a>
+    </div>
+
+    <!-- Explicación de los 3 conceptos -->
+    <div style="background:#0D0E10; border:1px solid #383a42; padding:14px; display:flex; flex-direction:column; gap:8px; font-size:11px; line-height:1.5; color:#D6D6D3;">
+      <div style="font-weight:700; color:#FAF9F6; font-family:var(--font-mono);">GUÍA DE SEGURIDAD ZAIREN:</div>
+      <div>🔑 <strong>1. Contraseña de Administrador (Cloudflare: ADMIN_PASSWORD):</strong> Protege el acceso a <code>/acceso</code> y las rutas <code>/lector/*</code>.</div>
+      <div>🧠 <strong>2. Frase Secreta del Taller (Solo en tu memoria):</strong> Protege la clave privada en tu navegador. NUNCA se envía al servidor ni se guarda en Cloudflare.</div>
+      <div>🛡️ <strong>3. Claves Criptográficas (Cloudflare: CLAVE_PUBLICA y PRIVATE_KEY_ENC):</strong> La clave pública permite a los clientes cifrar pedidos; la privada cifrada permite al dueño descifrarlos tras introducir la frase secreta.</div>
+    </div>
+
+    <!-- SECCIÓN 1: Generador de Claves -->
+    <div class="step-box">
+      <div style="font-family:var(--font-headline); font-weight:700; font-size:13px; color:#FAF9F6;">
+        SECCIÓN A: GENERAR NUEVO PAR DE CLAVES (3072 BITS)
+      </div>
+      <div style="font-size:11px; color:#8F8F8C;">
+        Define una frase secreta fuerte (mínimo 16 caracteres o 5 palabras). Las frases comunes están bloqueadas.
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label" for="passphraseInput" style="color:#D6D6D3;">Frase Secreta Maestra</label>
+        <input type="password" id="passphraseInput" class="select-input" placeholder="ej. zairen-tarija-silueta-2026-corte-silencioso" style="background:#0D0E10; border-color:#383a42; color:#FAF9F6;" autofocus>
+        
+        <!-- Medidor de fuerza -->
+        <div class="meter-bar-bg">
+          <div id="meterBarFill" class="meter-bar-fill"></div>
+        </div>
+        <div id="meterFeedback" class="feedback-text" style="color:#8F8F8C;">Introduce al menos 16 caracteres o 5 palabras.</div>
+      </div>
+
+      <button type="button" id="generateKeysBtn" class="btn btn-crimson" style="height:40px;" disabled>
+        <span>GENERAR CLAVES CRIPTOGRÁFICAS</span>
+      </button>
+    </div>
+
+    <!-- Resultados Generación -->
+    <div id="resultsContainer" style="display:none; flex-direction:column; gap:16px;">
+      <!-- Clave Pública -->
+      <div class="step-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-family:var(--font-headline); font-size:12px; color:#FAF9F6;">CLAVE PÚBLICA (VARIABLE DE TEXTO EN CLOUDFLARE)</strong>
+            <span id="pubKeyLenBadge" class="tag-chip" style="margin-left:8px; font-size:10px;">0 caracteres</span>
+          </div>
+          <button type="button" class="btn-micro" id="copyPubKeyBtn">COPIAR</button>
+        </div>
+        <div style="font-size:11px; color:#8F8F8C;">
+          Configúrala en Cloudflare Pages &gt; Settings &gt; Environment variables como variable de <strong>Texto Plano</strong> llamada <code>CLAVE_PUBLICA</code>:
+        </div>
+        <div class="code-box" id="pubKeyDisplay"></div>
+      </div>
+
+      <!-- Clave Privada Cifrada -->
+      <div class="step-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-family:var(--font-headline); font-size:12px; color:#FAF9F6;">CLAVE PRIVADA CIFRADA (SECRETO EN CLOUDFLARE)</strong>
+            <span id="privKeyLenBadge" class="tag-chip" style="margin-left:8px; font-size:10px;">0 caracteres</span>
+          </div>
+          <button type="button" class="btn-micro" id="copyPrivKeyBtn">COPIAR</button>
+        </div>
+        <div style="font-size:11px; color:#8F8F8C;">
+          Configúrala en Cloudflare Pages &gt; Settings &gt; Environment variables como variable de tipo <strong>Secret</strong> llamada <code>PRIVATE_KEY_ENC</code>:
+        </div>
+        <div class="code-box" id="privKeyDisplay"></div>
+      </div>
+
+      <!-- Botón Respaldo JSON -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#18191D; padding:14px; border:1px solid #383a42;">
+        <span style="font-size:11px; color:#D6D6D3;">Descarga una copia de seguridad local con ambas claves para custodia offline:</span>
+        <button type="button" id="downloadBackupBtn" class="btn btn-primary" style="height:36px;">
+          <span>DESCARGAR COPIA DE SEGURIDAD (.JSON)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 2: Caja Comprobar y Verificar -->
+    <div class="step-box" style="border-top:2px solid #383a42; margin-top:8px;">
+      <div style="font-family:var(--font-headline); font-weight:700; font-size:13px; color:#FAF9F6;">
+        SECCIÓN B: CAJA DE COMPROBACIÓN Y VERIFICACIÓN
+      </div>
+      <div style="font-size:11px; color:#8F8F8C; line-height:1.5;">
+        Pega los valores configurados en Cloudflare Pages para verificar que la clave pública y la clave privada correspondan al mismo par y que la frase secreta sea la correcta.
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="verifyPubKeyInput" style="color:#D6D6D3;">CLAVE_PUBLICA (con o sin prefijo ZRNP1:)</label>
+        <textarea id="verifyPubKeyInput" class="select-input" rows="2" placeholder="ZRNP1:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8..." style="background:#0D0E10; border-color:#383a42; color:#FAF9F6; font-family:var(--font-mono); font-size:10px; resize:vertical;"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="verifyPrivKeyInput" style="color:#D6D6D3;">PRIVATE_KEY_ENC (con o sin prefijo ZRNK1:)</label>
+        <textarea id="verifyPrivKeyInput" class="select-input" rows="3" placeholder='ZRNK1:{"salt":"...","iv":"...","ciphertext":"..."}' style="background:#0D0E10; border-color:#383a42; color:#FAF9F6; font-family:var(--font-mono); font-size:10px; resize:vertical;"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="verifyPassphraseInput" style="color:#D6D6D3;">Frase Secreta del Taller</label>
+        <input type="password" id="verifyPassphraseInput" class="select-input" placeholder="Introduce la frase con la que fue cifrada la clave privada" style="background:#0D0E10; border-color:#383a42; color:#FAF9F6;">
+      </div>
+
+      <button type="button" id="verifyPairBtn" class="btn btn-ghost" style="height:38px; border-color:#383a42; margin-top:4px;">
+        <span>🔍 VERIFICAR COINCIDENCIA DE CLAVES Y FRASE</span>
+      </button>
+
+      <div id="verifyResultAlert" class="result-alert"></div>
+    </div>
+  </div>
+
+  <script src="configurar.js"></script>
+</body>
+</html>

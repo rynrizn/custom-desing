@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-42.94 -2.77 85.93 74.77" data-vista="reverso" data-talla-base="M" data-modo="medidas-reales">
+  <!-- Unidades: centímetros. Origen: x=0 centro de la polera, y=0 punto más alto del hombro. Talla M (53 x 71 cm). -->
+  <defs>
+    <linearGradient id="sombra-torso-reverso" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.08"/>
+      <stop offset="15%" stop-color="#fff" stop-opacity="0.04"/>
+      <stop offset="50%" stop-color="#fff" stop-opacity="0.10"/>
+      <stop offset="85%" stop-color="#fff" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <g id="polera" fill="var(--color-prenda, #ffffff)" stroke="#666666" stroke-width="0.08" stroke-linejoin="round">
+    <path id="manga-izq-vista" d="M-27.56 4.55 L-27.83 4.55 L-29.30 6.00 L-34.27 11.86 L-39.52 17.68 L-41.94 20.59 L-41.93 20.73 L-41.70 21.00 L-33.87 27.91 L-32.05 29.77 L-30.02 29.77 L-26.29 27.95Z"/>
+    <path id="manga-der-vista" d="M27.90 4.55 L26.57 27.68 L27.49 28.09 L27.77 28.32 L29.60 29.27 L29.92 29.59 L30.29 29.77 L32.37 29.77 L35.69 26.50 L41.99 20.59 L41.99 20.41 L39.17 17.05 L34.15 11.41 L29.64 6.05 L28.18 4.55Z"/>
+    <path id="cuerpo" d="M26.07 3.18 L24.39 2.50 L22.72 1.95 L15.44 -0.14 L14.00 -0.73 L13.48 -0.77 L11.23 -1.77 L10.71 -1.73 L8.28 -0.86 L6.21 -0.41 L3.49 -0.09 L0.95 0.05 L-2.17 0.00 L-5.80 -0.32 L-7.94 -0.73 L-8.98 -1.00 L-10.65 -1.64 L-11.29 -1.68 L-13.42 -0.73 L-14.23 -0.59 L-15.10 -0.18 L-23.93 2.50 L-25.84 3.27 L-27.74 4.41 L-27.74 4.50 L-27.45 4.59 L-26.50 27.91 L-26.50 32.77 L-26.30 35.77 L-26.24 37.91 L-26.41 41.27 L-26.47 53.59 L-26.59 54.23 L-26.70 57.32 L-26.64 60.95 L-26.88 68.73 L-26.50 70.80 Q0 71.20 26.50 70.80 L26.88 68.73 L26.64 60.95 L26.70 57.32 L26.59 54.23 L26.47 53.59 L26.41 41.27 L26.24 37.91 L26.30 35.77 L26.50 32.77 L26.50 27.73 L27.80 4.59 L27.91 4.50 L28.15 4.50 L28.15 4.41Z"/>
+    <path d="M26.07 3.18 L24.39 2.50 L22.72 1.95 L15.44 -0.14 L14.00 -0.73 L13.48 -0.77 L11.23 -1.77 L10.71 -1.73 L8.28 -0.86 L6.21 -0.41 L3.49 -0.09 L0.95 0.05 L-2.17 0.00 L-5.80 -0.32 L-7.94 -0.73 L-8.98 -1.00 L-10.65 -1.64 L-11.29 -1.68 L-13.42 -0.73 L-14.23 -0.59 L-15.10 -0.18 L-23.93 2.50 L-25.84 3.27 L-27.74 4.41 L-27.74 4.50 L-27.45 4.59 L-26.50 27.91 L-26.50 32.77 L-26.30 35.77 L-26.24 37.91 L-26.41 41.27 L-26.47 53.59 L-26.59 54.23 L-26.70 57.32 L-26.64 60.95 L-26.88 68.73 L-26.50 70.80 Q0 71.20 26.50 70.80 L26.88 68.73 L26.64 60.95 L26.70 57.32 L26.59 54.23 L26.47 53.59 L26.41 41.27 L26.24 37.91 L26.30 35.77 L26.50 32.77 L26.50 27.73 L27.80 4.59 L27.91 4.50 L28.15 4.50 L28.15 4.41Z" fill="url(#sombra-torso-reverso)" stroke="none"/>
+    <path id="cuello-banda" d="M-9.0 -1.0 Q0 2.0 9.0 -1.0 Q9.1 0.4 8.4 0.8 Q0 3.8 -8.4 0.8 Q-9.1 0.4 -9.0 -1.0Z" fill="var(--color-cuello, var(--color-prenda, #ffffff))" stroke="rgba(0,0,0,0.25)" stroke-width="0.08"/>
+    <path id="cuello-pespunte" d="M-8.4 0.7 Q0 3.6 8.4 0.7" fill="none" stroke="rgba(0,0,0,0.20)" stroke-width="0.07" stroke-dasharray="0.35,0.25"/>
+    <path id="ruedo-pespunte" d="M-26.3 69.4 Q0 69.8 26.3 69.4" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="0.07" stroke-dasharray="0.4,0.3"/>
+  </g>
+</svg>
