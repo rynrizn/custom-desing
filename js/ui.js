@@ -234,6 +234,20 @@ export class ControladorUI {
 
   // --- Enlace de Eventos ---
 
+  animarTransicionSuperficie() {
+    if (document.body?.classList?.contains('disable-animations') || document.body?.classList?.contains('reduced-motion')) return;
+    const canvas = document.getElementById('workbenchCanvas');
+    if (!canvas) return;
+    canvas.classList.remove('surface-transitioning');
+    void canvas.offsetWidth;
+    canvas.classList.add('surface-transitioning');
+    const onEnd = () => {
+      canvas.classList.remove('surface-transitioning');
+      canvas.removeEventListener('animationend', onEnd);
+    };
+    canvas.addEventListener('animationend', onEnd);
+  }
+
   enlazarEventosSuperficie() {
     const pills = document.querySelectorAll('.surface-pill');
     pills.forEach(pill => {
@@ -262,6 +276,7 @@ export class ControladorUI {
 
         // Al cambiar de superficie, ajustar la mesa a la nueva pieza (zoom al ~75% para mangas)
         this.mesa.ajustarAPantalla();
+        this.animarTransicionSuperficie();
         this.actualizarListaCapas();
         this.actualizarHUDMedidas();
       });
@@ -784,6 +799,7 @@ export class ControladorUI {
       this.mesa.modoManga = 'plana';
       estado.setSuperficieActiva(nuevaSup);
       this.mesa.ajustarAPantalla();
+      this.animarTransicionSuperficie();
     });
 
     // Botón de alternancia rápida de Modo Espejo en la mesa
@@ -913,16 +929,21 @@ export class ControladorUI {
     const animToggle = document.getElementById('settingAnimationsToggle');
     if (animToggle) {
       const animGuardada = (typeof localStorage !== 'undefined') ? localStorage.getItem('customytee_animaciones') : null;
-      if (animGuardada === 'false') {
-        animToggle.checked = false;
+      const prefiereReducido = (typeof window !== 'undefined' && window.matchMedia) ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+      const animActiva = animGuardada !== null ? (animGuardada !== 'false') : !prefiereReducido;
+      animToggle.checked = animActiva;
+      if (!animActiva) {
         document.body?.classList?.add('disable-animations');
+        document.body?.classList?.add('reduced-motion');
       }
       animToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
           document.body?.classList?.remove('disable-animations');
+          document.body?.classList?.remove('reduced-motion');
           if (typeof localStorage !== 'undefined') localStorage.setItem('customytee_animaciones', 'true');
         } else {
           document.body?.classList?.add('disable-animations');
+          document.body?.classList?.add('reduced-motion');
           if (typeof localStorage !== 'undefined') localStorage.setItem('customytee_animaciones', 'false');
         }
       });
