@@ -1522,4 +1522,144 @@ export class ControladorUI {
     });
   }
 
+
+  abrirModalCompartirQR() {
+    const backdrop = document.getElementById('shareModalBackdrop');
+    if (!backdrop) return;
+
+    const input = document.getElementById('shareUrlInput');
+    if (input) input.value = CONFIG.URL_PUBLICA || 'https://customytee.pages.dev';
+
+    // Generar código QR con QRious
+    const canvas = document.getElementById('shareQrCanvas');
+    const QRClass = (typeof QRious !== 'undefined' ? QRious : (typeof window !== 'undefined' ? window.QRious : null));
+    if (canvas && QRClass) {
+      new QRClass({
+        element: canvas,
+        value: CONFIG.URL_PUBLICA || 'https://customytee.pages.dev',
+        size: 220,
+        level: 'M',
+        padding: 4,
+        foreground: '#000000',
+        background: '#FFFFFF'
+      });
+    }
+
+    // Botón de compartir nativo
+    const nativeBtn = document.getElementById('nativeShareBtn');
+    if (nativeBtn) {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        nativeBtn.style.display = 'inline-flex';
+      } else {
+        nativeBtn.style.display = 'none';
+      }
+    }
+
+    backdrop.classList.add('open');
+
+    // Atrapado de foco y cierre accesible con Escape
+    const focusable = backdrop.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const firstFocusable = focusable[0];
+    const lastFocusable = focusable[focusable.length - 1];
+    firstFocusable?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        backdrop.classList.remove('open');
+        document.removeEventListener('keydown', handleKeyDown);
+      } else if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable?.focus();
+        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable?.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+  }
+
+  vincularEventosCompartirQR() {
+    // Abrir modal desde barra superior o menú "más"
+    document.getElementById('topShareBtn')?.addEventListener('click', () => this.abrirModalCompartirQR());
+    document.getElementById('moreShareBtn')?.addEventListener('click', () => {
+      document.getElementById('navMoreMenu')?.style.setProperty('display', 'none');
+      this.abrirModalCompartirQR();
+    });
+
+    // Cerrar modal
+    const backdrop = document.getElementById('shareModalBackdrop');
+    backdrop?.addEventListener('click', (e) => {
+      if (e.target === backdrop || e.target.closest('#closeShareModalBtn')) {
+        backdrop.classList.remove('open');
+      }
+    });
+
+    // Copiar enlace
+    document.getElementById('copyShareUrlBtn')?.addEventListener('click', async () => {
+      const url = CONFIG.URL_PUBLICA || 'https://customytee.pages.dev';
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          const input = document.getElementById('shareUrlInput');
+          input?.select();
+          document.execCommand('copy');
+        }
+        const textSpan = document.getElementById('copyShareBtnText');
+        if (textSpan) {
+          const orig = textSpan.textContent;
+          textSpan.textContent = '¡Copiado!';
+          setTimeout(() => { textSpan.textContent = orig; }, 2000);
+        }
+        this.mostrarNotificacion('Enlace copiado al portapapeles.');
+      } catch (_) {
+        this.mostrarNotificacion('No se pudo copiar automáticamente.');
+      }
+    });
+
+    // Descargar QR en alta resolución (1024 px)
+    document.getElementById('downloadQrBtn')?.addEventListener('click', () => {
+      const QRClass = (typeof QRious !== 'undefined' ? QRious : (typeof window !== 'undefined' ? window.QRious : null));
+      if (!QRClass) {
+        this.mostrarNotificacion('Librería QR no disponible.', 'error');
+        return;
+      }
+      try {
+        const hiRes = new QRClass({
+          value: CONFIG.URL_PUBLICA || 'https://customytee.pages.dev',
+          size: 1024,
+          level: 'M',
+          padding: 4,
+          foreground: '#000000',
+          background: '#FFFFFF'
+        });
+        const url = hiRes.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'qr-customytee-1024px.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        this.mostrarNotificacion('Código QR de 1024 px descargado con éxito.');
+      } catch (err) {
+        this.mostrarNotificacion(`Error al generar QR: ${err.message}`, 'error');
+      }
+    });
+
+    // Compartir nativo
+    document.getElementById('nativeShareBtn')?.addEventListener('click', async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'CustomyTee — CAD Textil',
+            text: 'Diseña y personaliza tus poleras con medidas reales en CustomyTee.',
+            url: CONFIG.URL_PUBLICA || 'https://customytee.pages.dev'
+          });
+        } catch (_) {}
+      }
+    });
+  }
+
 }

@@ -6,6 +6,8 @@
   <title>CustomyTee — Diseña tu Polera</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
+    <!-- QRious 4.0.2 para generación de códigos QR de alta fidelidad -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" integrity="sha512-pUhApVQtLbnpLtJn6DuzDD5o2xtmLJnJ7oBoMsBnzOkVkpqofGLGPaBJ6ayD2zQe3lCgCibhJBi4cj5wAxwVKA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- JSZip 3.10.1 fijo desde cdnjs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
@@ -33,7 +35,7 @@
       <!-- Acciones de Navegación Rápida -->
       <div class="nav-actions">
         <!-- Botón Compartir (QR) - Preparado para Fase 4 -->
-        <button type="button" id="topShareBtn" class="btn-icon" title="Compartir enlace (QR)" aria-label="Compartir con QR" style="display:none;">
+        <button type="button" id="topShareBtn" class="btn-icon" title="Compartir con QR" aria-label="Compartir con QR">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
         </button>
 
@@ -86,7 +88,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
           </button>
           <div class="dropdown-menu dropdown-menu-right" id="navMoreMenu" role="menu" style="display:none;">
-            <button type="button" class="dropdown-item" id="moreShareBtn" role="menuitem" style="display:none;">
+            <button type="button" class="dropdown-item" id="moreShareBtn" role="menuitem">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
               <span>Compartir con QR</span>
             </button>
@@ -753,6 +755,50 @@
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
         <button type="button" id="startFreshBtn" class="btn btn-ghost">Empezar de cero</button>
         <button type="button" id="restoreSessionBtn" class="btn btn-crimson">Continuar donde lo dejaste</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE COMPARTIR CON CÓDIGO QR (FASE 4) -->
+  <div class="modal-backdrop" id="shareModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <div class="modal-card modal-qr-card">
+      <div class="modal-title">
+        <span id="shareModalTitle" style="display:inline-flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+          Compartir CustomyTee
+        </span>
+        <button type="button" class="btn-icon modal-close-btn" id="closeShareModalBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+
+      <div class="qr-canvas-wrapper" style="display:flex; justify-content:center; align-items:center; padding:16px 0;">
+        <canvas id="shareQrCanvas" width="220" height="220" aria-label="Código QR hacia CustomyTee"></canvas>
+      </div>
+
+      <p style="font-size:12px; color:var(--text-secondary); text-align:center; margin:0 0 12px 0;">
+        Escanea el código QR con cualquier teléfono o comparte el enlace directo para ingresar a la plataforma.
+      </p>
+
+      <div class="field-group">
+        <label class="field-label" for="shareUrlInput">Enlace directo</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="shareUrlInput" class="text-input" readonly value="https://customytee.pages.dev" style="font-family:var(--font-mono); font-size:12px;">
+          <button type="button" id="copyShareUrlBtn" class="btn btn-secondary" style="white-space:nowrap; gap:6px; min-width:85px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <span id="copyShareBtnText">Copiar</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:16px; flex-wrap:wrap;">
+        <button type="button" id="downloadQrBtn" class="btn btn-secondary" style="gap:6px; font-size:11px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar QR (1024 px)
+        </button>
+
+        <button type="button" id="nativeShareBtn" class="btn btn-crimson" style="gap:6px; font-size:11px; display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Compartir
+        </button>
       </div>
     </div>
   </div>

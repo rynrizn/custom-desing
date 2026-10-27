@@ -1556,3 +1556,33 @@ input:checked + .toggle-slider:before {
   height: 28px;
   color: var(--text-muted);
 }
+
+/* Modal de Código QR / Compartir (Fase 4) */
+.modal-qr-card {
+  max-width: 420px;
+}
+
+.qr-canvas-wrapper canvas {
+  background: #FFFFFF !important;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 768px) {
+  #shareModalBackdrop .modal-card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    margin: 0;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  #shareModalBackdrop.open .modal-card {
+    transform: translateY(0);
+  }
+}
