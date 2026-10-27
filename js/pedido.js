@@ -126,7 +126,7 @@ export class GestorPedido {
     const p = polera || estado.poleraActiva;
     const lineas = [];
     lineas.push(`======================================================================`);
-    lineas.push(`ZAIREN CAD TEXTIL v2 — FICHA TÉCNICA DE CONFECCIÓN`);
+    lineas.push(`CustomyTee — FICHA TÉCNICA DE CONFECCIÓN`);
     lineas.push(`Polera #${indicePolera}: ${p.nombre}`);
     lineas.push(`Fecha: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`);
     lineas.push(`======================================================================\n`);

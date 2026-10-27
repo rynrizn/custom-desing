@@ -302,20 +302,20 @@ export class ExportadorArchivos {
 
   generarResumenCliente(codigoPedido = null) {
     const pedido = gestorPedido.generarObjetoPedidoJSON(codigoPedido);
-    return `ZAIREN CAD TEXTIL v2 — VISTA PREVIA DE PEDIDO
+    return `CustomyTee — VISTA PREVIA DE PEDIDO
 Código de pedido: ${pedido.codigoPedido}
 Fecha: ${new Date().toLocaleDateString('es-ES')}
 WhatsApp: ${pedido.cliente.whatsapp}
 Total prendas: ${pedido.resumen.totalUnidadesPrenda}
 Indicaciones: ${pedido.cliente.indicaciones}
 
-¡Gracias por personalizar tu prenda con ZAIRENLAB!
+¡Gracias por personalizar tu prenda con CustomyTee!
 `;
   }
 
   generarLeemeTaller() {
     return `======================================================================
-ZAIRENLAB — ARCHIVO TÉCNICO DE PRODUCCIÓN Y ESTAMPADO
+CustomyTee — ARCHIVO TÉCNICO DE PRODUCCIÓN Y ESTAMPADO
 ======================================================================
 Este paquete contiene todas las piezas para corte, confección y serigrafía/DTF:
 
@@ -324,9 +324,9 @@ Este paquete contiene todas las piezas para corte, confección y serigrafía/DTF
 3. originales/ : Archivos originales subidos por el cliente sin compresión.
 4. especificaciones.txt : Cotas exactas de colocación, distancias y tallas.
 5. pedido.json : Datos estructurados de la orden y cantidades por talla.
-6. proyecto.json : Archivo de sesión para reabrir y modificar en el editor ZAIREN.
+6. proyecto.json : Archivo de sesión para reabrir y modificar en CustomyTee.
 
-ZAIREN — Corte silencioso.
+CustomyTee — Personalizador Textil.
 `;
   }
 

@@ -31,6 +31,7 @@ export class ControladorUI {
 
   inicializar() {
     this.renderizarSwatchesColores();
+    this.actualizarSelectorPrendas();
     this.renderizarSelectFuentes();
     this.actualizarSelectPoleras();
     this.actualizarMatrizCantidades();
@@ -211,6 +212,23 @@ export class ControladorUI {
       if (idx === estado.datos.poleraActivaIndex) opt.selected = true;
       select.appendChild(opt);
     });
+  }
+
+  actualizarSelectorPrendas() {
+    const select = document.getElementById('garmentSelect');
+    const staticBadge = document.getElementById('garmentStaticLabel');
+    if (!select) return;
+    const count = select.options.length;
+    if (count <= 1) {
+      select.style.display = 'none';
+      if (staticBadge) {
+        staticBadge.style.display = 'block';
+        staticBadge.textContent = select.options[0]?.text || 'Polera';
+      }
+    } else {
+      select.style.display = '';
+      if (staticBadge) staticBadge.style.display = 'none';
+    }
   }
 
   // --- Enlace de Eventos ---
@@ -416,7 +434,7 @@ export class ControladorUI {
 
     // Añadir texto
     document.getElementById('addTextLayerBtn')?.addEventListener('click', () => {
-      const capaTexto = gestorTexto.crearCapaTexto('ZAIREN', 'Poppins');
+      const capaTexto = gestorTexto.crearCapaTexto('CustomyTee', 'Poppins');
       estado.agregarCapa(capaTexto);
       this.mostrarNotificacion('Texto añadido a la polera.');
       this.sincronizarPanelPropiedades(capaTexto);
@@ -424,7 +442,7 @@ export class ControladorUI {
 
     // Cargar Gráfico Demo
     document.getElementById('loadSampleGraphicBtn')?.addEventListener('click', () => {
-      const capaDemo = gestorTexto.crearCapaTexto('ザイレン\nZAIREN', 'Anton');
+      const capaDemo = gestorTexto.crearCapaTexto('CustomyTee', 'Anton');
       capaDemo.tamanoPt = 54;
       capaDemo.strokeColor = '#FAF9F6';
       capaDemo.strokeWidth = 2;
