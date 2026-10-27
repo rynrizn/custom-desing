@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
           score: 15,
           nivel: 'insegura',
-          texto: '⚠️ Frase predecible o contiene términos comunes prohibidos. Elige algo más original.',
+          texto: 'Frase predecible o contiene términos comunes prohibidos. Elige algo más original.',
           valida: false
         };
       }
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aviso: 'Conserva este archivo en un medio offline seguro. Tu clave privada está cifrada con tu frase secreta.'
       };
 
-      generateBtn.innerHTML = '<span>✅ ¡CLAVES GENERADAS CORRECTAMENTE!</span>';
+      generateBtn.innerHTML = '<span>¡CLAVES GENERADAS CORRECTAMENTE!</span>';
     } catch (err) {
       alert('Error al generar claves: ' + err.message);
       generateBtn.disabled = false;
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
           cifradoPrueba
         );
       } catch (err) {
-        throw new Error('❌ La clave pública NO corresponde con la clave privada descifrada. Pertenecen a pares de claves diferentes.');
+        throw new Error('La clave pública NO corresponde con la clave privada descifrada. Pertenecen a pares de claves diferentes.');
       }
 
       const match = new TextDecoder().decode(descifradoPrueba) === new TextDecoder().decode(payloadPrueba);
@@ -386,16 +386,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       verifyResultAlert.className = 'result-alert success';
-      verifyResultAlert.innerHTML = '<strong>✅ Claves válidas y coincidentes:</strong> La clave privada se descifró con éxito con la frase secreta y el ciclo completo de cifrado/descifrado con la clave pública funcionó a la perfección.';
+      verifyResultAlert.innerHTML = '<strong>Claves válidas y coincidentes:</strong> La clave privada se descifró con éxito con la frase secreta y el ciclo completo de cifrado/descifrado con la clave pública funcionó a la perfección.';
       verifyResultAlert.style.display = 'block';
 
     } catch (err) {
       verifyResultAlert.className = 'result-alert error';
-      verifyResultAlert.innerHTML = `<strong>⚠️ Falló la verificación:</strong> ${err.message}`;
+      verifyResultAlert.innerHTML = `<strong>Falló la verificación:</strong> ${err.message}`;
       verifyResultAlert.style.display = 'block';
     } finally {
       verifyPairBtn.disabled = false;
-      verifyPairBtn.textContent = '🔍 VERIFICAR COINCIDENCIA DE CLAVES Y FRASE';
+      verifyPairBtn.textContent = 'VERIFICAR COINCIDENCIA DE CLAVES Y FRASE';
     }
   });
 });

@@ -126,12 +126,12 @@
     <div style="display:flex; align-items:center; gap:10px;">
       <span style="font-family:var(--font-display); font-weight:700; font-size:15px; letter-spacing:0.12em;">ZAIREN | ザイレン</span>
       <span class="tag-chip" style="background:#24262c; color:#D6D6D3;">LECTOR .ZRN</span>
-      <span id="keyStatusBadge" class="tag-chip" style="background:#1b3820; color:#81c784; font-size:10px;">🟢 CLAVE LISTA</span>
+      <span id="keyStatusBadge" class="tag-chip" style="background:#1b3820; color:#81c784; font-size:10px;">CLAVE LISTA</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <button type="button" id="lockKeyBtn" class="btn btn-ghost" style="height:32px; font-size:11px;" title="Bloquear la clave en este navegador">🔒 Bloquear</button>
-      <button type="button" id="openChangePassphraseBtn" class="btn btn-ghost" style="height:32px; font-size:11px;">🔑 Cambiar Frase</button>
-      <a href="/lector/configurar" class="btn btn-ghost" style="height:32px; font-size:11px;">⚙️ Generar Claves</a>
+      <button type="button" id="lockKeyBtn" class="btn btn-ghost" style="height:32px; font-size:11px;" title="Bloquear la clave en este navegador">Bloquear</button>
+      <button type="button" id="openChangePassphraseBtn" class="btn btn-ghost" style="height:32px; font-size:11px;">Cambiar Frase</button>
+      <a href="/lector/configurar" class="btn btn-ghost" style="height:32px; font-size:11px;">Generar Claves</a>
       <a href="/" class="btn btn-ghost" style="height:32px; font-size:11px;">Abrir Editor</a>
       <a href="/api/logout" id="logoutLink" class="btn btn-micro btn-danger" style="height:32px; padding:0 10px; display:inline-flex; align-items:center;">Cerrar Sesión</a>
     </div>
@@ -262,7 +262,7 @@
       <div id="changePassphraseError" style="color:var(--error); font-size:11px; display:none; line-height:1.4;"></div>
 
       <div id="changeResultBox" style="display:none; flex-direction:column; gap:8px; background:#0D0E10; border:1px solid #383a42; padding:12px; margin-top:4px;">
-        <div style="font-size:11px; color:#a5d6a7; font-weight:700;">✅ ¡Clave privada re-cifrada con éxito!</div>
+        <div style="font-size:11px; color:#a5d6a7; font-weight:700;">¡Clave privada re-cifrada con éxito!</div>
         <div style="font-size:10px; color:#D6D6D3; line-height:1.4;">
           Actualiza el valor del secreto <code>PRIVATE_KEY_ENC</code> en Cloudflare Pages con esta nueva cadena:
         </div>

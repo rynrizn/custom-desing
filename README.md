@@ -2,9 +2,9 @@
 
 Sistema CAD textil profesional para personalización, previsualización técnica y confección de poleras (camisetas) en tiempo real sobre la web. Construido íntegramente con estándares web modernos (ES Modules nativos, Canvas 2D de alta resolución y Web Crypto API) sin pasos de compilación ni dependencias pesadas al inicio.
 
-🌐 **Producción:** [https://customytee.pages.dev/](https://customytee.pages.dev/)  
-🌿 **Rama de Desarrollo v2:** `dev-editor-svg`  
-🧪 **Vista Previa de Rama en Cloudflare:** `https://dev-editor-svg.customytee.pages.dev/`
+**Producción:** [https://customytee.pages.dev/](https://customytee.pages.dev/)  
+**Rama de Desarrollo v2:** `dev-editor-svg`  
+**Vista Previa de Rama en Cloudflare:** `https://dev-editor-svg.customytee.pages.dev/`
 
 ---
 
@@ -101,7 +101,7 @@ custom-desing/
 ## 3. Guía de Configuración en Cloudflare Pages
 
 Para la guía detallada con capturas y fichas técnicas de cada parámetro, consulta el documento completo:  
-👉 **[Guía Maestra de Cloudflare Pages](docs/CLOUDFLARE.md)**
+**[Guía Maestra de Cloudflare Pages](docs/CLOUDFLARE.md)**
 
 ### Resumen de los 5 Parámetros del Sistema:
 

@@ -59,12 +59,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (desbloqueada) {
       keyStatusBadge.style.background = '#1b3820';
       keyStatusBadge.style.color = '#81c784';
-      keyStatusBadge.textContent = '🟢 CLAVE LISTA';
+      keyStatusBadge.textContent = 'CLAVE LISTA';
       keyStatusBadge.title = 'Clave privada activa. Arrastra archivos .zrn directamente.';
     } else {
       keyStatusBadge.style.background = '#2e1f20';
       keyStatusBadge.style.color = '#ff897d';
-      keyStatusBadge.textContent = '🔒 CLAVE BLOQUEADA';
+      keyStatusBadge.textContent = 'CLAVE BLOQUEADA';
       keyStatusBadge.title = 'Haz clic para introducir la frase secreta.';
     }
   }
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function mostrarAvisoClavesFaltantes(msg) {
     const texto = msg || 'Configura primero tus claves en /lector/configurar y añádelas a Cloudflare Pages.';
-    passphraseError.innerHTML = `⚠️ <strong>Atención:</strong> ${texto} <br><br><a href="/lector/configurar" class="btn btn-micro btn-crimson" style="display:inline-block; margin-top:6px; text-decoration:none;">Ir a Generar Claves</a>`;
+    passphraseError.innerHTML = `<strong>Atención:</strong> ${texto} <br><br><a href="/lector/configurar" class="btn btn-micro btn-crimson" style="display:inline-block; margin-top:6px; text-decoration:none;">Ir a Generar Claves</a>`;
     passphraseError.style.display = 'block';
     secretPassphraseInput.disabled = true;
     unlockBtn.disabled = true;
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fLower = f.toLowerCase();
     for (const c of comunes) {
       if (fLower === c || (fLower.includes(c) && f.length < 18)) {
-        return { score: 15, texto: '⚠️ Frase predecible o contiene términos prohibidos.', valida: false };
+        return { score: 15, texto: 'Atención: Frase predecible o contiene términos prohibidos.', valida: false };
       }
     }
 

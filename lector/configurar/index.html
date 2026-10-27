@@ -101,9 +101,9 @@
     <!-- Explicación de los 3 conceptos -->
     <div style="background:#0D0E10; border:1px solid #383a42; padding:14px; display:flex; flex-direction:column; gap:8px; font-size:11px; line-height:1.5; color:#D6D6D3;">
       <div style="font-weight:700; color:#FAF9F6; font-family:var(--font-mono);">GUÍA DE SEGURIDAD ZAIREN:</div>
-      <div>🔑 <strong>1. Contraseña de Administrador (Cloudflare: ADMIN_PASSWORD):</strong> Protege el acceso a <code>/acceso</code> y las rutas <code>/lector/*</code>.</div>
-      <div>🧠 <strong>2. Frase Secreta del Taller (Solo en tu memoria):</strong> Protege la clave privada en tu navegador. NUNCA se envía al servidor ni se guarda en Cloudflare.</div>
-      <div>🛡️ <strong>3. Claves Criptográficas (Cloudflare: CLAVE_PUBLICA y PRIVATE_KEY_ENC):</strong> La clave pública permite a los clientes cifrar pedidos; la privada cifrada permite al dueño descifrarlos tras introducir la frase secreta.</div>
+      <div><strong>1. Contraseña de Administrador (Cloudflare: ADMIN_PASSWORD):</strong> Protege el acceso a <code>/acceso</code> y las rutas <code>/lector/*</code>.</div>
+      <div><strong>2. Frase Secreta del Taller (Solo en tu memoria):</strong> Protege la clave privada en tu navegador. NUNCA se envía al servidor ni se guarda en Cloudflare.</div>
+      <div><strong>3. Claves Criptográficas (Cloudflare: CLAVE_PUBLICA y PRIVATE_KEY_ENC):</strong> La clave pública permite a los clientes cifrar pedidos; la privada cifrada permite al dueño descifrarlos tras introducir la frase secreta.</div>
     </div>
 
     <!-- SECCIÓN 1: Generador de Claves -->
@@ -197,7 +197,7 @@
       </div>
 
       <button type="button" id="verifyPairBtn" class="btn btn-ghost" style="height:38px; border-color:#383a42; margin-top:4px;">
-        <span>🔍 VERIFICAR COINCIDENCIA DE CLAVES Y FRASE</span>
+        <span>VERIFICAR COINCIDENCIA DE CLAVES Y FRASE</span>
       </button>
 
       <div id="verifyResultAlert" class="result-alert"></div>

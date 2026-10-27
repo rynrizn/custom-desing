@@ -103,7 +103,7 @@ El sistema utiliza los siguientes elementos configurables en el panel de Cloudfl
 
 ---
 
-## 4. ⚠️ OBLIGATORIO: Re-despliegue tras Guardar Variables
+## 4. OBLIGATORIO: Re-despliegue tras Guardar Variables
 
 > [!IMPORTANT]
 > En Cloudflare Pages, las variables de entorno y secretos **NO se aplican inmediatamente a despliegues pasados**.
@@ -129,5 +129,5 @@ Si configuras el taller por primera vez o deseas renovar las claves:
 8. En la misma pantalla, utiliza la **Caja de comprobación y verificación**:
    - Pega la clave pública, la clave privada y tu frase secreta.
    - Presiona **Verificar coincidencia de claves y frase**.
-   - Confirma que obtengas el mensaje verde: *"✅ Claves válidas y coincidentes"*.
+   - Confirma que obtengas el mensaje verde: *"Claves válidas y coincidentes"*.
 9. Haz el **Retry deployment** en Cloudflare Pages.
