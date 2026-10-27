@@ -1263,7 +1263,8 @@ input:checked + .toggle-slider:before {
   /* Posición 1: CERRADA (transform: translateY(110%)) */
 
   /* Posición 2: MEDIA (~44dvh): el panel sube y el lienzo superior reduce su altura */
-  .controls-panel.sheet-pos-media {
+  .controls-panel.sheet-pos-media,
+  .controls-panel.sheet-open:not(.sheet-pos-completa) {
     transform: translateY(0%);
     height: 44dvh;
   }

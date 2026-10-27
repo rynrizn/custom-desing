@@ -253,7 +253,7 @@ export class GestorCapas {
       return;
     }
 
-    const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
+    const esMovil = typeof window !== 'undefined' && window.innerWidth <= 960;
 
     if (floatingEl) {
       floatingEl.style.display = 'flex';

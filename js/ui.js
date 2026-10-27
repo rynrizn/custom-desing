@@ -49,6 +49,7 @@ export class ControladorUI {
     this.enlazarEventosModales();
     this.vincularDragAndDropGlobal();
     this.vincularEventosCompartirQR();
+    this.enlazarResize();
 
     // Suscribir a cambios del estado
     estado.suscribir((tipo, detalle) => this.alCambiarEstado(tipo, detalle));
@@ -113,7 +114,7 @@ export class ControladorUI {
     const panel = document.getElementById('controlsPanel');
     if (!panel) return;
 
-    const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
+    const esMovil = typeof window !== 'undefined' && window.innerWidth <= 960;
 
     // Si ya está abierta la misma hoja en móvil: alternar de media a completa o cerrar
     if (esMovil && this.hojaActiva === nombreHoja && panel.classList.contains('sheet-open')) {
@@ -1681,6 +1682,16 @@ export class ControladorUI {
             url: CONFIG.URL_PUBLICA || 'https://customytee.pages.dev'
           });
         } catch (_) {}
+      }
+    });
+  }
+
+  enlazarResize() {
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 960) {
+        document.getElementById('workspaceGrid')?.classList.remove('sheet-media-active');
+        document.getElementById('controlsPanel')?.classList.remove('sheet-pos-media', 'sheet-pos-completa');
       }
     });
   }

@@ -164,6 +164,13 @@ assert(!panelMock.classList.contains('sheet-open'), 'La hoja debe quedar cerrada
 assert(!gridMock.classList.contains('sheet-media-active'), 'El grid vuelve al 100% de altura');
 console.log('   ✓ Posición cerrada: la mesa recupera toda la pantalla');
 
+// Prueba en ancho intermedio (800 px, rango 768-960 px):
+globalThis.window.innerWidth = 800;
+ui.abrirHoja('diseno');
+assert.strictEqual(ui.sheetPosition, 'media', 'En 800 px debe abrir en posición media');
+assert(panelMock.classList.contains('sheet-pos-media'), 'En 800 px debe activar sheet-pos-media');
+console.log('   ✓ Apertura de hoja en rango tablet/intermedio (800 px) validada');
+
 // 3. Verificando metas táctiles >= 44 px en css/styles.css
 console.log('3. Verificando especificaciones CSS de metas táctiles >= 44 px...');
 const cssContent = fs.readFileSync('css/styles.css', 'utf-8');
