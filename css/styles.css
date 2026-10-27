@@ -45,6 +45,13 @@
   --ruler-tick: rgba(74, 74, 74, 0.45);
   --checker-a: #f7f7f9;
   --checker-b: #ebebee;
+  /* Tokens de Movimiento y Animación (Fase 5) */
+  --motion-duration-fast: 120ms;
+  --motion-duration-normal: 200ms;
+  --motion-duration-slow: 320ms;
+  --motion-ease-decel: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1.0);
 }
 
 [data-theme="dark"] {
@@ -460,8 +467,20 @@ button, select, input, textarea {
   gap: 10px;
 }
 
+@keyframes panelFadeIn {
+  from {
+    opacity: 0.7;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .panel-section.active {
   display: flex;
+  animation: panelFadeIn var(--motion-duration-fast) var(--motion-ease-out);
 }
 
 .section-header {
@@ -1022,7 +1041,7 @@ input:checked + .toggle-slider:before {
   z-index: 100;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: transform var(--motion-duration-normal) var(--motion-ease-out), opacity var(--motion-duration-normal) var(--motion-ease-out);
 }
 
 .toast-banner.visible {
@@ -1042,8 +1061,29 @@ input:checked + .toggle-slider:before {
   z-index: 90;
 }
 
+@keyframes modalBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalCardScaleIn {
+  from {
+    opacity: 0.85;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .modal-backdrop.open {
   display: flex;
+  animation: modalBackdropFadeIn var(--motion-duration-normal) var(--motion-ease-out) forwards;
+}
+
+.modal-backdrop.open .modal-card {
+  animation: modalCardScaleIn var(--motion-duration-normal) var(--motion-ease-out) forwards;
 }
 
 .modal-card {
@@ -1584,5 +1624,81 @@ input:checked + .toggle-slider:before {
 
   #shareModalBackdrop.open .modal-card {
     transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   MICROINTERACCIONES DE PULSACIÓN Y MOVIMIENTO (FASE 5)
+   ========================================================================== */
+/* Microinteracción táctil de botones: estrictamente transform y opacity para 60fps */
+button,
+.btn,
+.btn-icon,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-micro,
+.surface-pill,
+.desktop-tab-btn,
+.mobile-nav-item,
+.sheet-btn-toggle {
+  transition: transform var(--motion-duration-fast) var(--motion-ease-out),
+              background-color var(--motion-duration-fast) ease,
+              border-color var(--motion-duration-fast) ease,
+              opacity var(--motion-duration-fast) ease;
+}
+
+button:active:not(:disabled),
+.btn:active:not(:disabled),
+.btn-icon:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.btn-ghost:active:not(:disabled),
+.btn-micro:active:not(:disabled),
+.surface-pill:active:not(:disabled),
+.desktop-tab-btn:active:not(:disabled),
+.mobile-nav-item:active:not(:disabled),
+.sheet-btn-toggle:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Transición suave al cambiar de superficie en la mesa de trabajo */
+@keyframes surfaceSwitchFade {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.surface-transitioning {
+  animation: surfaceSwitchFade var(--motion-duration-normal) var(--motion-ease-out);
+}
+
+/* El lienzo NUNCA tiene transiciones activas durante manipulación o reposicionamiento */
+#workbenchCanvas {
+  transition: none !important;
+}
+
+/* Accesibilidad: Respeto estricto a prefers-reduced-motion y toggle de Ajustes */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body.disable-animations,
+body.reduced-motion {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
