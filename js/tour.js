@@ -1,17 +1,23 @@
 /**
  * ============================================================================
- * ZAIREN CAD Textil v2 — Tour Guiado Interactivo con Driver.js
+ * CustomyTee — Tour Guiado Interactivo con Driver.js (Fase 6)
  * ============================================================================
- * Provee un recorrido de 5 pasos cortos:
- * 1. Mesa de trabajo
- * 2. Superficies (anverso, reverso, mangas)
- * 3. Talla y color
- * 4. Subir diseño y texto
- * 5. Pedido y exportación
- * En móvil, abre automáticamente la hoja correspondiente en cada paso.
+ * Proporciona un recorrido ágil de máximo 8 pasos:
+ * 1. Barra superior (Proyecto, Ajustes, Tema, Pedido)
+ * 2. Mesa CAD Textil y navegación
+ * 3. Selector de superficies (Torso y Mangas en patrón plano)
+ * 4. Añadir arte (Imágenes y tipografías)
+ * 5. Gestión y transformación de capas
+ * 6. Configurar prenda, tallas reales y colores
+ * 7. Mockup y generación de pedido (.zrp / .zrn)
+ * 8. Agradecimiento y soporte directo en Instagram
+ *
+ * En móvil, abre y cierra automáticamente las hojas inferiores según el paso.
  */
 
-const TOUR_STORAGE_KEY = 'zairen_tour_v2_completado';
+import { CONFIG } from './config.js';
+
+export const TOUR_STORAGE_KEY = 'customytee_tour_completado';
 
 export class TourGuiado {
   constructor() {
@@ -20,9 +26,11 @@ export class TourGuiado {
 
   iniciar(forzar = false) {
     if (!forzar) {
-      const yaVisto = localStorage.getItem(TOUR_STORAGE_KEY);
+      const yaVisto = (typeof localStorage !== 'undefined') ? localStorage.getItem(TOUR_STORAGE_KEY) : null;
       if (yaVisto === 'true') return;
     }
+
+    if (typeof window === 'undefined') return;
 
     if (typeof window.driver === 'undefined' && typeof window.driver?.js?.driver === 'undefined') {
       console.warn('Driver.js no está disponible en la página.');
@@ -30,7 +38,6 @@ export class TourGuiado {
     }
 
     const driverFn = window.driver?.js?.driver || window.driver;
-
     const esMovil = window.innerWidth <= 960;
 
     this.driverObj = driverFn({
@@ -41,29 +48,46 @@ export class TourGuiado {
       nextBtnText: 'Siguiente',
       prevBtnText: 'Atrás',
       onDestroyStarted: () => {
-        localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+        }
         if (esMovil && window.appUI) {
           window.appUI.cerrarTodasLasHojas();
         }
-        this.driverObj.destroy();
+        this.driverObj?.destroy?.();
       },
       onHighlightStarted: (element, step) => {
-        // En móvil, sincronizar apertura de la hoja inferior según el paso
-        if (esMovil && window.appUI) {
-          if (step.id === 'paso-prenda') window.appUI.abrirHoja('prenda');
-          else if (step.id === 'paso-diseno') window.appUI.abrirHoja('diseno');
-          else if (step.id === 'paso-capas') window.appUI.abrirHoja('capas');
-          else if (step.id === 'paso-pedido') window.appUI.abrirHoja('pedido');
-          else window.appUI.cerrarTodasLasHojas();
+        if (window.appUI) {
+          if (step.id === 'paso-prenda') {
+            window.appUI.abrirHoja('prenda');
+          } else if (step.id === 'paso-diseno') {
+            window.appUI.abrirHoja('diseno');
+          } else if (step.id === 'paso-capas') {
+            window.appUI.abrirHoja('capas');
+          } else if (step.id === 'paso-pedido') {
+            window.appUI.abrirHoja('pedido');
+          } else if (esMovil) {
+            window.appUI.cerrarTodasLasHojas();
+          }
         }
       },
       steps: [
         {
+          element: '.top-navbar',
+          id: 'paso-barra-superior',
+          popover: {
+            title: '1. Barra Superior y Acciones',
+            description: 'Gestiona tu proyecto (guardar .zrp, abrir y descargar vista previa), ajustes técnicos, alternancia de tema claro/oscuro y el botón directo de confirmación de PEDIDO.',
+            side: 'bottom',
+            align: 'start'
+          }
+        },
+        {
           element: '#canvasViewport',
           id: 'paso-mesa',
           popover: {
-            title: '1. Mesa CAD y Gestos Táctiles',
-            description: 'Con 1 dedo: arrastra un elemento para moverlo de inmediato o la mesa para desplazarte. Con 2 dedos: pellizca para zoom fluido (30% a 800%) y paneo simultáneo. Doble toque en vacío encuadra la prenda a pantalla.',
+            title: '2. Mesa CAD Textil',
+            description: 'Con 1 dedo: arrastra un elemento para moverlo o la mesa para desplazarte. Con 2 dedos: pellizca para zoom fluido (30% a 800%) y paneo simultáneo. Doble toque en espacio vacío encuadra la prenda completa.',
             side: 'bottom',
             align: 'center'
           }
@@ -72,19 +96,9 @@ export class TourGuiado {
           element: '#surfaceSwitcher',
           id: 'paso-superficies',
           popover: {
-            title: '2. Superficies y Patrón Plano de Mangas',
-            description: 'Cambia entre Anverso, Reverso y Mangas. Ambas mangas abren de forma predeterminada en su patrón plano técnico al 75% de zoom, con cotas de costura y puño, y opción de no invertir texto al reflejar en espejo.',
+            title: '3. Selector de Superficies',
+            description: 'Personaliza de forma aislada Torso Anverso, Reverso y Mangas. Ambas mangas inician en patrón plano al 75% con cotas milimétricas y opción de no invertir texto al espejar.',
             side: 'bottom',
-            align: 'start'
-          }
-        },
-        {
-          element: esMovil ? '#mobileTabPrenda' : '#panelSectionPrenda',
-          id: 'paso-prenda',
-          popover: {
-            title: '3. Talla y Color de Prenda',
-            description: 'Elige la talla (S a XXL) con siluetas reales escaladas ancladas a medidas de taller. Cambia el color oficial de la tela con la paleta Zenith Monochrome.',
-            side: esMovil ? 'top' : 'right',
             align: 'start'
           }
         },
@@ -92,20 +106,28 @@ export class TourGuiado {
           element: esMovil ? '#mobileTabDiseno' : '#panelSectionDiseno',
           id: 'paso-diseno',
           popover: {
-            title: '4. Subir Diseño y Añadir Texto',
-            description: 'Arrastra tus gráficos (PNG, JPG, SVG, WEBP) o escribe textos con más de 10 tipografías oficiales. El texto es ágil y estable (mover, rotar y editar), y las imágenes cuentan con aviso de calidad < 150 DPI.',
+            title: '4. Añadir Gráficos y Texto',
+            description: 'Sube gráficos en alta definición (PNG, JPG, SVG, WEBP con aviso de calidad < 150 DPI) o escribe textos con 14 fuentes tipográficas oficiales seleccionables.',
             side: esMovil ? 'top' : 'right',
             align: 'start'
           }
         },
         {
-          element: esMovil ? '#controlsPanel' : '#panelSectionCapas',
+          element: esMovil ? '#mobileTabCapas' : '#panelSectionCapas',
           id: 'paso-capas',
           popover: {
-            title: esMovil ? '5. Hoja Deslizable en 3 Posiciones' : '5. Gestión de Capas',
-            description: esMovil
-              ? 'La hoja cuenta con 3 posiciones: cerrada, media (donde la mesa se reduce para mantener tu diseño visible arriba sin taparlo) y completa. Además incluye barra de ajuste fino con pasos de 1 mm.'
-              : 'Ordena, bloquea, visualiza y elimina capas con botones directos y barra flotante contextual fuera de la silueta.',
+            title: '5. Transformar y Ordenar Capas',
+            description: 'Alinea al instante, bloquea, sube o baja capas y ajusta posiciones con precisión milimétrica usando la barra de ajuste fino (1 mm y 1°).',
+            side: esMovil ? 'top' : 'right',
+            align: 'start'
+          }
+        },
+        {
+          element: esMovil ? '#mobileTabPrenda' : '#panelSectionPrenda',
+          id: 'paso-prenda',
+          popover: {
+            title: '6. Talla Real y Colores',
+            description: 'Elige la talla en vista (S a XXL anclada a medidas reales de confección), cambia el color de la tela con la paleta Zenith y añade múltiples prendas si lo deseas.',
             side: esMovil ? 'top' : 'right',
             align: 'start'
           }
@@ -114,9 +136,19 @@ export class TourGuiado {
           element: esMovil ? '#mobileTabPedido' : '#panelSectionPedido',
           id: 'paso-pedido',
           popover: {
-            title: '6. Múltiples Poleras y Envío Cifrado',
-            description: 'Crea varias poleras por pedido, desglosa cantidades por talla, descarga vistas previas con marca de agua y genera el paquete técnico cifrado .zrn.',
+            title: '7. Resumen y Exportación',
+            description: 'Desglosa cantidades por talla, revisa la cotización técnica al instante y descarga tu paquete de cliente .zrp editable junto con el paquete de taller .zrn.',
             side: esMovil ? 'top' : 'right',
+            align: 'start'
+          }
+        },
+        {
+          element: '.brand-group',
+          id: 'paso-final-agradecimiento',
+          popover: {
+            title: '8. ¡Gracias por usar CustomyTee!',
+            description: `<div>Tu editor CAD textil está listo. Para consultas de confección o pedidos por mayor, conéctate con nuestro taller:</div><div style="margin-top:10px;"><a href="${CONFIG.INSTAGRAM_URL}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:var(--primary); color:var(--on-primary); padding:6px 14px; text-decoration:none; font-family:var(--font-headline); font-size:11px; font-weight:600; border-radius:2px;">Soporte en Instagram (@zairen.lab)</a></div>`,
+            side: 'bottom',
             align: 'start'
           }
         }
