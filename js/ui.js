@@ -47,6 +47,8 @@ export class ControladorUI {
     this.enlazarEventosPedido();
     this.enlazarEventosMesa();
     this.enlazarEventosModales();
+    this.vincularDragAndDropGlobal();
+    this.vincularEventosCompartirQR();
 
     // Suscribir a cambios del estado
     estado.suscribir((tipo, detalle) => this.alCambiarEstado(tipo, detalle));
@@ -1507,7 +1509,7 @@ export class ControladorUI {
   }
 
   vincularDragAndDropGlobal() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
 
     window.addEventListener('dragover', (e) => {
       e.preventDefault();

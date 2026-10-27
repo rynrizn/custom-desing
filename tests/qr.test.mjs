@@ -114,6 +114,11 @@ assert(indexHtml.includes('id="downloadQrBtn"'), 'index.html debe contener #down
 assert(indexHtml.includes('id="nativeShareBtn"'), 'index.html debe contener #nativeShareBtn');
 assert(indexHtml.includes('id="topShareBtn"'), 'index.html debe contener #topShareBtn');
 assert(!indexHtml.includes('id="topShareBtn" class="btn-icon" title="Compartir enlace (QR)" aria-label="Compartir con QR" style="display:none;"'), 'topShareBtn no debe estar oculto');
+
+const uiJs = fs.readFileSync('js/ui.js', 'utf8');
+assert(uiJs.includes('this.vincularEventosCompartirQR();'), 'ui.js debe invocar vincularEventosCompartirQR en inicializar()');
+assert(uiJs.includes('this.vincularDragAndDropGlobal();'), 'ui.js debe invocar vincularDragAndDropGlobal en inicializar()');
+console.log('   ✓ Inicialización de eventos de compartir y drag-and-drop en ui.js verificada');
 console.log('   ✓ Estructura de modal y botones de compartir verificados en index.html');
 
 console.log('\n===============================================================');
