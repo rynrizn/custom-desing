@@ -1,31 +1,33 @@
-# ZAIREN — CAD Textil v2
+# CustomyTee — CAD Textil v2
 
-Sistema CAD textil profesional para personalización, previsualización técnica y confección de poleras (camisetas) en tiempo real sobre la web. Construido íntegramente con estándares web modernos (ES Modules nativos, Canvas 2D de alta resolución y Web Crypto API) sin pasos de compilación ni dependencias pesadas al inicio.
+Sistema CAD textil profesional para personalización, previsualización técnica y confección de poleras (camisetas) en tiempo real sobre la web. Construido íntegramente con estándares web modernos (ES Modules nativos, Canvas 2D de alta resolución y Web Crypto API) sin pasos de compilación ni dependencias pesadas al inicio (*zero-build*).
 
-**Producción:** [https://customytee.pages.dev/](https://customytee.pages.dev/)  
-**Rama de Desarrollo v2:** `dev-editor-svg`  
-**Vista Previa de Rama en Cloudflare:** `https://dev-editor-svg.customytee.pages.dev/`
+**Producción Oficial:** [https://customytee.pages.dev/](https://customytee.pages.dev/)  
+**Rama de Desarrollo e Integración:** `dev-mejoras`  
+**Vista Previa de la Rama en Cloudflare:** [https://dev-mejoras.customytee.pages.dev/](https://dev-mejoras.customytee.pages.dev/)  
+**Taller y Marca de Agua:** ZAIRENLAB (`@zairen.lab` en [Instagram](https://www.instagram.com/zairen.lab))  
 
 ---
 
-## 1. Novedades de la Versión 2.0
+## 1. Novedades del Sistema
 
-- **Polera Vectorial SVG Paramétrica:** Medidas físicas reales basadas en talla M ($53 \times 71\text{ cm}$), con origen en el punto más alto del hombro, ruedo suavizado, cuello acanalado de 1.5 cm, volumen por gradientes suaves y microtextura textil.
-- **Escalado Matemático por Talla:** Matriz dimensional $sx = \text{ancho}/53$, $sy = \text{largo}/71$ para tallas S, M, L, XL y XXL. Los estampados preservan sus centímetros reales 1:1 independientemente de la talla elegida.
-- **4 Superficies de Trabajo:**
-  1. Pecho (`anverso`)
-  2. Espalda (`reverso`)
-  3. Manga Izquierda (`manga_izquierda` del portador)
-  4. Manga Derecha (`manga_derecha` del portador)
-- **Pieza Plana de Mangas y Modo Espejo:** Trapecio paramétrico SVG con opción de sincronización simétrica automática y botón de volteo horizontal (para preservar la lectura de textos).
-- **Motor Tipográfico Integrado:** 14 fuentes tipográficas (4 de identidad de marca + 10 fuentes OFL de Google Fonts) alojadas localmente en formato WOFF2 en `fonts/` con soporte de contorno, sombra, tracking e interlineado.
-- **Edición Gráfica tipo Canva:** 8 manijas de transformación independientes (esquinas proporcionales y laterales unidireccionales), rotación con imán angular, y aviso visual si la imagen baja de 150 DPI.
-- **Gestión Multi-Polera:** Permite diseñar múltiples poleras en un solo pedido, desglosando cantidades por talla (ej. 2 en M y 1 en L con el mismo diseño).
-- **Autoguardado en IndexedDB y Proyectos JSON:** Persistencia continua en segundo plano mediante `zairen_cad_textil_db` con debounce de 800 ms (imágenes como Blobs binarios para evitar `QuotaExceededError`). Diálogo de bienvenida para retomar la sesión previa o empezar de cero, y botones para **Guardar** y **Abrir** proyectos en formato `.json` legible sin cifrar.
-- **Código de Pedido Único Normalizado:** Formato `ZRN-AAAAMMDD-XXXX` sin caracteres ambiguos, unificado en el nombre del paquete `.zrn`, en `pedido.json`, en el ZIP de vista previa y en el mensaje de WhatsApp.
-- **Cifrado Híbrido Cero-Conocimiento (.zrn):** Protección de pedidos mediante Web Crypto API (AES-256-GCM + RSA-OAEP 3072 bits + AAD `ZRN1`). La clave privada reside cifrada con una Frase Secreta del taller y se descifra únicamente en la memoria del navegador del administrador.
-- **Portal Administrativo Protegido:** Rutas privadas `/acceso` (login en tiempo constante), `/lector` (visor y descompresor de pedidos) y `/lector/configurar` (aprovisionador de claves) respaldadas por Cloudflare Pages Functions.
-- **Tour Guiado con Driver.js:** Recorrido interactivo de 5 pasos cortos adaptado a pantallas táctiles y escritorio.
+- **Identidad CustomyTee & Taller ZAIRENLAB:** Marca orientada al cliente en interfaz, títulos y archivos exportados (`CustomyTee`), preservando la identidad técnica del taller (`ZAIRENLAB`) en marcas de agua, lector administrativo (`/lector`), portal de acceso (`/acceso`) y mensajes a WhatsApp.
+- **Set de Íconos de Trazo Lucide (Cero Emojis):** Sustitución del 100% de emojis por íconos de trazo SVG locales consistentes (`stroke-width="1.8"`, `currentColor`, accesibilidad `aria-hidden`), verificados por pruebas automatizadas con expresiones regulares `\p{Extended_Pictographic}`.
+- **Barra Superior Funcional y Deshacer/Rehacer en la Mesa:**
+  - Selector de prenda simplificado a "Polera" (con arquitectura lista para prendas adicionales).
+  - Menú desplegable **Proyecto** con opciones de *Guardar proyecto*, *Abrir proyecto* y *Descargar vista previa*.
+  - Modal de **Ajustes** (ícono de controles deslizantes) con unidades, fondo de mesa, imanes, cotas, toggle de animaciones, guía de uso y soporte en Instagram.
+  - Selector de **Tema** segmentado (sol y luna) con contraste visual y tooltips accesibles.
+  - Botón **PEDIDO** destacado para el cierre de cotización y exportación.
+  - Botón **Compartir** con código QR.
+  - Botones **Deshacer y Rehacer** ubicados en la barra de mesa en escritorio y en una píldora flotante compacta en móvil.
+- **Corrección Geométrica de Mangas:** Mapeo anatómico verificado en anverso y reverso para todas las tallas (S a XXL), con eliminación de doble transformación angular en textos proyectados.
+- **Encuadre y Zoom Inicial Adaptativo:** La polera completa se muestra centrada y visible (incluyendo el cuello) desde el inicio en pantallas móviles y escritorio ($360\text{ px}$ a $1920\text{ px}$).
+- **Formato de Proyecto Abierto `.zrp`:** Paquete ZIP estándar que almacena `proyecto.json` y los artes originales en la carpeta `imagenes/`. Admite proyectos de solo texto o con imágenes, valida límites de seguridad ($\le 60\text{ MB}$, $\le 25\text{ MB}$ por imagen, máx 50 capas), rechaza amigablemente archivos `.zrn` indicando usar el `.zrp`, y permite reabrir proyectos directamente desde el `/lector` hacia el editor ("Abrir en el editor").
+- **Compartir mediante Código QR:** Integración de la biblioteca `QRious` (nivel M, 4 módulos de silencio, contraste puro negro/blanco), modal accesible con copiado rápido al portapapeles, Web Share API nativa y descarga de código QR en alta resolución ($1024 \times 1024\text{ px}$).
+- **Tokens de Animación y Microinteracciones a 60 fps:** Variables CSS en `:root` (`--motion-duration-fast: 120ms`, `normal: 200ms`, `slow: 320ms`, curvas iOS), pulsación con micro-escala (`active: scale(0.97)`), animación suave al alternar de superficie, animaciones restringidas estrictamente a `transform` y `opacity` sin causar retardo en el arrastre sobre el canvas, soporte a `@media (prefers-reduced-motion: reduce)` y toggle manual persistido en `localStorage` (`customytee_animaciones`).
+- **Tour Guiado de 8 Pasos:** Recorrido interactivo con `Driver.js` sincronizado con la apertura/cierre de hojas móviles, paso final enfocado en el logo con mensaje de agradecimiento y enlace directo a Instagram. Persistencia en `customytee_tour_completado` e inicio manual desde Ajustes ("Ver guía de uso").
+- **Cifrado Híbrido Cero-Conocimiento (.zrn):** Protección del pedido para producción en taller mediante Web Crypto API (AES-256-GCM + RSA-OAEP 3072 bits + AAD `ZRN1`).
 
 ---
 
@@ -36,12 +38,12 @@ custom-desing/
 ├── .gitignore                   # Exclusiones de seguridad (.env, .dev.vars, *.pem)
 ├── _headers                     # Cabeceras de seguridad CSP y X-Robots-Tag noindex
 ├── robots.txt                   # Bloqueo de indexación de rutas privadas
-├── index.html                   # Editor CAD Textil v2 público
-├── favicon.ico                  # Isotipo ZAIREN
+├── index.html                   # Editor CAD Textil CustomyTee
+├── favicon.ico                  # Isotipo oficial
 ├── README.md                    # Manual técnico y guía de despliegue
 ├── css/
-│   └── styles.css               # Sistema de diseño Zenith Monochrome (100dvh, sheets, tokens)
-├── fonts/                       # Fuentes WOFF2 locales de marca y display OFL
+│   └── styles.css               # Sistema Zenith Monochrome (tokens de movimiento, 100dvh, sheets)
+├── fonts/                       # Fuentes WOFF2 locales de marca y display OFL (14 fuentes)
 │   ├── fonts.css                # Declaraciones @font-face locales
 │   ├── poppins.woff2            # Titulares
 │   ├── inter.woff2              # Cuerpo y navegación
@@ -53,7 +55,8 @@ custom-desing/
 │   ├── polera-reverso.svg       # SVG vectorial medidas reales (53x71 cm)
 │   └── manga-plana.svg          # Trapecio paramétrico de manga plana
 ├── js/
-│   ├── config.js                # Constantes editables (WhatsApp, clave pública, tallas)
+│   ├── config.js                # Constantes editables (URL_PUBLICA, INSTAGRAM_URL, WhatsApp, tallas)
+│   ├── iconos.js                # Set de íconos SVG Lucide de trazo
 │   ├── estado.js                # Estado reactivo, persistencia en localStorage y undo/redo
 │   ├── polera-svg.js            # Motor geométrico y renderizado SVG
 │   ├── mesa.js                  # Viewport, zoom, reglas graduadas, cuadrícula e imanes
@@ -64,123 +67,69 @@ custom-desing/
 │   ├── envolvente.js            # Motor de continuidad lateral anverso <-> reverso
 │   ├── unidades.js              # Conversor de cm, mm e in (base interna mm)
 │   ├── pedido.js                # Gestor multi-prenda y cálculo de cantidades
-│   ├── exportar.js              # Generador de mockups acotados y marca de agua
-│   ├── almacenamiento.js        # Autoguardado en IndexedDB (Blobs) y gestión de proyectos .json
+│   ├── exportar.js              # Generador de mockups acotados, marca de agua y paquete .zrn
+│   ├── almacenamiento.js        # Formato de proyecto .zrp (ZIP/JSZip) y autoguardado en IndexedDB
 │   ├── cifrado.js               # Web Crypto RSA-OAEP + AES-GCM formato .zrn
-│   ├── tour.js                  # Tour interactivo con Driver.js
-│   ├── ui.js                    # Controlador DOM, hojas deslizables y diálogos
+│   ├── tour.js                  # Tour guiado interactivo con Driver.js (8 pasos)
+│   ├── ui.js                    # Controlador DOM, hojas deslizables, modales y microinteracciones
 │   └── main.js                  # Orquestador del ciclo de vida y eventos de puntero
 ├── tests/                       # Suites de pruebas automatizadas Node.js
+│   ├── sin-emojis.mjs           # Verificación de ausencia total de emojis
+│   ├── auditoria-cierre.test.mjs# Auditoría integral de 10 puntos del sistema
+│   ├── proyecto-zrp.test.mjs    # Pruebas de guardado/apertura de formato .zrp
+│   ├── qr.test.mjs              # Pruebas de generación y exportación de QR
+│   ├── animaciones.test.mjs     # Pruebas de tokens de movimiento y reduced-motion
+│   ├── tour.test.mjs            # Pruebas de pasos y enlaces del tour guiado
+│   ├── mangas-aislamiento.test.mjs # Corrección de mangas y aislamiento
+│   ├── centrado-alineacion.test.mjs# Centrado visual real y botones de alineación
 │   ├── cifrado.test.mjs         # Pruebas criptográficas Web Crypto RSA-3072 y .zrn
 │   ├── tallas-geometria.test.mjs# Medidas reales M (53x71 cm), cotas y factores sx/sy
 │   ├── interaccion.test.mjs     # Manijas táctiles, hit-testing y guías magnéticas
-│   ├── centrado-alineacion.test.mjs # Bounding box visual real y alineación milimétrica
-│   ├── mangas-aislamiento.test.mjs  # Patrón plano, aislamiento y texto simplificado
-│   ├── interfaz-movil.test.mjs  # Barra flotante adaptable, hoja en 3 posiciones
+│   ├── interfaz-movil.test.mjs  # Barra flotante adaptable y hoja en 3 posiciones
 │   └── guardado-proyecto.test.mjs # Autoguardado, Blobs, proyecto JSON y código ZRN
-├── acceso/
-│   ├── index.html               # Página de inicio de sesión administrativo
-│   └── login.js                 # Cliente de login hacia /api/login
-├── lector/
-│   ├── index.html               # Visor administrativo de pedidos .zrn
-│   ├── lector.js                # Descifrador local y extractor en navegador
-│   └── configurar/
-│       ├── index.html           # Generador de pares RSA 3072 bits
-│       └── configurar.js        # Cifrado PBKDF2 de clave privada
-└── functions/                   # Cloudflare Pages Functions
-    ├── api/
-    │   ├── login.js             # Validación tiempo constante + emisión de cookie HMAC
-    │   ├── logout.js            # Revocación de sesión
-    │   └── clave.js             # Entrega de PRIVATE_KEY_ENC a sesiones autenticadas
-    └── lector/
-        └── _middleware.js       # Protección de ruta /lector/*
+├── acceso/                      # Portal de inicio de sesión administrativo
+├── lector/                      # Visor administrativo de pedidos .zrn y apertura en editor
+└── functions/                   # Cloudflare Pages Functions (/api/login, /api/clave, etc.)
 ```
 
 ---
 
-## 3. Guía de Configuración en Cloudflare Pages
+## 3. Batería de Pruebas Automatizadas
 
-Para la guía detallada con capturas y fichas técnicas de cada parámetro, consulta el documento completo:  
-**[Guía Maestra de Cloudflare Pages](docs/CLOUDFLARE.md)**
-
-### Resumen de los 5 Parámetros del Sistema:
-
-1. **`ADMIN_PASSWORD`** (*Secret*): Contraseña de acceso al login administrativo en `/acceso`.
-2. **`SESSION_SECRET`** (*Secret*): Cadena aleatoria de 64 caracteres hex (32 bytes) para firma HMAC-SHA256 de cookies.
-3. **`PRIVATE_KEY_ENC`** (*Secret*): Clave privada RSA-3072 PKCS#8 cifrada con PBKDF2 (600.000 iteraciones) + AES-GCM, con prefijo `ZRNK1:`.
-4. **`CLAVE_PUBLICA`** (*PlainText*): Clave pública RSA-3072 SPKI Base64 con prefijo `ZRNP1:` (servida dinámicamente vía `GET /api/publica`).
-5. **`LOGIN_KV`** (*KV Binding, opcional*): Namespace KV para mitigar ataques de fuerza bruta (máximo 5 intentos en 15 min).
-
-> **IMPORTANTE:** Cada vez que agregues o modifiques variables o secretos en Cloudflare Pages, debes re-desplegar (*Retry deployment* o hacer un nuevo push) para que las funciones tomen los nuevos valores.
-
----
-
-### Paso 2: Generar tus Claves Criptográficas y Frase Secreta
-1. Inicia sesión en `/acceso` y abre `/lector/configurar`.
-2. Escribe una **Frase Secreta** fuerte (el asistente exige al menos 16 caracteres o 5 palabras).
-3. Haz clic en **GENERAR CLAVES CRIPTOGRÁFICAS**.
-4. Copia `CLAVE_PUBLICA` (prefijo `ZRNP1:`) y `PRIVATE_KEY_ENC` (prefijo `ZRNK1:`) y configúralas en Cloudflare Pages.
-5. Descarga la copia de seguridad `.json` para custodia offline.
-6. Usa la **Caja de comprobación** integrada para verificar que las claves y la frase coincidan antes de recibir pedidos reales.
-
----
-
-### Paso 3: Configurar el WhatsApp del Negocio
-En `js/config.js`:
-```javascript
-export const CONFIG = {
-  WHATSAPP_NEGOCIO: '+59174522654', // Número del taller para recibir pedidos directos
-  // ...
-};
-```
-
----
-
-## 4. Pruebas Locales con Wrangler
-
-Para probar las Cloudflare Pages Functions en tu entorno local:
-
-1. Crea un archivo `.dev.vars` en la raíz (este archivo está excluido en `.gitignore`):
-```ini
-ADMIN_PASSWORD=mi-clave-super-secreta
-SESSION_SECRET=un-secreto-aleatorio-muy-largo-para-hmac-32caracteres
-PRIVATE_KEY_ENC={"salt":"...","iv":"...","ciphertext":"...","iterations":600000,"hash":"SHA-256"}
-```
-
-2. Ejecuta Wrangler:
-```bash
-npx wrangler pages dev .
-```
-
----
-
-## 5. Batería de Pruebas Automatizadas
-
-El proyecto incluye 7 suites de pruebas automatizadas en `tests/` que validan cada aspecto crítico de la aplicación:
+Para ejecutar todas las pruebas automatizadas de regresión, seguridad, geometría y usabilidad:
 
 ```bash
-# Ejecutar suite completa (todas las fases)
-node tests/cifrado.test.mjs
-node tests/tallas-geometria.test.mjs
-node tests/interaccion.test.mjs
-node tests/centrado-alineacion.test.mjs
-node tests/mangas-aislamiento.test.mjs
-node tests/interfaz-movil.test.mjs
-node tests/guardado-proyecto.test.mjs
+# Ejecutar todas las suites de prueba en Node.js
+node --test tests/*.test.mjs; node tests/sin-emojis.mjs
 ```
 
 ---
 
-## 6. Procedimiento para Merge a `main`
+## 4. Guía de Parámetros en Cloudflare Pages
 
-El trabajo actual se encuentra aislado en la rama `dev-editor-svg`. Para pasar a producción:
+Para la configuración completa de secretos y variables de entorno del portal administrativo, consulta la [Guía Maestra de Cloudflare](docs/CLOUDFLARE.md).
 
-1. Prueba todas las funciones en la URL de prueba de Cloudflare Pages:
-   `https://dev-editor-svg.customytee.pages.dev/`
-2. Una vez que hayas verificado la edición, el pedido, la vista previa y el lector:
+- **`ADMIN_PASSWORD`** (*Secret*): Contraseña de acceso al login administrativo en `/acceso`.
+- **`SESSION_SECRET`** (*Secret*): Cadena aleatoria de 64 caracteres hex para firma HMAC-SHA256 de cookies.
+- **`PRIVATE_KEY_ENC`** (*Secret*): Clave privada RSA-3072 PKCS#8 cifrada con PBKDF2 (600.000 iteraciones) + AES-GCM (`ZRNK1:`).
+- **`CLAVE_PUBLICA`** (*PlainText*): Clave pública RSA-3072 SPKI Base64 (`ZRNP1:`).
+
+---
+
+## 5. Procedimiento de Fusión a `main`
+
+El trabajo completo de evolución se encuentra consolidado en la rama de integración `dev-mejoras`.  
+Para fusionar hacia producción tras la validación en la URL de vista previa:
+
 ```bash
+# 1. Asegurar rama local dev-mejoras actualizada
+git checkout dev-mejoras
+git pull origin dev-mejoras
+
+# 2. Fusionar hacia main con commit de fusión explícito
 git checkout main
-git merge --no-ff dev-editor-svg -m "feat: evolucionar a CAD Textil v2 con SVG paramétrico y cifrado .zrn"
+git merge --no-ff dev-mejoras -m "feat: integrar CustomyTee CAD Textil v2 (Fases 1 a 7)"
+
+# 3. Publicar a producción en Cloudflare Pages
 git push origin main
 ```
-Cloudflare Pages desplegará automáticamente la versión final a producción en `https://customytee.pages.dev/`.
