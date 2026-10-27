@@ -240,7 +240,7 @@ class AplicacionCADTextil {
     this.ctx.font = '500 12px Inter, sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
-    this.ctx.fillText('👁️ Vista polera (solo lectura) — Toca para volver al patrón plano', badgeX + badgeW / 2, badgeY + badgeH / 2);
+    this.ctx.fillText('Vista polera (solo lectura) — Toca para volver al patrón plano', badgeX + badgeW / 2, badgeY + badgeH / 2);
     this.ctx.restore();
   }
 

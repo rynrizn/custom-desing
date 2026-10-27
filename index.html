@@ -32,35 +32,74 @@
 
       <!-- Acciones de Navegación Rápida -->
       <div class="nav-actions">
-        <!-- Deshacer y Rehacer -->
-        <button type="button" id="undoBtn" class="btn-icon" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-        </button>
-        <button type="button" id="redoBtn" class="btn-icon" title="Rehacer (Ctrl+Y)" aria-label="Rehacer" disabled>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+        <!-- Botón Compartir (QR) - Preparado para Fase 4 -->
+        <button type="button" id="topShareBtn" class="btn-icon" title="Compartir enlace (QR)" aria-label="Compartir con QR" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
         </button>
 
-        <!-- Botón Tour Guiado (?) -->
-        <button type="button" id="startTourBtn" class="btn-icon" title="Ver guía interactiva" aria-label="Tour guiado">
-          <span style="font-weight:700; font-family:var(--font-mono)">?</span>
-        </button>
+        <!-- Menú Proyecto (Guardar, Abrir, Vista Previa) -->
+        <div class="dropdown-wrapper" id="projectMenuWrapper">
+          <button type="button" id="projectMenuBtn" class="btn btn-ghost" title="Menú de proyecto" aria-haspopup="true" aria-expanded="false" style="min-height:34px; padding:0 10px; font-size:11px; gap:4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg>
+            <span>PROYECTO</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu" id="projectDropdownMenu" role="menu" aria-label="Menú de proyecto" style="display:none;">
+            <button type="button" class="dropdown-item" id="menuSaveProjectBtn" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+              <span>Guardar mi proyecto</span>
+            </button>
+            <button type="button" class="dropdown-item" id="menuOpenProjectBtn" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg>
+              <span>Abrir proyecto</span>
+            </button>
+            <button type="button" class="dropdown-item" id="menuDownloadPreviewBtn" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Descargar vista previa (ZIP)</span>
+            </button>
+          </div>
+        </div>
 
-        <!-- Botón Ajustes Generales -->
+        <!-- Botón Ajustes Generales (Sliders) -->
         <button type="button" id="openSettingsBtn" class="btn-icon" title="Configuración y Ajustes" aria-label="Ajustes">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
         </button>
 
-        <!-- Alternador Tema Claro/Oscuro -->
-        <button type="button" id="themeToggleBtn" class="btn-icon" aria-label="Cambiar tema claro/oscuro" title="Tema claro/oscuro">
-          <svg id="themeIconSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-          </svg>
-        </button>
+        <!-- Alternador Tema Claro/Oscuro (Interruptor corto sol y luna) -->
+        <div class="theme-segmented-switch" id="themeSwitchGroup" role="group" aria-label="Tema: claro u oscuro" title="Tema claro/oscuro">
+          <button type="button" id="themeLightBtn" class="theme-switch-btn active" aria-label="Modo claro" title="Activar modo claro">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </button>
+          <button type="button" id="themeDarkBtn" class="theme-switch-btn" aria-label="Modo oscuro" title="Activar modo oscuro">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
 
         <!-- Botón Exportar Pedido -->
         <button type="button" id="topExportBtn" class="btn btn-crimson" style="min-height:34px; padding:0 12px; font-size:11px;">
           <span>PEDIDO</span>
         </button>
+
+        <!-- Menú Más para móvil (<= 420 px) -->
+        <div class="dropdown-wrapper nav-more-wrapper" id="navMoreWrapper" style="display:none;">
+          <button type="button" id="navMoreBtn" class="btn-icon" title="Más opciones" aria-label="Más opciones" aria-haspopup="true" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-right" id="navMoreMenu" role="menu" style="display:none;">
+            <button type="button" class="dropdown-item" id="moreShareBtn" role="menuitem" style="display:none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+              <span>Compartir con QR</span>
+            </button>
+            <button type="button" class="dropdown-item" id="moreSettingsBtn" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              <span>Ajustes</span>
+            </button>
+            <button type="button" class="dropdown-item" id="moreThemeBtn" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+              <span id="moreThemeText">Alternar tema</span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -95,7 +134,7 @@
             <button type="button" id="sheetExpandBtn" class="sheet-btn-toggle" title="Alternar entre altura media y completa" aria-label="Expandir o reducir hoja">
               <span id="sheetExpandIcon">⤢</span>
             </button>
-            <button type="button" id="sheetCloseBtn" class="sheet-btn-toggle" title="Cerrar hoja de herramientas" aria-label="Cerrar hoja">✕</button>
+            <button type="button" id="sheetCloseBtn" class="sheet-btn-toggle" title="Cerrar hoja de herramientas" aria-label="Cerrar hoja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
           </div>
         </div>
 
@@ -337,7 +376,7 @@
 
               <!-- Alerta de Calidad DPI para Imágenes -->
               <div id="dpiWarningBanner" class="dpi-warning" style="display:none; margin-top:8px;">
-                ⚠️ <strong>Aviso de calidad:</strong> Esta imagen está a <span id="dpiValueText">120</span> DPI. Para impresión profesional se recomienda al menos 150 DPI.
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle; margin-right:4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><strong>Aviso de calidad:</strong> Esta imagen está a <span id="dpiValueText">120</span> DPI. Para impresión profesional se recomienda al menos 150 DPI.
               </div>
 
               <!-- Transformaciones Dimensionales -->
@@ -418,13 +457,13 @@
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
                 <button type="button" id="saveProjectBtn" class="btn btn-secondary" style="font-size:11px;" title="Guardar proyecto completo en archivo .json sin cifrar">
-                  <span>💾 GUARDAR PROYECTO</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span>GUARDAR PROYECTO</span>
                 </button>
                 <button type="button" id="openProjectBtn" class="btn btn-secondary" style="font-size:11px;" title="Abrir y continuar un proyecto .json previo">
-                  <span>📂 ABRIR PROYECTO</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg><span>ABRIR PROYECTO</span>
                 </button>
               </div>
-              <input type="file" id="projectFileInput" accept=".json,application/json" style="display:none;">
+              <input type="file" id="projectFileInput" accept=".zrp,.json,application/json,application/zip" style="display:none;">
               <button type="button" id="downloadPreviewZipBtn" class="btn btn-ghost" style="width:100%;">
                 <span>DESCARGAR VISTA PREVIA (ZIP)</span>
               </button>
@@ -441,6 +480,16 @@
         <!-- Barra Superior de Herramientas de Mesa -->
         <div class="stage-toolbar-top">
           <!-- Alineación rápida respecto a la silueta y zona de impresión -->
+          <div class="ribbon-group desktop-undo-group" aria-label="Historial">
+            <button type="button" id="undoBtn" class="btn-icon" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+            </button>
+            <button type="button" id="redoBtn" class="btn-icon" title="Rehacer (Ctrl+Y)" aria-label="Rehacer" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+            </button>
+          </div>
+          <div class="ribbon-divider desktop-undo-divider"></div>
+
           <div class="ribbon-group" aria-label="Alineación">
             <span class="ribbon-label">ALINEAR:</span>
             <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda de la zona" disabled>
@@ -471,13 +520,13 @@
           <!-- Barra Rápida de Personalización de Mangas (Visible en Manga Izq / Der) -->
           <div id="mangaQuickBar" style="display:none; align-items:center; gap:6px;">
             <button type="button" id="switchSleeveSideBtn" class="btn-micro" title="Cambiar a la otra manga">
-              <span id="switchSleeveSideLabel">👉 A MANGA DER</span>
+              <span id="switchSleeveSideLabel" style="display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> A MANGA DER</span>
             </button>
             <button type="button" id="quickMirrorBtn" class="btn-micro" title="Activar/Desactivar modo espejo entre mangas">
-              <span>🪞 ESPEJO: OFF</span>
+              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/></svg> ESPEJO: OFF</span>
             </button>
             <button type="button" id="sleevePresetCenterBtn" class="btn-micro" title="Centrar diseño en la manga">
-              <span>🎯 CENTRO</span>
+              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> CENTRO</span>
             </button>
             <button type="button" id="mangaModeBtn" class="btn-micro" title="Alternar entre ver como patrón plano o sobre la polera">
               <span>PATRÓN PLANO</span>
@@ -510,6 +559,16 @@
         <div class="canvas-viewport" id="canvasViewport">
           <canvas id="workbenchCanvas" tabindex="0" aria-label="Lienzo CAD interactivo"></canvas>
 
+          <!-- Barra Flotante de Deshacer y Rehacer para Móvil -->
+          <div class="stage-floating-undo" id="mobileFloatingUndo" role="toolbar" aria-label="Deshacer y rehacer móvil">
+            <button type="button" id="mobileUndoBtn" class="floating-undo-btn" title="Deshacer" aria-label="Deshacer" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+            </button>
+            <button type="button" id="mobileRedoBtn" class="floating-undo-btn" title="Rehacer" aria-label="Rehacer" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+            </button>
+          </div>
+
           <!-- Barra Flotante Contextual sobre la Capa Seleccionada -->
           <div class="floating-context-bar" id="floatingContextBar" style="display:none;" role="toolbar" aria-label="Acciones de elemento">
             <div id="floatTextSizeGroup" style="display:none; align-items:center; gap:2px; margin-right:4px;">
@@ -526,12 +585,12 @@
           <!-- Barra de Ajuste Fino para Móvil y Táctil (Flechas 1 mm, Escala, Giro 1° y 15°) -->
           <div class="fine-tune-bar" id="fineTuneBar" style="display:none;" role="toolbar" aria-label="Ajuste fino de precisión">
             <div class="fine-tune-group" title="Mover 1 mm">
-              <button type="button" id="nudgeLeftBtn" class="btn-tune" title="1 mm Izquierda" aria-label="1 mm Izquierda">◀</button>
+              <button type="button" id="nudgeLeftBtn" class="btn-tune" title="1 mm Izquierda" aria-label="1 mm Izquierda"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
               <div class="fine-tune-v">
-                <button type="button" id="nudgeUpBtn" class="btn-tune" title="1 mm Arriba" aria-label="1 mm Arriba">▲</button>
-                <button type="button" id="nudgeDownBtn" class="btn-tune" title="1 mm Abajo" aria-label="1 mm Abajo">▼</button>
+                <button type="button" id="nudgeUpBtn" class="btn-tune" title="1 mm Arriba" aria-label="1 mm Arriba"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
+                <button type="button" id="nudgeDownBtn" class="btn-tune" title="1 mm Abajo" aria-label="1 mm Abajo"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
               </div>
-              <button type="button" id="nudgeRightBtn" class="btn-tune" title="1 mm Derecha" aria-label="1 mm Derecha">▶</button>
+              <button type="button" id="nudgeRightBtn" class="btn-tune" title="1 mm Derecha" aria-label="1 mm Derecha"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
             </div>
 
             <div class="tune-divider" id="fineTuneSizeDivider"></div>
@@ -540,7 +599,7 @@
               <button type="button" id="scaleDownBtn" class="btn-tune" title="Reducir 5%" aria-label="Reducir tamaño">−</button>
               <span class="tune-label">TAMAÑO</span>
               <button type="button" id="scaleUpBtn" class="btn-tune" title="Aumentar 5%" aria-label="Aumentar tamaño">+</button>
-              <button type="button" id="toggleAspectBtn" class="btn-tune" title="Bloquear / Desbloquear Proporción" aria-label="Proporción">🔒</button>
+              <button type="button" id="toggleAspectBtn" class="btn-tune" title="Bloquear / Desbloquear Proporción" aria-label="Proporción"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
             </div>
 
             <div class="tune-divider"></div>
@@ -601,7 +660,7 @@
     <div class="modal-card">
       <div class="modal-title">
         <span id="settingsModalTitle">Configuración y Ajustes</span>
-        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar ventana">✕</button>
+        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar ventana"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div style="display:flex; flex-direction:column; gap:12px;">
         <div class="field-group">
@@ -634,6 +693,23 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; font-weight:600;">Animaciones fluidas</span>
+          <label class="toggle-switch" aria-label="Alternar animaciones">
+            <input type="checkbox" id="settingAnimationsToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="border-top:1px solid var(--border-subtle); padding-top:10px; display:flex; flex-direction:column; gap:8px;">
+          <button type="button" id="settingsStartTourBtn" class="btn btn-ghost" style="justify-content:flex-start; height:36px; padding:0 10px; gap:8px; width:100%;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            <span>Ver guía de uso</span>
+          </button>
+          <a id="settingsSupportLink" href="https://www.instagram.com/zairen.lab" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="justify-content:flex-start; height:36px; padding:0 10px; gap:8px; width:100%; text-decoration:none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            <span>Soporte (Instagram)</span>
+          </a>
+        </div>
       </div>
       <div style="display:flex; justify-content:flex-end; margin-top:8px;">
         <button type="button" class="btn btn-primary modal-close-btn">Aceptar</button>
@@ -646,7 +722,7 @@
     <div class="modal-card">
       <div class="modal-title">
         <span id="exportModalTitle">Confirmar Pedido</span>
-        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar">✕</button>
+        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div id="exportModalNotice" style="font-size:12px; color:var(--text-secondary);"></div>
       <div>
@@ -664,8 +740,8 @@
   <div class="modal-backdrop" id="restoreSessionModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="restoreSessionModalTitle">
     <div class="modal-card">
       <div class="modal-title">
-        <span id="restoreSessionModalTitle">🎨 Diseño anterior detectado</span>
-        <button type="button" class="btn-icon modal-close-btn" id="restoreModalCloseBtn" aria-label="Cerrar">✕</button>
+        <span id="restoreSessionModalTitle" style="display:inline-flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Diseño anterior detectado</span>
+        <button type="button" class="btn-icon modal-close-btn" id="restoreModalCloseBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
         Se encontró un proyecto guardado automáticamente en tu navegador. ¿Deseas retomar tu diseño o empezar una nueva prenda desde cero?

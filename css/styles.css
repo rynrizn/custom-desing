@@ -1342,3 +1342,163 @@ input:checked + .toggle-slider:before {
   border-left: 4px solid #D97706;
   background: var(--surface-solid);
 }
+
+
+/* ==========================================================================
+   2.1 COMPONENTES NUEVA BARRA SUPERIOR (ZENITH MONOCHROME)
+   ========================================================================== */
+.dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 210px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: var(--radius-md);
+}
+
+.dropdown-menu-right {
+  left: auto;
+  right: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-headline);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease;
+  min-height: 38px;
+}
+
+.dropdown-item:hover, .dropdown-item:focus-visible {
+  background: var(--surface-high);
+}
+
+/* Switch segmentado de tema (Sol / Luna) */
+.theme-segmented-switch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-high);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+  height: 34px;
+}
+
+.theme-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.theme-switch-btn.active {
+  background: var(--surface-solid);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.theme-switch-btn:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+/* Botón Secundario Formal */
+.btn-secondary {
+  background: var(--surface-high);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-highest);
+}
+
+/* Barra flotante Deshacer/Rehacer en móvil */
+.stage-floating-undo {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 25;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-bento);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  padding: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.floating-undo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.floating-undo-btn:hover:not(:disabled) {
+  background: var(--surface-high);
+}
+
+.floating-undo-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .stage-floating-undo {
+    display: flex;
+  }
+  .desktop-undo-group, .desktop-undo-divider {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .nav-more-wrapper {
+    display: inline-block !important;
+  }
+  #openSettingsBtn, #themeSwitchGroup {
+    display: none !important;
+  }
+}

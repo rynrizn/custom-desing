@@ -1,3 +1,4 @@
+import { icono } from './iconos.js';
 /**
  * ============================================================================
  * ZAIREN CAD Textil v2 — Controlador de Interfaz de Usuario (UI)
@@ -218,12 +219,12 @@ export class ControladorUI {
     const select = document.getElementById('garmentSelect');
     const staticBadge = document.getElementById('garmentStaticLabel');
     if (!select) return;
-    const count = select.options.length;
+    const count = select.options ? select.options.length : (select.children ? select.children.length : 0);
     if (count <= 1) {
       select.style.display = 'none';
       if (staticBadge) {
         staticBadge.style.display = 'block';
-        staticBadge.textContent = select.options[0]?.text || 'Polera';
+        staticBadge.textContent = select.options?.[0]?.text || 'Polera';
       }
     } else {
       select.style.display = '';
@@ -752,7 +753,7 @@ export class ControladorUI {
       const sel = estado.capaSeleccionada;
       if (sel) {
         sel.lockAspect = !(sel.lockAspect !== false);
-        e.currentTarget.textContent = sel.lockAspect ? '🔒' : '🔓';
+        e.currentTarget.innerHTML = sel.lockAspect ? icono('lock') : icono('unlock');
         e.currentTarget.title = sel.lockAspect ? 'Proporción bloqueada (tocar para liberar)' : 'Proporción libre (tocar para bloquear)';
         estado.notificar('capa-modificada', sel);
       }
@@ -793,7 +794,7 @@ export class ControladorUI {
       const mirrorToggle = document.getElementById('mirrorSleevesToggle');
       if (mirrorToggle) mirrorToggle.checked = estado.poleraActiva.mangasEspejo;
       if (quickMirrorBtn) {
-        quickMirrorBtn.querySelector('span').textContent = estado.poleraActiva.mangasEspejo ? '🪞 ESPEJO: ON' : '🪞 ESPEJO: OFF';
+        quickMirrorBtn.querySelector('span').innerHTML = `${icono('flipHorizontal')} ESPEJO: ${estado.poleraActiva.mangasEspejo ? 'ON' : 'OFF'}`;
         quickMirrorBtn.classList.toggle('active', estado.poleraActiva.mangasEspejo);
       }
       estado.guardarSnapshotHistorial(`Espejo mangas ${estado.poleraActiva.mangasEspejo ? 'activado' : 'desactivado'}`);
@@ -842,6 +843,91 @@ export class ControladorUI {
   }
 
   enlazarEventosModales() {
+    // Menú Proyecto desplegable
+    const projectBtn = document.getElementById('projectMenuBtn');
+    const projectMenu = document.getElementById('projectDropdownMenu');
+    if (projectBtn && projectMenu) {
+      projectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abierto = projectMenu.style.display === 'flex';
+        projectMenu.style.display = abierto ? 'none' : 'flex';
+        projectBtn.setAttribute('aria-expanded', abierto ? 'false' : 'true');
+      });
+      document.addEventListener?.('click', (e) => {
+        if (!projectBtn.contains(e.target) && !projectMenu.contains(e.target)) {
+          projectMenu.style.display = 'none';
+          projectBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.getElementById('menuSaveProjectBtn')?.addEventListener('click', () => {
+        projectMenu.style.display = 'none';
+        document.getElementById('saveProjectBtn')?.click();
+      });
+      document.getElementById('menuOpenProjectBtn')?.addEventListener('click', () => {
+        projectMenu.style.display = 'none';
+        document.getElementById('openProjectBtn')?.click();
+      });
+      document.getElementById('menuDownloadPreviewBtn')?.addEventListener('click', () => {
+        projectMenu.style.display = 'none';
+        document.getElementById('downloadPreviewZipBtn')?.click();
+      });
+    }
+
+    // Menú Más para móvil (<= 420 px)
+    const navMoreBtn = document.getElementById('navMoreBtn');
+    const navMoreMenu = document.getElementById('navMoreMenu');
+    if (navMoreBtn && navMoreMenu) {
+      navMoreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abierto = navMoreMenu.style.display === 'flex';
+        navMoreMenu.style.display = abierto ? 'none' : 'flex';
+        navMoreBtn.setAttribute('aria-expanded', abierto ? 'false' : 'true');
+      });
+      document.addEventListener?.('click', (e) => {
+        if (!navMoreBtn.contains(e.target) && !navMoreMenu.contains(e.target)) {
+          navMoreMenu.style.display = 'none';
+          navMoreBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.getElementById('moreSettingsBtn')?.addEventListener('click', () => {
+        navMoreMenu.style.display = 'none';
+        document.getElementById('openSettingsBtn')?.click();
+      });
+      document.getElementById('moreThemeBtn')?.addEventListener('click', () => {
+        navMoreMenu.style.display = 'none';
+        this.alternarTema();
+      });
+    }
+
+    // Switch de Tema (Sol / Luna)
+    document.getElementById('themeLightBtn')?.addEventListener('click', () => this.establecerTema('light'));
+    document.getElementById('themeDarkBtn')?.addEventListener('click', () => this.establecerTema('dark'));
+
+    // Botón iniciar tour desde Ajustes
+    document.getElementById('settingsStartTourBtn')?.addEventListener('click', () => {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+      tourGuiado.iniciar(true);
+    });
+
+    // Toggle de animaciones en Ajustes
+    const animToggle = document.getElementById('settingAnimationsToggle');
+    if (animToggle) {
+      const animGuardada = (typeof localStorage !== 'undefined') ? localStorage.getItem('customytee_animaciones') : null;
+      if (animGuardada === 'false') {
+        animToggle.checked = false;
+        document.body?.classList?.add('disable-animations');
+      }
+      animToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          document.body?.classList?.remove('disable-animations');
+          if (typeof localStorage !== 'undefined') localStorage.setItem('customytee_animaciones', 'true');
+        } else {
+          document.body?.classList?.add('disable-animations');
+          if (typeof localStorage !== 'undefined') localStorage.setItem('customytee_animaciones', 'false');
+        }
+      });
+    }
+
     // Abrir Ajustes
     document.getElementById('openSettingsBtn')?.addEventListener('click', () => {
       document.getElementById('settingsModalBackdrop').classList.add('open');
@@ -935,6 +1021,28 @@ export class ControladorUI {
     });
   }
 
+  
+  establecerTema(nuevoTema) {
+    document.documentElement.setAttribute('data-theme', nuevoTema);
+    estado.datos.tema = nuevoTema;
+    const lightBtn = document.getElementById('themeLightBtn');
+    const darkBtn = document.getElementById('themeDarkBtn');
+    if (lightBtn && darkBtn) {
+      lightBtn.classList.toggle('active', nuevoTema === 'light');
+      darkBtn.classList.toggle('active', nuevoTema === 'dark');
+    }
+    const moreThemeText = document.getElementById('moreThemeText');
+    if (moreThemeText) {
+      moreThemeText.textContent = nuevoTema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+    }
+    this.mostrarNotificacion(`Modo ${nuevoTema === 'dark' ? 'oscuro' : 'claro'} activado.`);
+  }
+
+  alternarTema() {
+    const actual = document.documentElement.getAttribute('data-theme') || 'light';
+    this.establecerTema(actual === 'dark' ? 'light' : 'dark');
+  }
+
   sincronizarTema() {
     const esOscuro = estado.datos.tema === 'oscuro' || (estado.datos.tema === 'sistema' && typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
     if (document.documentElement) {
@@ -1000,13 +1108,13 @@ export class ControladorUI {
 
     const switchLabel = document.getElementById('switchSleeveSideLabel');
     if (switchLabel) {
-      switchLabel.textContent = sup === 'manga_izquierda' ? '👉 A MANGA DER' : '👈 A MANGA IZQ';
+      switchLabel.innerHTML = sup === 'manga_izquierda' ? `${icono('arrowRight')} A MANGA DER` : `${icono('arrowLeft')} A MANGA IZQ`;
     }
 
     const quickMirrorBtn = document.getElementById('quickMirrorBtn');
     if (quickMirrorBtn) {
       quickMirrorBtn.classList.toggle('active', !!estado.poleraActiva.mangasEspejo);
-      quickMirrorBtn.querySelector('span').textContent = estado.poleraActiva.mangasEspejo ? '🪞 ESPEJO: ON' : '🪞 ESPEJO: OFF';
+      quickMirrorBtn.querySelector('span').innerHTML = `${icono('flipHorizontal')} ESPEJO: ${estado.poleraActiva.mangasEspejo ? 'ON' : 'OFF'}`;
     }
 
     // Sincronizar barra flotante
@@ -1075,12 +1183,12 @@ export class ControladorUI {
     if (!capas.length) {
       container.innerHTML = `
         <div class="empty-state-card">
-          <div class="empty-state-icon">🎨</div>
+          <div class="empty-state-icon">${icono('layers')}</div>
           <div class="empty-state-title">Superficie sin estampados</div>
           <p class="empty-state-desc">Añade imágenes o textos para personalizar esta zona de la polera.</p>
           <div class="empty-state-actions">
-            <button type="button" class="btn-micro" id="emptyAddImageBtn">📁 Subir Imagen</button>
-            <button type="button" class="btn-micro" id="emptyAddTextBtn">🔤 Añadir Texto</button>
+            <button type="button" class="btn-micro" id="emptyAddImageBtn">${icono('upload')} Subir Imagen</button>
+            <button type="button" class="btn-micro" id="emptyAddTextBtn">${icono('type')} Añadir Texto</button>
           </div>
         </div>
       `;
@@ -1102,13 +1210,13 @@ export class ControladorUI {
 
       item.innerHTML = `
         <div class="layer-info" role="button" tabindex="0">
-          <span>${capa.tipo === 'texto' ? '🔤' : '🖼️'}</span>
+          <span>${capa.tipo === 'texto' ? icono('type') : icono('image')}</span>
           <span style="font-weight:600;">${capa.nombre}</span>
         </div>
         <div class="layer-actions">
-          <button type="button" class="btn-micro" data-action="toggle-vis" title="Ocultar/Ver">${capa.visible ? '👁️' : '🚫'}</button>
-          <button type="button" class="btn-micro" data-action="toggle-lock" title="Bloquear">${capa.locked ? '🔒' : '🔓'}</button>
-          <button type="button" class="btn-micro btn-danger" data-action="delete" title="Eliminar">✕</button>
+          <button type="button" class="btn-micro" data-action="toggle-vis" title="Ocultar/Ver">${capa.visible ? icono('eye') : icono('eyeOff')}</button>
+          <button type="button" class="btn-micro" data-action="toggle-lock" title="Bloquear">${capa.locked ? icono('lock') : icono('unlock')}</button>
+          <button type="button" class="btn-micro btn-danger" data-action="delete" title="Eliminar">${icono('trash')}</button>
         </div>
       `;
 
@@ -1223,7 +1331,7 @@ export class ControladorUI {
         </select>
         <input type="number" class="ribbon-input row-qty-input" min="1" max="500" value="${fila.cantidad}" style="width:70px;">
         <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted);">uds.</span>
-        <button type="button" class="btn-micro btn-danger row-del-btn" title="Eliminar fila">✕</button>
+        <button type="button" class="btn-micro btn-danger row-del-btn" title="Eliminar fila">${icono('trash')}</button>
       `;
 
       row.querySelector('.row-size-select').addEventListener('change', (e) => {

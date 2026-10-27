@@ -11,6 +11,7 @@ import { estado } from './estado.js';
 import { motorPoleraSVG } from './polera-svg.js';
 import { gestorTexto } from './texto.js';
 import { gestorMangas } from './mangas.js';
+import { icono } from './iconos.js';
 
 export class GestorCapas {
   constructor() {}
@@ -327,7 +328,7 @@ export class GestorCapas {
       const aspectBtn = document.getElementById('toggleAspectBtn');
       if (aspectBtn) {
         aspectBtn.style.display = (capa.tipo === 'texto') ? 'none' : 'inline-flex';
-        aspectBtn.textContent = (capa.lockAspect !== false) ? '🔒' : '🔓';
+        aspectBtn.innerHTML = (capa.lockAspect !== false) ? icono('lock') : icono('unlock');
       }
     }
   }
