@@ -65,10 +65,12 @@ export class GestorMangas {
     const capasDer = polera.superficies.manga_derecha?.capas || [];
 
     if (capasIzq.length > 0) {
-      this.proyectarDisenosEnMangaPerspectiva(ctx, capasIzq, 'izq', esAnverso, mesa);
+      const ladoIzq = esAnverso ? 'der' : 'izq';
+      this.proyectarDisenosEnMangaPerspectiva(ctx, capasIzq, ladoIzq, esAnverso, mesa);
     }
     if (capasDer.length > 0) {
-      this.proyectarDisenosEnMangaPerspectiva(ctx, capasDer, 'der', esAnverso, mesa);
+      const ladoDer = esAnverso ? 'izq' : 'der';
+      this.proyectarDisenosEnMangaPerspectiva(ctx, capasDer, ladoDer, esAnverso, mesa);
     }
   }
 
@@ -173,8 +175,9 @@ export class GestorMangas {
     // Manga izquierda: x ≈ -36 cm, y ≈ 22 cm, ángulo ≈ -42°
     // Manga derecha:   x ≈ +36 cm, y ≈ 22 cm, ángulo ≈ +42°
     const signo = lado === 'izq' ? -1 : 1;
-    const centroMangaX = signo * 36.5;
-    const centroMangaY = 22.5;
+    const { sx, sy } = motorPoleraSVG.obtenerEscalasTalla(estado.poleraActiva.tallaVista);
+    const centroMangaX = signo * 36.5 * (sx || 1.0);
+    const centroMangaY = 22.5 * (sy || 1.0);
     const anguloPerspectiva = signo * (esAnverso ? -42 : -38);
 
     const { cx, cy } = mesa.mundoACanvas(centroMangaX, centroMangaY);
@@ -189,23 +192,19 @@ export class GestorMangas {
       ctx.globalAlpha = (capa.opacity || 1.0) * 0.92;
 
       // Desplazamiento relativo al centro de la manga plana
-      const escala = mesa.pxPorCmBase * mesa.zoom * 0.78;
+      const escala = mesa.pxPorCmBase * mesa.zoom;
       const offsetX = capa.xCm * escala;
       const offsetY = (capa.yCm - 9.5) * escala; // 9.5 cm es el centro vertical de la manga M
       ctx.translate(offsetX, offsetY);
       ctx.rotate((capa.angleDeg * Math.PI) / 180);
-      ctx.scale(capa.flipH ? -1 : 1, capa.flipV ? -1 : 1);
+      ctx.scale((capa.flipH ? -1 : 1) * (capa.scaleX || 1.0), capa.flipV ? -1 : 1);
 
       if (capa.tipo === 'imagen' && capa.imgElement) {
         const wPx = capa.widthCm * escala;
         const hPx = capa.heightCm * escala;
         ctx.drawImage(capa.imgElement, -wPx / 2, -hPx / 2, wPx, hPx);
       } else if (capa.tipo === 'texto' && capa.texto) {
-        gestorTexto.dibujarCapa(ctx, capa, {
-          mundoACanvas: (x, y) => ({ cx: 0, cy: 0 }),
-          pxPorCmBase: mesa.pxPorCmBase,
-          zoom: mesa.zoom * 0.78
-        });
+        gestorTexto.dibujarCapa(ctx, capa, mesa, { omitirTransformacion: true });
       }
 
       ctx.restore();

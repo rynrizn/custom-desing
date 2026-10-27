@@ -111,10 +111,10 @@ export class GestorTexto {
   /**
    * Renderiza el texto en un contexto Canvas 2D dado.
    */
-  dibujarCapa(ctx, capa, mesa) {
+  dibujarCapa(ctx, capa, mesa, { omitirTransformacion = false } = {}) {
     if (!capa.visible || !capa.texto) return;
 
-    const { cx, cy } = mesa.mundoACanvas(capa.xCm, capa.yCm);
+    const { cx, cy } = mesa.mundoACanvas ? mesa.mundoACanvas(capa.xCm, capa.yCm) : { cx: 0, cy: 0 };
     const escala = mesa.pxPorCmBase * mesa.zoom;
     const fontSizePx = (capa.tamanoPt / 72.0) * 2.54 * escala * (capa.scaleY || 1.0);
     const fontStyle = capa.italic ? 'italic' : 'normal';
@@ -122,9 +122,11 @@ export class GestorTexto {
 
     ctx.save();
     ctx.globalAlpha = capa.opacity;
-    ctx.translate(cx, cy);
+    if (!omitirTransformacion) {
+      ctx.translate(cx, cy);
     ctx.rotate((capa.angleDeg * Math.PI) / 180);
-    ctx.scale((capa.flipH ? -1 : 1) * (capa.scaleX || 1.0), capa.flipV ? -1 : 1);
+      ctx.scale((capa.flipH ? -1 : 1) * (capa.scaleX || 1.0), capa.flipV ? -1 : 1);
+    }
 
     ctx.font = `${fontStyle} ${fontWeight} ${fontSizePx}px "${capa.fuente}", sans-serif`;
     ctx.textAlign = capa.align || 'center';

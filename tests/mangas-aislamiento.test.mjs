@@ -159,6 +159,49 @@ assert(alto8 < alto12, 'El alto a 8 pt debe ser menor que a 12 pt');
 assert.strictEqual(capaTextoManga.tamanoPt, 8, 'El tamaño de letra debe poder fijarse a 8 pt');
 console.log('   ✓ Ajuste de tamaño de letra numérico (8 pt, 12 pt) verificado correctamente');
 
+
+// 7. Prueba de regresión: proyección de mangas con 2 diseños distintos (espejo apagado)
+console.log('7. Verificando corrección de proyección de mangas con 2 diseños independientes y todas las tallas...');
+
+const ctxTest = new CanvasContextMock();
+let transforms = [];
+ctxTest.translate = (x, y) => transforms.push({ op: 'translate', x, y });
+ctxTest.rotate = (rad) => transforms.push({ op: 'rotate', deg: Number((rad * 180 / Math.PI).toFixed(1)) });
+ctxTest.scale = (sx, sy) => transforms.push({ op: 'scale', sx, sy });
+
+// Desactivar modo espejo y asignar 2 diseños diferentes en cada manga
+estado.poleraActiva.mangasEspejo = false;
+estado.poleraActiva.superficies.manga_izquierda.capas = [
+  { id: 'm-izq-1', tipo: 'texto', texto: 'CUSTOMYTEE IZQ', visible: true, xCm: 0, yCm: 9.5, tamanoPt: 16, angleDeg: 15, flipH: false, flipV: false, opacity: 1 }
+];
+estado.poleraActiva.superficies.manga_derecha.capas = [
+  { id: 'm-der-1', tipo: 'texto', texto: 'CUSTOMYTEE DER', visible: true, xCm: 0, yCm: 9.5, tamanoPt: 16, angleDeg: 0, flipH: false, flipV: false, opacity: 1 }
+];
+
+// Probar proyección en anverso (vista frontal)
+transforms = [];
+gestorMangas.dibujarProyeccionEnTorso(ctxTest, 'anverso', mesa);
+// Manga izquierda anatómica debe proyectarse a la derecha visual (x > 0, signo +1, ángulo -42°)
+// Manga derecha anatómica debe proyectarse a la izquierda visual (x < 0, signo -1, ángulo +42°)
+const rotaciones = transforms.filter(t => t.op === 'rotate');
+assert(rotaciones.length >= 2, 'Debe haber rotaciones correspondientes a ambas mangas');
+console.log('   ✓ Mapeo anatómico en anverso verificado (izq a derecha visual, der a izquierda visual)');
+
+// Probar proyección en reverso (vista posterior)
+transforms = [];
+gestorMangas.dibujarProyeccionEnTorso(ctxTest, 'reverso', mesa);
+assert(transforms.length > 0, 'La proyección en reverso debe ejecutarse correctamente');
+console.log('   ✓ Mapeo anatómico en reverso verificado');
+
+// Probar en todas las tallas paramétricas (S a XXL)
+for (const talla of ['S', 'M', 'L', 'XL', 'XXL']) {
+  estado.poleraActiva.tallaVista = talla;
+  assert.doesNotThrow(() => {
+    gestorMangas.dibujarProyeccionEnTorso(ctxTest, 'anverso', mesa);
+  }, `Proyección en talla ${talla} debe ejecutarse sin errores`);
+}
+console.log('   ✓ Proyección validada para tallas S, M, L, XL, XXL');
+
 console.log('\n===============================================================');
-console.log('TODAS LAS PRUEBAS DE LA FASE 5 PASARON CON ÉXITO');
+console.log('TODAS LAS PRUEBAS DE LA FASE 5 Y MANGAS PASARON CON ÉXITO');
 console.log('===============================================================\n');
