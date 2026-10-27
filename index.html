@@ -757,6 +757,48 @@
     </div>
   </div>
 
+  <!-- MODAL DE OPCIONES DE IMPORTACIÓN DE PROYECTO -->
+  <div class="modal-backdrop" id="importProjectModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="importProjectModalTitle">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span id="importProjectModalTitle" style="display:inline-flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg>
+          Abrir Proyecto
+        </span>
+        <button type="button" class="btn-icon modal-close-btn" id="closeImportModalBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div id="importModalBody" style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+        ¿Cómo deseas abrir este proyecto? Puedes reemplazar tu diseño actual o añadirlo como una nueva polera independiente.
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+        <button type="button" id="importAppendBtn" class="btn btn-secondary">Añadir como nueva polera</button>
+        <button type="button" id="importReplaceBtn" class="btn btn-crimson">Reemplazar trabajo actual</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE AVISO .ZRN -->
+  <div class="modal-backdrop" id="zrnNoticeModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="zrnNoticeModalTitle">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span id="zrnNoticeModalTitle" style="color:var(--accent-crimson); display:inline-flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Archivo Cifrado para ZAIRENLAB
+        </span>
+        <button type="button" class="btn-icon modal-close-btn" id="closeZrnNoticeBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div style="font-size:13px; color:var(--text-secondary); line-height:1.5; margin-top:4px;">
+        El archivo <strong>.zrn</strong> que intentas abrir es un paquete cifrado exclusivo para confección en el taller de <strong>ZAIRENLAB</strong>.
+      </div>
+      <div style="font-size:12px; color:var(--text-muted); margin-top:6px; line-height:1.4;">
+        Para continuar editando tu proyecto, por favor utiliza tu archivo <strong>.zrp</strong> (o <strong>.json</strong>), que contiene tu diseño editable.
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+        <button type="button" class="btn btn-crimson modal-close-btn" id="ackZrnNoticeBtn">Entendido</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Script Modular ES6 Nativo -->
   <script type="module" src="js/main.js"></script>
 </body>

@@ -78,6 +78,15 @@ class AplicacionCADTextil {
       }
     });
 
+    // Verificar si se transfirió un proyecto desde el Lector de Taller (/lector)
+    if (typeof window !== 'undefined' && window.location.search?.includes('importar')) {
+      const exito = gestorAlmacenamiento.cargarProyectoImportadoTaller(estado, this.ui);
+      if (exito) {
+        this.ui.mostrarNotificacion('Proyecto transferido desde el Lector de Taller con éxito.');
+        window.history?.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     // Ajustar prenda inicial al centro de la pantalla
     setTimeout(() => {
       this.mesa.ajustarAPantalla();

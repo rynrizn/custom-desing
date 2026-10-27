@@ -619,13 +619,13 @@ export class ControladorUI {
       estado.datos.indicaciones = e.target.value;
     });
 
-    // Guardar Proyecto JSON
-    document.getElementById('saveProjectBtn')?.addEventListener('click', () => {
+    // Guardar Proyecto .zrp
+    document.getElementById('saveProjectBtn')?.addEventListener('click', async () => {
       try {
-        gestorAlmacenamiento.guardarProyectoJSON(estado);
-        this.mostrarNotificacion('Proyecto guardado exitosamente.');
+        await gestorAlmacenamiento.guardarProyectoZRP(estado);
+        this.mostrarNotificacion('Proyecto .zrp guardado exitosamente.');
       } catch (err) {
-        this.mostrarNotificacion(`Error al guardar: ${err.message}`);
+        this.mostrarNotificacion(`Error al guardar: ${err.message}`, 'error');
       }
     });
 
@@ -639,7 +639,7 @@ export class ControladorUI {
       const archivo = e.target.files?.[0];
       if (archivo) {
         try {
-          await gestorAlmacenamiento.abrirProyectoJSON(archivo, estado, this);
+          await gestorAlmacenamiento.abrirProyecto(archivo, estado, this);
           this.mesa?.ajustarAPantalla?.();
           this.app?.solicitarRender?.();
         } catch (_) {
@@ -979,8 +979,32 @@ export class ControladorUI {
         const zrnBlob = await motorCifradoZRN.cifrarPaqueteZRN(zipArrayBuffer);
         const metadata = gestorPedido.generarObjetoPedidoJSON(codigo);
 
+        // Guardar respaldo .zrp para el cliente con el mismo código de pedido
+        const { blob: zrpBlob } = await gestorAlmacenamiento.guardarProyectoZRP(estado, codigo, false);
+
+        let compartido = false;
+        if (typeof navigator !== 'undefined' && typeof File !== 'undefined' && navigator.canShare) {
+          try {
+            const fileZrn = new File([zrnBlob], `pedido-${codigo}.zrn`, { type: 'application/octet-stream' });
+            const fileZrp = new File([zrpBlob], `proyecto-${codigo}.zrp`, { type: 'application/zip' });
+            if (navigator.canShare({ files: [fileZrn, fileZrp] })) {
+              await navigator.share({
+                title: `Pedido CustomyTee ${codigo}`,
+                text: `Archivos de confección y respaldo del pedido ${codigo}.`,
+                files: [fileZrn, fileZrp]
+              });
+              compartido = true;
+            }
+          } catch (_) {}
+        }
+
+        if (!compartido) {
+          exportadorArchivos.descargarBlobEnNavegador(zrnBlob, `pedido-${codigo}.zrn`);
+          exportadorArchivos.descargarBlobEnNavegador(zrpBlob, `proyecto-${codigo}.zrp`);
+        }
+
         await motorCifradoZRN.enviarPedidoAZairenLab(zrnBlob, metadata, codigo);
-        this.mostrarNotificacion(`¡Pedido cifrado generado con éxito! Código: ${codigo}`);
+        this.mostrarNotificacion(`¡Pedido ${codigo} generado con éxito! Se descargaron tu .zrn y .zrp.`);
         document.getElementById('exportModalBackdrop').classList.remove('open');
       } catch (err) {
         this.mostrarNotificacion(`Error: ${err.message}`);
@@ -1412,4 +1436,90 @@ export class ControladorUI {
       toast.classList.remove('visible');
     }, duracion);
   }
+
+  mostrarModalAvisoZrn() {
+    const backdrop = document.getElementById('zrnNoticeModalBackdrop');
+    if (!backdrop) return;
+    backdrop.classList.add('open');
+    const closeBtn = document.getElementById('closeZrnNoticeBtn');
+    const ackBtn = document.getElementById('ackZrnNoticeBtn');
+    const cerrar = () => backdrop.classList.remove('open');
+    closeBtn?.addEventListener('click', cerrar, { once: true });
+    ackBtn?.addEventListener('click', cerrar, { once: true });
+  }
+
+  solicitarOpcionImportacion(cantidadPoleras = 1) {
+    return new Promise((resolve) => {
+      const backdrop = document.getElementById('importProjectModalBackdrop');
+      if (!backdrop) {
+        resolve('reemplazar');
+        return;
+      }
+
+      const body = document.getElementById('importModalBody');
+      if (body) {
+        body.textContent = `El archivo contiene ${cantidadPoleras} prenda(s). ¿Deseas reemplazar tu diseño actual o añadir como nueva polera?`;
+      }
+
+      backdrop.classList.add('open');
+
+      const btnReplace = document.getElementById('importReplaceBtn');
+      const btnAppend = document.getElementById('importAppendBtn');
+      const btnClose = document.getElementById('closeImportModalBtn');
+
+      const cleanup = (resultado) => {
+        backdrop.classList.remove('open');
+        btnReplace?.removeEventListener('click', onReplace);
+        btnAppend?.removeEventListener('click', onAppend);
+        btnClose?.removeEventListener('click', onClose);
+        resolve(resultado);
+      };
+
+      const onReplace = () => cleanup('reemplazar');
+      const onAppend = () => cleanup('anadir');
+      const onClose = () => cleanup(null);
+
+      btnReplace?.addEventListener('click', onReplace);
+      btnAppend?.addEventListener('click', onAppend);
+      btnClose?.addEventListener('click', onClose);
+    });
+  }
+
+  vincularDragAndDropGlobal() {
+    if (typeof window === 'undefined') return;
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    window.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const files = e.dataTransfer?.files;
+      if (!files || !files.length) return;
+
+      const file = files[0];
+      const name = (file.name || '').toLowerCase();
+
+      if (name.endsWith('.zrn')) {
+        this.mostrarModalAvisoZrn();
+        return;
+      }
+
+      if (name.endsWith('.zrp') || name.endsWith('.json') || file.type === 'application/zip' || file.type === 'application/json') {
+        try {
+          await gestorAlmacenamiento.abrirProyecto(file, estado, this);
+          this.mesa?.ajustarAPantalla?.();
+          this.app?.solicitarRender?.();
+        } catch (_) {}
+        return;
+      }
+
+      if (file.type.startsWith('image/')) {
+        gestorImagenes.procesarArchivoSubido(file);
+      }
+    });
+  }
+
 }
