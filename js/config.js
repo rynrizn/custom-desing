@@ -8,7 +8,9 @@
 
 export const CONFIG = {
   // Información de Marca y Negocio
-  APP_NAME: 'ZAIREN CAD Textil',
+  APP_NAME: 'CustomyTee',
+  URL_PUBLICA: 'https://customytee.pages.dev',
+  INSTAGRAM_URL: 'https://www.instagram.com/zairen.lab',
   APP_VERSION: 'v2.0',
   WHATSAPP_NEGOCIO: '+59174522654', // Número del taller para recibir pedidos
 
