@@ -1,14 +1,18 @@
 /**
  * ============================================================================
- * ZAIREN CAD Textil v2 — Suite de Auditoría y Verificación de Cierre (FASE 8)
+ * CustomyTee CAD Textil — Suite de Auditoría y Verificación de Cierre (FASE 7)
  * ============================================================================
- * Auditoría integral que certifica:
+ * Auditoría integral de 10 puntos que certifica:
  * 1. Ausencia total de secretos, claves privadas o contraseñas en código y configs
  * 2. Cero referencias a 91.5 cm en SVG, JS y HTML
- * 3. Existencia de todas las fuentes WOFF2 locales requeridas
- * 4. Integridad de endpoints de Cloudflare Pages Functions
- * 5. Concordancia de medidas reales de taller (Talla M: 53x71 cm)
+ * 3. Existencia de las 14 fuentes WOFF2 locales requeridas
+ * 4. Concordancia de medidas reales de taller (Talla M: 53x71 cm)
+ * 5. Integridad de endpoints de Cloudflare Pages Functions
  * 6. Generación de código único formal ZRN
+ * 7. Cero emojis en todos los archivos web publicados
+ * 8. Formato .zrp estructurado con JSZip y rechazo amigable de .zrn
+ * 9. Compartir por QR con URL pública y exportación a 1024x1024 px
+ * 10. Accesibilidad de animación, respeto a prefers-reduced-motion y toggle de Ajustes
  */
 
 import assert from 'node:assert';
@@ -17,7 +21,7 @@ import path from 'node:path';
 import { CONFIG } from '../js/config.js';
 import { gestorAlmacenamiento } from '../js/almacenamiento.js';
 
-console.log('--- INICIANDO AUDITORÍA INTEGRAL DE CIERRE (FASE 8) ---');
+console.log('--- INICIANDO AUDITORÍA INTEGRAL DE CIERRE (10 PUNTOS) ---');
 
 // 1. Auditoría de Secretos y Claves Privadas en js/config.js
 console.log('1. Verificando que js/config.js no contiene claves ni secretos...');
@@ -101,6 +105,56 @@ const cod = gestorAlmacenamiento.generarCodigoPedido();
 assert(/^ZRN-\d{8}-[A-Z0-9]{4}$/.test(cod), `Código ${cod} no cumple formato ZRN-AAAAMMDD-XXXX`);
 console.log(`   ✓ Código de pedido ${cod} generado con éxito`);
 
+// 7. Cero emojis en archivos web
+console.log('7. Verificando ausencia total de emojis en archivos web publicados...');
+const regexEmoji = /\p{Extended_Pictographic}/gu;
+const ficherosWeb = [
+  'index.html',
+  'css/styles.css',
+  'js/config.js',
+  'js/ui.js',
+  'js/tour.js',
+  'js/almacenamiento.js',
+  'js/exportar.js',
+  'lector/index.html',
+  'lector/lector.js',
+  'acceso/index.html'
+];
+for (const rel of ficherosWeb) {
+  const content = fs.readFileSync(path.resolve(rel), 'utf8');
+  const matches = [...content.matchAll(regexEmoji)];
+  assert.equal(matches.length, 0, `Se encontraron emojis en ${rel}`);
+}
+console.log('   ✓ Cero emojis confirmado en todos los archivos web de producción');
+
+// 8. Formato .zrp estructurado con JSZip y rechazo amigable de .zrn
+console.log('8. Verificando arquitectura de proyecto .zrp y rechazo de .zrn...');
+const almacenamientoJs = fs.readFileSync(path.resolve('js/almacenamiento.js'), 'utf8');
+const indexHtmlContent = fs.readFileSync(path.resolve('index.html'), 'utf8');
+assert(almacenamientoJs.includes('guardarProyectoZRP'), 'Debe incluir función guardarProyectoZRP');
+assert(almacenamientoJs.includes('procesarZipZRP'), 'Debe incluir procesarZipZRP');
+assert(almacenamientoJs.includes('ZRN_RECHAZADO'), 'Debe rechazar archivos .zrn');
+assert(indexHtmlContent.includes('id="zrnNoticeModalBackdrop"'), 'Debe existir el modal zrnNoticeModalBackdrop');
+console.log('   ✓ Formato .zrp y rechazo amigable de .zrn validados');
+
+// 9. Compartir QR con URL pública y resolución 1024x1024 px
+console.log('9. Verificando compartir con código QR...');
+const uiJs = fs.readFileSync(path.resolve('js/ui.js'), 'utf8');
+const indexHtml = fs.readFileSync(path.resolve('index.html'), 'utf8');
+assert(indexHtml.includes('id="shareModalBackdrop"'), 'Modal de compartir presente');
+assert(uiJs.includes('CONFIG.URL_PUBLICA'), 'QR debe apuntar a CONFIG.URL_PUBLICA');
+assert(uiJs.includes('1024'), 'Exportación de QR en alta resolución a 1024 px');
+console.log('   ✓ Compartir por QR y descarga en 1024 px validados');
+
+// 10. Accesibilidad, tokens de animación y toggle de movimiento
+console.log('10. Verificando tokens de animación y soporte de movimiento reducido...');
+const css = fs.readFileSync(path.resolve('css/styles.css'), 'utf8');
+assert(css.includes('--motion-duration-fast: 120ms;'), 'Tokens de duración presentes');
+assert(css.includes('@media (prefers-reduced-motion: reduce)'), 'Media query prefers-reduced-motion presente');
+assert(css.includes('body.reduced-motion') && css.includes('body.disable-animations'), 'Clases de reducción de movimiento presentes');
+assert(uiJs.includes('customytee_animaciones'), 'Toggle de animaciones persistido');
+console.log('   ✓ Tokens y accesibilidad de animación validados');
+
 console.log('\n===============================================================');
-console.log('AUDITORÍA INTEGRAL DE CIERRE COMPLETADA CON 100% DE ÉXITO');
+console.log('AUDITORÍA INTEGRAL DE CIERRE (10/10) COMPLETADA CON 100% DE ÉXITO');
 console.log('===============================================================\n');
