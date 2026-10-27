@@ -91,6 +91,14 @@ export class ExportadorArchivos {
     // 2. pedido.json y proyecto.json en raíz
     zip.file('pedido.json', JSON.stringify(gestorPedido.generarObjetoPedidoJSON(codigo), null, 2));
     zip.file('proyecto.json', JSON.stringify(estado.datos, null, 2));
+    try {
+      const { blob: blobZrp } = await gestorAlmacenamiento.guardarProyectoZRP(estado, codigo, false);
+      if (blobZrp) {
+        zip.file('proyecto.zrp', blobZrp);
+      }
+    } catch (e) {
+      console.warn('No se pudo adjuntar proyecto.zrp al paquete técnico:', e);
+    }
 
     // 3. Carpetas por polera: polera-N-[talla]-[HEX]/
     for (let pIdx = 0; pIdx < estado.datos.poleras.length; pIdx++) {

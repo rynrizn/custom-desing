@@ -405,8 +405,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   openInEditorBtn.addEventListener('click', () => {
     if (!ultimoProyectoJSON) return;
     try {
+      localStorage.setItem('customytee_taller_proyecto', JSON.stringify({ proyectoJSON: ultimoProyectoJSON, fecha: Date.now() }));
       localStorage.setItem('zairen_cad_v2_proyecto', ultimoProyectoJSON);
-      window.location.href = '/';
+      window.location.href = '/?importar=taller';
     } catch (err) {
       alert('No se pudo cargar el proyecto en el editor: ' + err.message);
     }

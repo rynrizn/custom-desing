@@ -296,6 +296,470 @@ export class GestorAlmacenamiento {
   /**
    * Exporta el proyecto completo en archivo .json sin cifrar descargable.
    */
+  /**
+   * Guarda el proyecto completo en formato .zrp (ZIP sin cifrar con JSZip).
+   * Contiene proyecto.json y carpeta imagenes/ con los artes originales.
+   * Funciona tanto con imágenes como con diseños de solo texto.
+   */
+  async guardarProyectoZRP(estadoApp, codigoPedidoParam = null, descargar = true) {
+    const ZipClass = (typeof JSZip !== 'undefined' ? JSZip : (typeof window !== 'undefined' ? window.JSZip : null));
+    if (!ZipClass) {
+      throw new Error('La librería JSZip no está disponible.');
+    }
+    const zip = new ZipClass();
+    const codigo = codigoPedidoParam || this.generarCodigoPedido();
+    const fecha = new Date();
+
+    const imagenesFolder = zip.folder('imagenes');
+    const polerasSerializadas = [];
+
+    for (let pIdx = 0; pIdx < estadoApp.datos.poleras.length; pIdx++) {
+      const p = estadoApp.datos.poleras[pIdx];
+      const poleraObj = {
+        id: p.id || `polera-${pIdx + 1}`,
+        nombre: p.nombre || `Polera ${pIdx + 1}`,
+        color: p.color || '#FAF9F6',
+        tallaVista: p.tallaVista || 'M',
+        cantidades: p.cantidades || [{ talla: p.tallaVista || 'M', cantidad: 1 }],
+        opciones: {
+          envolvente: !!p.envolvente,
+          mangasEspejo: !!p.mangasEspejo,
+          mangasVoltear: p.mangasVoltear !== false
+        },
+        superficies: {}
+      };
+
+      const superficiesKeys = ['anverso', 'reverso', 'manga_izquierda', 'manga_derecha'];
+
+      for (const supKey of superficiesKeys) {
+        const supOriginal = p.superficies?.[supKey] || { capas: [] };
+        const capasSerializadas = [];
+
+        for (const capa of (supOriginal.capas || [])) {
+          if (capa.tipo === 'texto') {
+            capasSerializadas.push({
+              id: capa.id,
+              tipo: 'texto',
+              nombre: capa.nombre || 'Texto',
+              texto: capa.texto,
+              fuente: capa.fuente || 'Poppins',
+              tamanoPt: capa.tamanoPt || 28,
+              color: capa.color || '#0A0A0A',
+              bold: !!capa.bold,
+              italic: !!capa.italic,
+              align: capa.align || 'center',
+              lineHeight: capa.lineHeight || 1.25,
+              strokeWidth: capa.strokeWidth || 0,
+              strokeColor: capa.strokeColor || '#000000',
+              shadowBlur: capa.shadowBlur || 0,
+              shadowColor: capa.shadowColor || 'transparent',
+              shadowOffsetX: capa.shadowOffsetX || 0,
+              shadowOffsetY: capa.shadowOffsetY || 0,
+              xCm: capa.xCm || 0,
+              yCm: capa.yCm || 0,
+              widthCm: capa.widthCm || 10,
+              heightCm: capa.heightCm || 4,
+              scaleX: capa.scaleX || 1.0,
+              scaleY: capa.scaleY || 1.0,
+              angleDeg: capa.angleDeg || 0,
+              opacity: capa.opacity != null ? capa.opacity : 1.0,
+              flipH: !!capa.flipH,
+              flipV: !!capa.flipV,
+              locked: !!capa.locked,
+              visible: capa.visible !== false
+            });
+          } else if (capa.tipo === 'imagen') {
+            let imgBlob = null;
+            if (capa.originalFile instanceof Blob) {
+              imgBlob = capa.originalFile;
+            } else if (capa.dataUrl) {
+              imgBlob = this.dataUrlABlob(capa.dataUrl);
+            }
+
+            const ext = (capa.fileExt || 'png').replace(/^\./, '').toLowerCase();
+            const nombreArchivo = `img_${capa.id}.${ext}`;
+            const rutaEnZip = `imagenes/${nombreArchivo}`;
+
+            if (imgBlob && imagenesFolder) {
+              const dataParaZip = typeof imgBlob.arrayBuffer === 'function' ? await imgBlob.arrayBuffer() : imgBlob;
+              imagenesFolder.file(nombreArchivo, dataParaZip);
+            }
+
+            capasSerializadas.push({
+              id: capa.id,
+              tipo: 'imagen',
+              nombre: capa.nombre || 'Imagen',
+              archivo: rutaEnZip,
+              fileExt: ext,
+              widthCm: capa.widthCm,
+              heightCm: capa.heightCm,
+              anchoOriginalPx: capa.anchoOriginalPx,
+              altoOriginalPx: capa.altoOriginalPx,
+              xCm: capa.xCm || 0,
+              yCm: capa.yCm || 0,
+              scaleX: capa.scaleX || 1.0,
+              scaleY: capa.scaleY || 1.0,
+              angleDeg: capa.angleDeg || 0,
+              opacity: capa.opacity != null ? capa.opacity : 1.0,
+              flipH: !!capa.flipH,
+              flipV: !!capa.flipV,
+              locked: !!capa.locked,
+              visible: capa.visible !== false
+            });
+          }
+        }
+
+        poleraObj.superficies[supKey] = { capas: capasSerializadas };
+      }
+
+      polerasSerializadas.push(poleraObj);
+    }
+
+    const proyectoJSON = {
+      formato: 'zrp',
+      version: 1,
+      app: 'CustomyTee',
+      fecha: fecha.toISOString(),
+      codigoPedido: codigo,
+      whatsapp: estadoApp.datos.clienteWhatsApp || '',
+      indicaciones: estadoApp.datos.indicaciones || '',
+      configuracion: {
+        unidades: estadoApp.datos.unidades || 'cm',
+        tema: estadoApp.datos.tema || 'dark'
+      },
+      poleras: polerasSerializadas
+    };
+
+    zip.file('proyecto.json', JSON.stringify(proyectoJSON, null, 2));
+
+    const uint8Zip = await zip.generateAsync({
+      type: 'uint8array',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    });
+    const blobZip = new Blob([uint8Zip], { type: 'application/zip' });
+
+    if (descargar && typeof document !== 'undefined') {
+      const url = URL.createObjectURL(blobZip);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `proyecto-${codigo}.zrp`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    return { blob: blobZip, codigo, proyectoJSON };
+  }
+
+  /**
+   * Abre e importa un archivo de proyecto (.zrp o .json antiguo).
+   * Valida límites de seguridad (60 MB total, 25 MB/imagen, máx 50 capas).
+   * Rechaza archivos .zrn con mensaje explicativo para el cliente.
+   */
+  async abrirProyecto(archivo, estadoApp, ui = null, modoImportacion = 'preguntar') {
+    if (!archivo) return false;
+
+    // 1. Límite de tamaño total: 60 MB
+    const LIMITE_TOTAL_BYTES = 60 * 1024 * 1024;
+    if (archivo.size > LIMITE_TOTAL_BYTES) {
+      const err = new Error('El archivo supera el límite máximo permitido de 60 MB.');
+      err.codigo = 'LIMITE_TAMANO_EXCEDIDO';
+      if (ui) ui.mostrarNotificacion(err.message, 'error');
+      throw err;
+    }
+
+    // 2. Rechazo explícito de archivos .zrn cifrados para el taller
+    const nombreLower = (archivo.name || '').toLowerCase();
+    if (nombreLower.endsWith('.zrn')) {
+      const err = new Error('Este archivo (.zrn) es un paquete cifrado exclusivo para el taller ZAIRENLAB. Para continuar editando tu diseño en CustomyTee, por favor abre tu archivo de proyecto (.zrp).');
+      err.codigo = 'ZRN_RECHAZADO';
+      if (ui && typeof ui.mostrarModalAvisoZrn === 'function') {
+        ui.mostrarModalAvisoZrn();
+      } else if (ui) {
+        ui.mostrarNotificacion(err.message, 'error');
+      }
+      throw err;
+    }
+
+    // 3. Inspección de cabecera de archivo para detectar ZIP vs JSON
+    let esZip = false;
+    let esJson = false;
+
+    try {
+      const cabeceraBuffer = await archivo.slice(0, 4).arrayBuffer();
+      const bytes = new Uint8Array(cabeceraBuffer);
+      if (bytes[0] === 0x50 && bytes[1] === 0x4B) {
+        esZip = true;
+      } else {
+        const inicioTexto = await archivo.slice(0, 30).text();
+        if (inicioTexto.trim().startsWith('{')) {
+          esJson = true;
+        } else if (inicioTexto.startsWith('ZRN') || inicioTexto.includes('ZRN')) {
+          const err = new Error('Este archivo (.zrn) es un paquete cifrado exclusivo para el taller ZAIRENLAB. Para continuar editando tu diseño en CustomyTee, por favor abre tu archivo de proyecto (.zrp).');
+          err.codigo = 'ZRN_RECHAZADO';
+          if (ui && typeof ui.mostrarModalAvisoZrn === 'function') {
+            ui.mostrarModalAvisoZrn();
+          } else if (ui) {
+            ui.mostrarNotificacion(err.message, 'error');
+          }
+          throw err;
+        }
+      }
+    } catch (e) {
+      if (e.codigo === 'ZRN_RECHAZADO') throw e;
+    }
+
+    if (esZip || nombreLower.endsWith('.zrp')) {
+      return this.procesarZipZRP(archivo, estadoApp, ui, modoImportacion);
+    } else if (esJson || nombreLower.endsWith('.json')) {
+      return this.procesarJsonAntiguo(archivo, estadoApp, ui, modoImportacion);
+    } else {
+      const err = new Error('Formato de archivo no reconocido. Sube un archivo .zrp o .json válido.');
+      if (ui) ui.mostrarNotificacion(err.message, 'error');
+      throw err;
+    }
+  }
+
+  /**
+   * Descomprime y restaura un proyecto en formato .zrp.
+   */
+  async procesarZipZRP(archivo, estadoApp, ui, modoImportacion) {
+    const ZipClass = (typeof JSZip !== 'undefined' ? JSZip : (typeof window !== 'undefined' ? window.JSZip : null));
+    if (!ZipClass) {
+      throw new Error('La librería JSZip no está disponible.');
+    }
+
+    let zip;
+    try {
+      const buffer = typeof archivo.arrayBuffer === 'function' ? await archivo.arrayBuffer() : archivo;
+      zip = await ZipClass.loadAsync(buffer);
+    } catch (e) {
+      const err = new Error('El archivo .zrp está dañado o no es un ZIP válido.');
+      err.codigo = 'ARCHIVO_CORRUPTO';
+      if (ui) ui.mostrarNotificacion(err.message, 'error');
+      throw err;
+    }
+
+    const archivoJSON = zip.file('proyecto.json');
+    if (!archivoJSON) {
+      const err = new Error('El archivo .zrp no contiene un proyecto.json válido.');
+      err.codigo = 'PROYECTO_JSON_FALTANTE';
+      if (ui) ui.mostrarNotificacion(err.message, 'error');
+      throw err;
+    }
+
+    let parsed;
+    try {
+      const texto = await archivoJSON.async('text');
+      parsed = JSON.parse(texto);
+    } catch (e) {
+      const err = new Error('El archivo proyecto.json contiene errores de sintaxis.');
+      err.codigo = 'JSON_CORRUPTO';
+      throw err;
+    }
+
+    if (parsed.formato !== 'zrp') {
+      const err = new Error('El archivo no tiene el formato de proyecto zrp esperado.');
+      err.codigo = 'FORMATO_DESCONOCIDO';
+      throw err;
+    }
+
+    if (parsed.version > 1) {
+      const err = new Error(`El archivo fue creado con la versión ${parsed.version} de CustomyTee, más reciente que la actual (1).`);
+      err.codigo = 'VERSION_DESCONOCIDA';
+      if (ui) ui.mostrarNotificacion(err.message, 'error');
+      throw err;
+    }
+
+    if (!Array.isArray(parsed.poleras) || parsed.poleras.length === 0) {
+      throw new Error('El proyecto no contiene prendas válidas.');
+    }
+
+    // Contar total de capas (límite: 50)
+    let totalCapas = 0;
+    for (const p of parsed.poleras) {
+      for (const sup of Object.values(p.superficies || {})) {
+        totalCapas += (sup.capas || []).length;
+      }
+    }
+    if (totalCapas > 50) {
+      const err = new Error(`El proyecto contiene ${totalCapas} capas, superando el límite máximo de 50.`);
+      err.codigo = 'LIMITE_CAPAS_EXCEDIDO';
+      if (ui) ui.mostrarNotificacion(err.message, 'error');
+      throw err;
+    }
+
+    // Carga segura de imágenes
+    const LIMITE_IMAGEN_BYTES = 25 * 1024 * 1024;
+
+    for (const p of parsed.poleras) {
+      for (const sup of Object.values(p.superficies || {})) {
+        for (const capa of (sup.capas || [])) {
+          if (capa.tipo === 'imagen' && capa.archivo) {
+            const rutaLimpia = capa.archivo.replace(/\\/g, '/');
+            if (rutaLimpia.includes('..') || rutaLimpia.startsWith('/') || !rutaLimpia.startsWith('imagenes/')) {
+              console.warn(`Ruta omitida por seguridad: ${capa.archivo}`);
+              continue;
+            }
+
+            const imgEntry = zip.file(rutaLimpia);
+            if (!imgEntry) continue;
+
+            const imgBuffer = await imgEntry.async('arraybuffer');
+            if (imgBuffer.byteLength > LIMITE_IMAGEN_BYTES) {
+              const err = new Error(`La imagen "${capa.nombre || rutaLimpia}" supera el límite de 25 MB.`);
+              err.codigo = 'IMAGEN_DEMASIADO_GRANDE';
+              if (ui) ui.mostrarNotificacion(err.message, 'error');
+              throw err;
+            }
+
+            let mime = 'image/png';
+            if (capa.fileExt === 'svg' || rutaLimpia.endsWith('.svg')) {
+              mime = 'image/svg+xml';
+            } else if (capa.fileExt === 'jpg' || capa.fileExt === 'jpeg' || rutaLimpia.match(/\.jpe?g$/i)) {
+              mime = 'image/jpeg';
+            } else if (capa.fileExt === 'webp' || rutaLimpia.endsWith('.webp')) {
+              mime = 'image/webp';
+            }
+
+            // SEGURIDAD: Tratar imágenes SVG exclusivamente como Blob ObjectURL, jamás HTML inyectado
+            if (typeof Blob !== 'undefined' && typeof URL !== 'undefined') {
+              const blob = new Blob([imgBuffer], { type: mime });
+              const objectUrl = URL.createObjectURL(blob);
+              capa.dataUrl = objectUrl;
+
+              if (typeof Image !== 'undefined') {
+                const imgEl = new Image();
+                imgEl.src = objectUrl;
+                capa.imgElement = imgEl;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const tieneTrabajoActual = estadoApp.datos.poleras.some(p => {
+      return Object.values(p.superficies || {}).some(s => s.capas?.length > 0);
+    });
+
+    let decision = modoImportacion;
+    if (tieneTrabajoActual && decision === 'preguntar' && ui && typeof ui.solicitarOpcionImportacion === 'function') {
+      decision = await ui.solicitarOpcionImportacion(parsed.poleras.length);
+      if (!decision) return false;
+    } else if (decision === 'preguntar') {
+      decision = 'reemplazar';
+    }
+
+    this.bloquearAutoguardado = true;
+
+    if (decision === 'anadir') {
+      estadoApp.guardarSnapshotHistorial('Añadir proyecto .zrp');
+      const idx = estadoApp.datos.poleras.length;
+      estadoApp.datos.poleras.push(...parsed.poleras);
+      estadoApp.datos.poleraActivaIndex = idx;
+    } else {
+      estadoApp.guardarSnapshotHistorial('Reemplazar por proyecto .zrp');
+      estadoApp.datos.poleras = parsed.poleras;
+      estadoApp.datos.poleraActivaIndex = 0;
+      if (parsed.whatsapp) estadoApp.datos.clienteWhatsApp = parsed.whatsapp;
+      if (parsed.indicaciones) estadoApp.datos.indicaciones = parsed.indicaciones;
+    }
+
+    this.bloquearAutoguardado = false;
+    estadoApp.notificar('proyecto-cargado');
+
+    if (ui) {
+      ui.mostrarNotificacion(`Proyecto cargado exitosamente (${parsed.codigoPedido || 'ZRP'}).`);
+    }
+    return true;
+  }
+
+  /**
+   * Carga un archivo .json de proyecto antiguo y lo restaura.
+   */
+  async procesarJsonAntiguo(archivo, estadoApp, ui, modoImportacion) {
+    const texto = await archivo.text();
+    const parsed = JSON.parse(texto);
+
+    let poleras = [];
+    if (parsed.tipo === 'zairen_proyecto_cad' && parsed.datos?.poleras) {
+      poleras = parsed.datos.poleras;
+    } else if (Array.isArray(parsed.poleras)) {
+      poleras = parsed.poleras;
+    } else {
+      throw new Error('El archivo no contiene un formato de proyecto JSON válido.');
+    }
+
+    for (const p of poleras) {
+      for (const sup of Object.values(p.superficies || {})) {
+        for (const capa of (sup.capas || [])) {
+          if (capa.tipo === 'imagen' && capa.dataUrl && typeof Image !== 'undefined') {
+            const img = new Image();
+            img.src = capa.dataUrl;
+            capa.imgElement = img;
+          }
+        }
+      }
+    }
+
+    const tieneTrabajoActual = estadoApp.datos.poleras.some(p => {
+      return Object.values(p.superficies || {}).some(s => s.capas?.length > 0);
+    });
+
+    let decision = modoImportacion;
+    if (tieneTrabajoActual && decision === 'preguntar' && ui && typeof ui.solicitarOpcionImportacion === 'function') {
+      decision = await ui.solicitarOpcionImportacion(poleras.length);
+      if (!decision) return false;
+    } else if (decision === 'preguntar') {
+      decision = 'reemplazar';
+    }
+
+    this.bloquearAutoguardado = true;
+    if (decision === 'anadir') {
+      estadoApp.guardarSnapshotHistorial('Añadir proyecto .json');
+      const idx = estadoApp.datos.poleras.length;
+      estadoApp.datos.poleras.push(...poleras);
+      estadoApp.datos.poleraActivaIndex = idx;
+    } else {
+      estadoApp.guardarSnapshotHistorial('Reemplazar por proyecto .json');
+      estadoApp.datos.poleras = poleras;
+      estadoApp.datos.poleraActivaIndex = 0;
+      if (parsed.datos?.clienteWhatsApp) estadoApp.datos.clienteWhatsApp = parsed.datos.clienteWhatsApp;
+      if (parsed.datos?.indicaciones) estadoApp.datos.indicaciones = parsed.datos.indicaciones;
+    }
+
+    this.bloquearAutoguardado = false;
+    estadoApp.notificar('proyecto-cargado');
+
+    if (ui) {
+      ui.mostrarNotificacion('Proyecto .json cargado exitosamente.');
+    }
+    return true;
+  }
+
+  /**
+   * Carga un proyecto transferido desde el Lector de Taller (/lector) vía localStorage.
+   */
+  cargarProyectoImportadoTaller(estadoApp, ui = null) {
+    if (typeof localStorage === 'undefined') return false;
+    const raw = localStorage.getItem('customytee_taller_proyecto');
+    if (!raw) return false;
+    try {
+      localStorage.removeItem('customytee_taller_proyecto');
+      const item = JSON.parse(raw);
+      if (!item.proyectoJSON) return false;
+      const parsed = typeof item.proyectoJSON === 'string' ? JSON.parse(item.proyectoJSON) : item.proyectoJSON;
+      return this.procesarJsonAntiguo(new Blob([JSON.stringify(parsed)], { type: 'application/json' }), estadoApp, ui, 'reemplazar');
+    } catch (e) {
+      console.warn('Error al cargar proyecto desde taller:', e);
+      return false;
+    }
+  }
+
+
   guardarProyectoJSON(estadoApp) {
     const fecha = new Date();
     const codigo = this.generarCodigoPedido(fecha);
