@@ -560,19 +560,39 @@ button, select, input, textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 6px 10px;
   background: var(--surface-low);
   border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
+  cursor: not-allowed;
+  user-select: none;
+  transition: var(--trans-fast);
+}
+
+.disabled-part-box:hover {
+  background: var(--surface-medium);
+  border-color: var(--border-strong);
+}
+
+.disabled-part-box .locked-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .mini-swatch-sync {
   width: 14px;
   height: 14px;
+  border-radius: 2px;
   border: 1px solid var(--border-strong);
   background: var(--surface-solid);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 /* Toggle Switch Formal */
@@ -1501,4 +1521,38 @@ input:checked + .toggle-slider:before {
   #openSettingsBtn, #themeSwitchGroup {
     display: none !important;
   }
+}
+
+/* Grid y Botones de Proyecto en Pestaña Pedido */
+.project-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.btn-project-action {
+  min-height: 40px;
+  height: auto;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.btn-project-action svg {
+  flex-shrink: 0;
+}
+
+/* Estado Vacío de Capas */
+.empty-state-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--text-muted);
 }

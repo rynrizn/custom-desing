@@ -218,13 +218,15 @@
 
             <!-- Mangas y Cuello vinculados -->
             <div class="disabled-parts-row" style="margin-top:10px;">
-              <div class="disabled-part-box" title="Mangas vinculadas al color del cuerpo">
-                <span>MANGAS (IGUAL)</span>
-                <span class="mini-swatch-sync" id="sleeveColorPreview"></span>
+              <div class="disabled-part-box" title="Se iguala al color de la prenda" data-tooltip="Se iguala al color de la prenda" aria-label="Mangas: Se iguala al color de la prenda">
+                <span class="locked-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <span>MANGAS</span>
+                <span class="mini-swatch-sync" id="sleeveColorPreview" aria-hidden="true"></span>
               </div>
-              <div class="disabled-part-box" title="Cuello vinculado al color del cuerpo">
-                <span>CUELLO (IGUAL)</span>
-                <span class="mini-swatch-sync" id="collarColorPreview"></span>
+              <div class="disabled-part-box" title="Se iguala al color de la prenda" data-tooltip="Se iguala al color de la prenda" aria-label="Cuello: Se iguala al color de la prenda">
+                <span class="locked-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <span>CUELLO</span>
+                <span class="mini-swatch-sync" id="collarColorPreview" aria-hidden="true"></span>
               </div>
             </div>
 
@@ -455,12 +457,14 @@
 
             <!-- Botones de Guardar / Abrir Proyecto JSON y Salida -->
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
-                <button type="button" id="saveProjectBtn" class="btn btn-secondary" style="font-size:11px;" title="Guardar proyecto completo en archivo .json sin cifrar">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span>GUARDAR PROYECTO</span>
+              <div class="project-actions-grid">
+                <button type="button" id="saveProjectBtn" class="btn btn-secondary btn-project-action" title="Guardar proyecto completo en archivo .zrp sin cifrar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+                  <span>GUARDAR PROYECTO</span>
                 </button>
-                <button type="button" id="openProjectBtn" class="btn btn-secondary" style="font-size:11px;" title="Abrir y continuar un proyecto .json previo">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg><span>ABRIR PROYECTO</span>
+                <button type="button" id="openProjectBtn" class="btn btn-secondary btn-project-action" title="Abrir y continuar un proyecto previo">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg>
+                  <span>ABRIR PROYECTO</span>
                 </button>
               </div>
               <input type="file" id="projectFileInput" accept=".zrp,.json,application/json,application/zip" style="display:none;">
