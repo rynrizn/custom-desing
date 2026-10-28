@@ -658,10 +658,14 @@ export class ControladorUI {
       if (archivo) {
         try {
           await gestorAlmacenamiento.abrirProyecto(archivo, estado, this);
+          this.actualizarSelectPoleras?.();
+          this.actualizarListaCapas?.();
+          this.actualizarHUDMedidas?.();
+          this.actualizarMatrizCantidades?.();
           this.mesa?.ajustarAPantalla?.();
           this.app?.solicitarRender?.();
         } catch (_) {
-          // El aviso de error ya lo muestra abrirProyectoJSON
+          // El aviso de error ya lo muestra abrirProyecto
         } finally {
           fileInput.value = '';
         }
@@ -1043,15 +1047,29 @@ export class ControladorUI {
       document.getElementById('restoreSessionModalBackdrop')?.classList.remove('open');
       const ok = await gestorAlmacenamiento.restaurarSesion(estado);
       if (ok) {
-        this.mostrarNotificacion('Diseño anterior restaurado con éxito.');
+        this.actualizarSelectPoleras();
+        this.actualizarListaCapas();
+        this.actualizarHUDMedidas();
+        this.actualizarMatrizCantidades();
         this.mesa?.ajustarAPantalla?.();
         this.app?.solicitarRender?.();
+        this.mostrarNotificacion('Diseño anterior restaurado con éxito.');
       }
     });
 
     document.getElementById('startFreshBtn')?.addEventListener('click', async () => {
       document.getElementById('restoreSessionModalBackdrop')?.classList.remove('open');
       await gestorAlmacenamiento.limpiarSesion();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('zairen_cad_v2_proyecto');
+      }
+      estado.reiniciarEstado();
+      this.actualizarSelectPoleras();
+      this.actualizarListaCapas();
+      this.actualizarHUDMedidas();
+      this.actualizarMatrizCantidades();
+      this.mesa?.ajustarAPantalla?.();
+      this.app?.solicitarRender?.();
       this.mostrarNotificacion('Nuevo diseño iniciado.');
     });
 
