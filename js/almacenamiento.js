@@ -108,14 +108,22 @@ export class GestorAlmacenamiento {
         for (const [supKey, supData] of Object.entries(polera.superficies)) {
           const capasClonadas = [];
           for (const c of (supData.capas || [])) {
-            if (c.tipo === 'imagen' && c.dataUrl) {
-              // Convertir dataUrl a Blob para almacenamiento eficiente
-              const blob = this.dataUrlABlob(c.dataUrl);
+            if (c.tipo === 'imagen') {
+              let blob = null;
+              if (c.originalFile instanceof Blob) {
+                blob = c.originalFile;
+              } else if (c.dataUrl && c.dataUrl.startsWith('data:')) {
+                blob = this.dataUrlABlob(c.dataUrl);
+              } else if (c.dataUrl && c.dataUrl.startsWith('blob:') && typeof fetch !== 'undefined') {
+                try {
+                  blob = await fetch(c.dataUrl).then(r => r.blob());
+                } catch (_) {}
+              }
               if (blob) {
                 blobsAGuardar.push({
                   idCapa: c.id,
                   blob: blob,
-                  mimeType: blob.type
+                  mimeType: blob.type || 'image/png'
                 });
               }
               // Clonar capa sin elementos DOM
@@ -227,6 +235,7 @@ export class GestorAlmacenamiento {
       if (!sesionData || !sesionData.poleras) return false;
 
       // Reconstruir imágenes a partir de Blobs o dataUrls
+      const promesasCargaSesion = [];
       for (const polera of sesionData.poleras) {
         for (const sup of Object.values(polera.superficies || {})) {
           for (const capa of (sup.capas || [])) {
@@ -241,18 +250,39 @@ export class GestorAlmacenamiento {
               } catch (_) {}
 
               if (blob) {
+                capa.originalFile = blob;
                 capa.dataUrl = URL.createObjectURL(blob);
               }
 
               if (capa.dataUrl && typeof Image !== 'undefined') {
-                const imgEl = new Image();
-                imgEl.src = capa.dataUrl;
-                capa.imgElement = imgEl;
+                const prom = new Promise(resolve => {
+                  const imgEl = new Image();
+                  imgEl.onload = () => {
+                    capa.imgElement = imgEl;
+                    if (estadoApp.cacheRecursos) {
+                      estadoApp.cacheRecursos.set(capa.id, {
+                        imgElement: imgEl,
+                        originalFile: capa.originalFile,
+                        dataUrl: capa.dataUrl
+                      });
+                    }
+                    resolve();
+                  };
+                  imgEl.onerror = () => {
+                    capa.imgElement = null;
+                    resolve();
+                  };
+                  imgEl.src = capa.dataUrl;
+                });
+                promesasCargaSesion.push(prom);
+              } else {
+                capa.imgElement = null;
               }
             }
           }
         }
       }
+      await Promise.all(promesasCargaSesion);
 
       // Aplicar al estado reactivo
       this.bloquearAutoguardado = true;
@@ -372,8 +402,24 @@ export class GestorAlmacenamiento {
             let imgBlob = null;
             if (capa.originalFile instanceof Blob) {
               imgBlob = capa.originalFile;
-            } else if (capa.dataUrl) {
+            } else if (capa.dataUrl && capa.dataUrl.startsWith('data:')) {
               imgBlob = this.dataUrlABlob(capa.dataUrl);
+            } else if (capa.dataUrl && capa.dataUrl.startsWith('blob:') && typeof fetch !== 'undefined') {
+              try {
+                imgBlob = await fetch(capa.dataUrl).then(r => r.blob());
+              } catch (_) {}
+            }
+
+            // Fallback mediante canvas offscreen si no se obtuvo blob directamente
+            if (!imgBlob && capa.imgElement && typeof document !== 'undefined') {
+              try {
+                const cTemp = document.createElement('canvas');
+                cTemp.width = capa.imgElement.naturalWidth || capa.anchoOriginalPx || 400;
+                cTemp.height = capa.imgElement.naturalHeight || capa.altoOriginalPx || 400;
+                const ctxTemp = cTemp.getContext('2d');
+                ctxTemp.drawImage(capa.imgElement, 0, 0);
+                imgBlob = await new Promise(res => cTemp.toBlob(res, 'image/png'));
+              } catch (_) {}
             }
 
             const ext = (capa.fileExt || 'png').replace(/^\./, '').toLowerCase();
@@ -593,6 +639,7 @@ export class GestorAlmacenamiento {
 
     // Carga segura de imágenes
     const LIMITE_IMAGEN_BYTES = 25 * 1024 * 1024;
+    const promesasCargaZRP = [];
 
     for (const p of parsed.poleras) {
       for (const sup of Object.values(p.superficies || {})) {
@@ -629,17 +676,36 @@ export class GestorAlmacenamiento {
               const blob = new Blob([imgBuffer], { type: mime });
               const objectUrl = URL.createObjectURL(blob);
               capa.dataUrl = objectUrl;
+              capa.originalFile = blob;
 
               if (typeof Image !== 'undefined') {
-                const imgEl = new Image();
-                imgEl.src = objectUrl;
-                capa.imgElement = imgEl;
+                const prom = new Promise(resolve => {
+                  const imgEl = new Image();
+                  imgEl.onload = () => {
+                    capa.imgElement = imgEl;
+                    if (estadoApp.cacheRecursos) {
+                      estadoApp.cacheRecursos.set(capa.id, {
+                        imgElement: imgEl,
+                        originalFile: blob,
+                        dataUrl: objectUrl
+                      });
+                    }
+                    resolve();
+                  };
+                  imgEl.onerror = () => {
+                    capa.imgElement = null;
+                    resolve();
+                  };
+                  imgEl.src = objectUrl;
+                });
+                promesasCargaZRP.push(prom);
               }
             }
           }
         }
       }
     }
+    await Promise.all(promesasCargaZRP);
 
     const tieneTrabajoActual = estadoApp.datos.poleras.some(p => {
       return Object.values(p.superficies || {}).some(s => s.capas?.length > 0);
@@ -672,6 +738,11 @@ export class GestorAlmacenamiento {
     estadoApp.notificar('proyecto-cargado');
 
     if (ui) {
+      ui.actualizarSelectPoleras?.();
+      ui.actualizarListaCapas?.();
+      ui.actualizarHUDMedidas?.();
+      ui.mesa?.ajustarAPantalla?.();
+      ui.app?.solicitarRender?.();
       ui.mostrarNotificacion(`Proyecto cargado exitosamente (${parsed.codigoPedido || 'ZRP'}).`);
     }
     return true;
