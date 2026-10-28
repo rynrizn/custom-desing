@@ -11,6 +11,22 @@ import { CONFIG } from './config.js';
 const STORAGE_KEY = 'zairen_cad_v2_proyecto';
 const MAX_HISTORIAL = 30;
 
+
+function limpiarPolerasParaSerializar(poleras) {
+  return poleras.map(p => {
+    const clonP = { ...p, superficies: {} };
+    for (const [supKey, supVal] of Object.entries(p.superficies || {})) {
+      clonP.superficies[supKey] = {
+        capas: (supVal.capas || []).map(c => {
+          const { imgElement, originalFile, ...resto } = c;
+          return resto;
+        })
+      };
+    }
+    return clonP;
+  });
+}
+
 function crearPoleraInicial(id = 'polera-1', nombre = 'Polera 1') {
   return {
     id,
@@ -38,6 +54,7 @@ class EstadoApp {
     this.historial = [];
     this.indiceHistorial = -1;
     this.bloquearHistorial = false;
+    this.cacheRecursos = new Map();
 
     // Estado principal
     this.datos = {
@@ -139,6 +156,20 @@ class EstadoApp {
     const copia = JSON.parse(JSON.stringify(original));
     copia.id = `polera-${Date.now()}`;
     copia.nombre = `${original.nombre} (Copia)`;
+    for (const [supKey, supVal] of Object.entries(copia.superficies || {})) {
+      const origCapas = original.superficies?.[supKey]?.capas || [];
+      (supVal.capas || []).forEach((c, idx) => {
+        if (c.tipo === 'imagen' && origCapas[idx]?.imgElement) {
+          c.imgElement = origCapas[idx].imgElement;
+          c.originalFile = origCapas[idx].originalFile;
+          this.cacheRecursos.set(c.id, {
+            imgElement: c.imgElement,
+            originalFile: c.originalFile,
+            dataUrl: c.dataUrl
+          });
+        }
+      });
+    }
     this.datos.poleras.splice(index + 1, 0, copia);
     this.datos.poleraActivaIndex = index + 1;
     this.guardarSnapshotHistorial(`Duplicar ${original.nombre}`);
@@ -160,6 +191,14 @@ class EstadoApp {
     const capas = this.capasSuperficieActiva;
     capas.push(capa);
     this.datos.capaSeleccionadaId = capa.id;
+
+    if (capa.tipo === 'imagen' && capa.imgElement) {
+      this.cacheRecursos.set(capa.id, {
+        imgElement: capa.imgElement,
+        originalFile: capa.originalFile,
+        dataUrl: capa.dataUrl
+      });
+    }
 
     // Si la superficie actual es manga y está en modo espejo, sincronizar
     this.sincronizarMangasSiAplica();
@@ -208,6 +247,15 @@ class EstadoApp {
     copia.nombre = `${capa.nombre} (Copia)`;
     copia.xCm += 1.5;
     copia.yCm += 1.5;
+    if (capa.imgElement) {
+      copia.imgElement = capa.imgElement;
+      copia.originalFile = capa.originalFile;
+      this.cacheRecursos.set(copia.id, {
+        imgElement: copia.imgElement,
+        originalFile: copia.originalFile,
+        dataUrl: copia.dataUrl
+      });
+    }
     this.capasSuperficieActiva.push(copia);
     this.datos.capaSeleccionadaId = copia.id;
     this.sincronizarMangasSiAplica();
@@ -248,13 +296,19 @@ class EstadoApp {
       clon.id = `espejo-${c.id}`;
       // Invertir posición horizontal respecto al eje central
       clon.xCm = -c.xCm;
-      // "No invertir texto al reflejar" (mangasVoltear = true):
-      // Mantiene el texto legible al derecho (clon.flipH = c.flipH).
-      // Si mangasVoltear es false, invierte simétricamente (clon.flipH = !c.flipH).
       if (p.mangasVoltear) {
         clon.flipH = c.flipH;
       } else {
         clon.flipH = !c.flipH;
+      }
+      if (c.imgElement) {
+        clon.imgElement = c.imgElement;
+        clon.originalFile = c.originalFile;
+        this.cacheRecursos.set(clon.id, {
+          imgElement: clon.imgElement,
+          originalFile: clon.originalFile,
+          dataUrl: clon.dataUrl
+        });
       }
       return clon;
     });
@@ -264,12 +318,27 @@ class EstadoApp {
   guardarSnapshotHistorial(descripcion = '') {
     if (this.bloquearHistorial) return;
 
+    // Indexar recursos de imágenes antes del snapshot
+    for (const p of this.datos.poleras) {
+      for (const sup of Object.values(p.superficies || {})) {
+        for (const c of (sup.capas || [])) {
+          if (c.tipo === 'imagen' && c.imgElement) {
+            this.cacheRecursos.set(c.id, {
+              imgElement: c.imgElement,
+              originalFile: c.originalFile,
+              dataUrl: c.dataUrl
+            });
+          }
+        }
+      }
+    }
+
     // Descartar rehacer futuros
     if (this.indiceHistorial < this.historial.length - 1) {
       this.historial = this.historial.slice(0, this.indiceHistorial + 1);
     }
 
-    const snapshot = JSON.stringify(this.datos.poleras);
+    const snapshot = JSON.stringify(limpiarPolerasParaSerializar(this.datos.poleras));
     this.historial.push({ snapshot, descripcion });
     if (this.historial.length > MAX_HISTORIAL) {
       this.historial.shift();
@@ -278,11 +347,43 @@ class EstadoApp {
     this.notificar('historial-cambio');
   }
 
+  _reacoplarRecursosTrasHistorial() {
+    for (const p of this.datos.poleras) {
+      for (const sup of Object.values(p.superficies || {})) {
+        for (const c of (sup.capas || [])) {
+          if (c.tipo === 'imagen') {
+            const recurso = this.cacheRecursos.get(c.id);
+            if (recurso?.imgElement && (recurso.imgElement.naturalWidth > 0 || recurso.imgElement.complete)) {
+              c.imgElement = recurso.imgElement;
+              c.originalFile = recurso.originalFile || c.originalFile;
+            } else if (c.dataUrl && typeof Image !== 'undefined') {
+              c.imgElement = null;
+              const img = new Image();
+              img.onload = () => {
+                c.imgElement = img;
+                this.cacheRecursos.set(c.id, {
+                  imgElement: img,
+                  originalFile: c.originalFile,
+                  dataUrl: c.dataUrl
+                });
+                this.notificar('capas-actualizadas');
+              };
+              img.src = c.dataUrl;
+            } else {
+              c.imgElement = null;
+            }
+          }
+        }
+      }
+    }
+  }
+
   deshacer() {
     if (this.indiceHistorial > 0) {
       this.bloquearHistorial = true;
       this.indiceHistorial--;
       this.datos.poleras = JSON.parse(this.historial[this.indiceHistorial].snapshot);
+      this._reacoplarRecursosTrasHistorial();
       this.bloquearHistorial = false;
       this.notificar('deshacer');
     }
@@ -293,6 +394,7 @@ class EstadoApp {
       this.bloquearHistorial = true;
       this.indiceHistorial++;
       this.datos.poleras = JSON.parse(this.historial[this.indiceHistorial].snapshot);
+      this._reacoplarRecursosTrasHistorial();
       this.bloquearHistorial = false;
       this.notificar('rehacer');
     }
@@ -310,7 +412,7 @@ class EstadoApp {
   guardarEnLocalStorage() {
     try {
       const serializado = JSON.stringify({
-        poleras: this.datos.poleras,
+        poleras: limpiarPolerasParaSerializar(this.datos.poleras),
         poleraActivaIndex: this.datos.poleraActivaIndex,
         unidades: this.datos.unidades,
         mostrarCuadricula: this.datos.mostrarCuadricula,
@@ -336,6 +438,29 @@ class EstadoApp {
       if (guardado) {
         const parsed = JSON.parse(guardado);
         if (parsed.poleras && Array.isArray(parsed.poleras) && parsed.poleras.length > 0) {
+          for (const p of parsed.poleras) {
+            for (const s of Object.values(p.superficies || {})) {
+              for (const c of (s.capas || [])) {
+                if (c.tipo === 'imagen') {
+                  c.imgElement = null;
+                  c.originalFile = null;
+                  if (c.dataUrl && typeof Image !== 'undefined') {
+                    const img = new Image();
+                    img.onload = () => {
+                      c.imgElement = img;
+                      this.cacheRecursos.set(c.id, {
+                        imgElement: img,
+                        originalFile: null,
+                        dataUrl: c.dataUrl
+                      });
+                      this.notificar('capas-actualizadas');
+                    };
+                    img.src = c.dataUrl;
+                  }
+                }
+              }
+            }
+          }
           this.datos.poleras = parsed.poleras;
           this.datos.poleraActivaIndex = Math.min(parsed.poleraActivaIndex || 0, parsed.poleras.length - 1);
         }
@@ -351,6 +476,19 @@ class EstadoApp {
     } catch (err) {
       console.warn('No se pudo restaurar estado desde localStorage:', err);
     }
+  }
+
+  reiniciarEstado() {
+    this.datos.poleras = [crearPoleraInicial()];
+    this.datos.poleraActivaIndex = 0;
+    this.datos.superficieActiva = 'anverso';
+    this.datos.capaSeleccionadaId = null;
+    this.historial = [];
+    this.indiceHistorial = -1;
+    this.cacheRecursos.clear();
+    this.guardarSnapshotHistorial('Estado inicial');
+    this.guardarEnLocalStorage();
+    this.notificar('reinicio-completo');
   }
 }
 
