@@ -127,7 +127,39 @@ export class GestorImagenes {
    * Renderiza una capa de imagen en el Canvas.
    */
   dibujarCapa(ctx, capa, mesa) {
-    if (!capa.visible || !capa.imgElement) return;
+    if (!capa || !capa.visible || !capa.imgElement) return;
+
+    // Validación estricta de elemento CanvasImageSource
+    const esImagenValida = (
+      (typeof HTMLImageElement !== 'undefined' && capa.imgElement instanceof HTMLImageElement) ||
+      (typeof HTMLCanvasElement !== 'undefined' && capa.imgElement instanceof HTMLCanvasElement) ||
+      (typeof ImageBitmap !== 'undefined' && capa.imgElement instanceof ImageBitmap)
+    );
+
+    if (!esImagenValida) {
+      // Si capa.imgElement no es válido (ej. {} deserializado), pero tiene dataUrl, auto-recuperar
+      if (capa.dataUrl && typeof Image !== 'undefined' && !capa._recargando) {
+        capa._recargando = true;
+        const nuevoImg = new Image();
+        nuevoImg.onload = () => {
+          capa.imgElement = nuevoImg;
+          capa._recargando = false;
+          if (typeof window !== 'undefined' && window.appUI?.app) {
+            window.appUI.app.solicitarRender();
+          }
+        };
+        nuevoImg.onerror = () => {
+          capa._recargando = false;
+        };
+        nuevoImg.src = capa.dataUrl;
+      }
+      return;
+    }
+
+    // Si es HTMLImageElement y aún no ha terminado de cargar o no tiene dimensiones
+    if (typeof HTMLImageElement !== 'undefined' && capa.imgElement instanceof HTMLImageElement && (!capa.imgElement.complete || capa.imgElement.naturalWidth === 0)) {
+      return;
+    }
 
     const { cx, cy } = mesa.mundoACanvas(capa.xCm, capa.yCm);
     const escala = mesa.pxPorCmBase * mesa.zoom;
@@ -135,12 +167,16 @@ export class GestorImagenes {
     const hPx = capa.heightCm * escala;
 
     ctx.save();
-    ctx.globalAlpha = capa.opacity;
+    ctx.globalAlpha = capa.opacity != null ? capa.opacity : 1.0;
     ctx.translate(cx, cy);
-    ctx.rotate((capa.angleDeg * Math.PI) / 180);
+    ctx.rotate(((capa.angleDeg || 0) * Math.PI) / 180);
     ctx.scale(capa.flipH ? -1 : 1, capa.flipV ? -1 : 1);
 
-    ctx.drawImage(capa.imgElement, -wPx / 2, -hPx / 2, wPx, hPx);
+    try {
+      ctx.drawImage(capa.imgElement, -wPx / 2, -hPx / 2, wPx, hPx);
+    } catch (err) {
+      console.warn('Error al dibujar capa de imagen:', err);
+    }
 
     ctx.restore();
   }
