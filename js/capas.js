@@ -240,6 +240,22 @@ export class GestorCapas {
     estado.actualizarCapa(capa.id, { xCm: capa.xCm, yCm: capa.yCm }, false);
   }
 
+  duplicarCapa(id) {
+    return estado.duplicarCapa(id);
+  }
+
+  copiarCapa(id = null) {
+    return estado.copiarCapa(id);
+  }
+
+  cortarCapa(id = null) {
+    return estado.cortarCapa(id);
+  }
+
+  pegarCapa() {
+    return estado.pegarCapa();
+  }
+
   /**
    * Posiciona la barra flotante contextual y la barra de ajuste fino según la capa seleccionada.
    */

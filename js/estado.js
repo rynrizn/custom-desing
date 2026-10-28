@@ -53,13 +53,14 @@ function crearPoleraInicial(id = 'polera-1', nombre = 'Polera 1') {
   };
 }
 
-class EstadoApp {
+export class EstadoApp {
   constructor() {
     this.listeners = new Set();
     this.historial = [];
     this.indiceHistorial = -1;
     this.bloquearHistorial = false;
     this.cacheRecursos = new Map();
+    this.portapapeles = null;
 
     // Estado principal
     this.datos = {
@@ -266,6 +267,102 @@ class EstadoApp {
     this.sincronizarMangasSiAplica();
     this.guardarSnapshotHistorial('Duplicar capa');
     this.notificar('capa-agregada', copia);
+  }
+
+  copiarCapa(id = null) {
+    const capaId = id || this.datos.capaSeleccionadaId;
+    if (!capaId) return false;
+    const capa = this.capasSuperficieActiva.find(c => c.id === capaId);
+    if (!capa) return false;
+
+    this.portapapeles = {
+      capa: JSON.parse(JSON.stringify(capa)),
+      accion: 'copy',
+      superficieOrigen: this.datos.superficieActiva,
+      imgElement: capa.imgElement || this.cacheRecursos.get(capa.id)?.imgElement || null,
+      originalFile: capa.originalFile || this.cacheRecursos.get(capa.id)?.originalFile || null
+    };
+    this.notificar('portapapeles-cambiado', this.portapapeles);
+    return true;
+  }
+
+  cortarCapa(id = null) {
+    const capaId = id || this.datos.capaSeleccionadaId;
+    if (!capaId) return false;
+    const capa = this.capasSuperficieActiva.find(c => c.id === capaId);
+    if (!capa) return false;
+
+    this.portapapeles = {
+      capa: JSON.parse(JSON.stringify(capa)),
+      accion: 'cut',
+      superficieOrigen: this.datos.superficieActiva,
+      imgElement: capa.imgElement || this.cacheRecursos.get(capa.id)?.imgElement || null,
+      originalFile: capa.originalFile || this.cacheRecursos.get(capa.id)?.originalFile || null
+    };
+    this.eliminarCapa(capaId);
+    this.notificar('portapapeles-cambiado', this.portapapeles);
+    return true;
+  }
+
+  pegarCapa() {
+    if (!this.portapapeles || !this.portapapeles.capa) return null;
+    const { capa: origen, imgElement, originalFile, accion, superficieOrigen } = this.portapapeles;
+    const nuevaCapa = JSON.parse(JSON.stringify(origen));
+    nuevaCapa.id = `capa-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
+    const supDestino = this.datos.superficieActiva;
+    const esMangaOrigen = superficieOrigen === 'manga_izquierda' || superficieOrigen === 'manga_derecha';
+    const esMangaDestino = supDestino === 'manga_izquierda' || supDestino === 'manga_derecha';
+
+    if (superficieOrigen === supDestino) {
+      nuevaCapa.xCm += 1.5;
+      nuevaCapa.yCm += 1.5;
+      nuevaCapa.nombre = `${origen.nombre} (Copia)`;
+    } else if (esMangaOrigen && !esMangaDestino) {
+      // De manga a cuerpo (anverso/reverso): centrar en el pecho (30x40 cm)
+      nuevaCapa.xCm = 0;
+      nuevaCapa.yCm = 28.0;
+    } else if (!esMangaOrigen && esMangaDestino) {
+      // De cuerpo a manga (área 10x12 cm): centrar y autoescalar proporcionalmente si supera el tamaño
+      nuevaCapa.xCm = 0;
+      nuevaCapa.yCm = 9.5;
+      const maxW = 10.0;
+      const maxH = 12.0;
+      if (nuevaCapa.anchoCm > maxW || nuevaCapa.altoCm > maxH) {
+        const factor = Math.min(maxW / nuevaCapa.anchoCm, maxH / nuevaCapa.altoCm) * 0.9;
+        nuevaCapa.anchoCm = +(nuevaCapa.anchoCm * factor).toFixed(2);
+        nuevaCapa.altoCm = +(nuevaCapa.altoCm * factor).toFixed(2);
+        if (nuevaCapa.tipo === 'texto' && nuevaCapa.tamanoPt) {
+          nuevaCapa.tamanoPt = Math.max(8, Math.round(nuevaCapa.tamanoPt * factor));
+        }
+      }
+    } else if (esMangaOrigen && esMangaDestino) {
+      // De una manga a la otra
+      nuevaCapa.xCm = -origen.xCm;
+    }
+
+    if (imgElement) {
+      nuevaCapa.imgElement = imgElement;
+      nuevaCapa.originalFile = originalFile;
+      this.cacheRecursos.set(nuevaCapa.id, {
+        imgElement,
+        originalFile,
+        dataUrl: nuevaCapa.dataUrl
+      });
+    }
+
+    this.capasSuperficieActiva.push(nuevaCapa);
+    this.datos.capaSeleccionadaId = nuevaCapa.id;
+
+    if (accion === 'cut') {
+      this.portapapeles.accion = 'copy';
+    }
+
+    this.sincronizarMangasSiAplica();
+    this.guardarSnapshotHistorial(`Pegar capa en ${supDestino}`);
+    this.notificar('capa-agregada', nuevaCapa);
+    this.notificar('portapapeles-cambiado', this.portapapeles);
+    return nuevaCapa;
   }
 
   reordenarCapa(id, direccion) { // 'subir' | 'bajar' | 'tope' | 'fondo'

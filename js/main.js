@@ -743,6 +743,39 @@ class AplicacionCADTextil {
         return;
       }
 
+      // Copiar elemento (Ctrl+C / Cmd+C)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        if (estado.datos.capaSeleccionadaId) {
+          e.preventDefault();
+          estado.copiarCapa(estado.datos.capaSeleccionadaId);
+          this.ui?.mostrarNotificacion?.('Elemento copiado al portapapeles');
+        }
+        return;
+      }
+
+      // Cortar elemento (Ctrl+X / Cmd+X)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+        if (estado.datos.capaSeleccionadaId) {
+          e.preventDefault();
+          estado.cortarCapa(estado.datos.capaSeleccionadaId);
+          this.ui?.mostrarNotificacion?.('Elemento cortado al portapapeles');
+        }
+        return;
+      }
+
+      // Pegar elemento (Ctrl+V / Cmd+V)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        if (estado.portapapeles && estado.portapapeles.capa) {
+          e.preventDefault();
+          const pegada = estado.pegarCapa();
+          if (pegada) {
+            const nomSup = estado.datos.superficieActiva.replace('_', ' ');
+            this.ui?.mostrarNotificacion?.(`Elemento pegado en ${nomSup}`);
+          }
+        }
+        return;
+      }
+
       // Duplicar elemento (Ctrl+D / Cmd+D)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
         e.preventDefault();

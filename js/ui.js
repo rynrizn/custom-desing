@@ -849,6 +849,28 @@ export class ControladorUI {
       gestorCapas.alinearCapa('center-zone');
     });
 
+    document.getElementById('floatCopyBtn')?.addEventListener('click', () => {
+      if (estado.datos.capaSeleccionadaId) {
+        estado.copiarCapa(estado.datos.capaSeleccionadaId);
+        this.mostrarNotificacion('Elemento copiado al portapapeles');
+      }
+    });
+
+    document.getElementById('floatCutBtn')?.addEventListener('click', () => {
+      if (estado.datos.capaSeleccionadaId) {
+        estado.cortarCapa(estado.datos.capaSeleccionadaId);
+        this.mostrarNotificacion('Elemento cortado al portapapeles');
+      }
+    });
+
+    document.getElementById('pasteLayerBtn')?.addEventListener('click', () => {
+      const pegada = estado.pegarCapa();
+      if (pegada) {
+        const nomSup = estado.datos.superficieActiva.replace('_', ' ');
+        this.mostrarNotificacion(`Elemento pegado en ${nomSup}`);
+      }
+    });
+
     document.getElementById('floatDupBtn')?.addEventListener('click', () => {
       if (estado.datos.capaSeleccionadaId) {
         estado.duplicarCapa(estado.datos.capaSeleccionadaId);
@@ -1256,6 +1278,10 @@ export class ControladorUI {
 
     const capas = estado.capasSuperficieActiva;
     if (countBadge) countBadge.textContent = `${capas.length} CAPAS`;
+    const pasteBtn = document.getElementById('pasteLayerBtn');
+    if (pasteBtn) {
+      pasteBtn.style.display = (estado.portapapeles && estado.portapapeles.capa) ? 'inline-flex' : 'none';
+    }
 
     if (!capas.length) {
       container.innerHTML = `
@@ -1291,9 +1317,9 @@ export class ControladorUI {
           <span style="font-weight:600;">${capa.nombre}</span>
         </div>
         <div class="layer-actions">
-          <button type="button" class="btn-micro" data-action="toggle-vis" title="Ocultar/Ver">${capa.visible ? icono('eye') : icono('eyeOff')}</button>
-          <button type="button" class="btn-micro" data-action="toggle-lock" title="Bloquear">${capa.locked ? icono('lock') : icono('unlock')}</button>
-          <button type="button" class="btn-micro btn-danger" data-action="delete" title="Eliminar">${icono('trash')}</button>
+          <button type="button" class="btn-micro btn-icon-micro" data-action="toggle-vis" title="Ocultar/Ver" aria-label="Visibilidad">${capa.visible ? icono('eye') : icono('eyeOff')}</button>
+          <button type="button" class="btn-micro btn-icon-micro" data-action="toggle-lock" title="Bloquear" aria-label="Bloquear">${capa.locked ? icono('lock') : icono('unlock')}</button>
+          <button type="button" class="btn-micro btn-icon-micro btn-danger" data-action="delete" title="Eliminar" aria-label="Eliminar">${icono('trash')}</button>
         </div>
       `;
 
