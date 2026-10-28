@@ -12,13 +12,18 @@ const STORAGE_KEY = 'zairen_cad_v2_proyecto';
 const MAX_HISTORIAL = 30;
 
 
-function limpiarPolerasParaSerializar(poleras) {
+function limpiarPolerasParaSerializar(poleras, paraLocalStorage = false) {
   return poleras.map(p => {
     const clonP = { ...p, superficies: {} };
     for (const [supKey, supVal] of Object.entries(p.superficies || {})) {
       clonP.superficies[supKey] = {
         capas: (supVal.capas || []).map(c => {
           const { imgElement, originalFile, ...resto } = c;
+          // Las URLs blob: son temporales del documento de la pestaña.
+          // Al recargar expiran, por lo que no se persisten en localStorage.
+          if (paraLocalStorage && resto.dataUrl && resto.dataUrl.startsWith('blob:')) {
+            resto.dataUrl = null;
+          }
           return resto;
         })
       };
@@ -412,7 +417,7 @@ class EstadoApp {
   guardarEnLocalStorage() {
     try {
       const serializado = JSON.stringify({
-        poleras: limpiarPolerasParaSerializar(this.datos.poleras),
+        poleras: limpiarPolerasParaSerializar(this.datos.poleras, true),
         poleraActivaIndex: this.datos.poleraActivaIndex,
         unidades: this.datos.unidades,
         mostrarCuadricula: this.datos.mostrarCuadricula,
@@ -444,6 +449,9 @@ class EstadoApp {
                 if (c.tipo === 'imagen') {
                   c.imgElement = null;
                   c.originalFile = null;
+                  if (c.dataUrl?.startsWith('blob:')) {
+                    c.dataUrl = null;
+                  }
                   if (c.dataUrl && typeof Image !== 'undefined') {
                     const img = new Image();
                     img.onload = () => {

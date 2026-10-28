@@ -138,7 +138,7 @@ export class GestorImagenes {
 
     if (!esImagenValida) {
       // Si capa.imgElement no es válido (ej. {} deserializado), pero tiene dataUrl, auto-recuperar
-      if (capa.dataUrl && typeof Image !== 'undefined' && !capa._recargando) {
+      if (capa.dataUrl && !capa.dataUrl.startsWith('blob:') && typeof Image !== 'undefined' && !capa._recargando) {
         capa._recargando = true;
         const nuevoImg = new Image();
         nuevoImg.onload = () => {
