@@ -327,7 +327,10 @@ button, select, input, textarea {
 }
 
 .btn-micro {
-  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 6px;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
@@ -335,6 +338,8 @@ button, select, input, textarea {
   background: var(--surface-solid);
   color: var(--text-primary);
   cursor: pointer;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .btn-micro:hover {
@@ -741,6 +746,25 @@ input:checked + .toggle-slider:before {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.layer-actions .btn-micro,
+.btn-micro.btn-icon-micro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+}
+
+.layer-actions .btn-micro svg,
+.btn-micro.btn-icon-micro svg {
+  display: block;
+  margin: auto;
+  pointer-events: none;
 }
 
 .dpi-warning {

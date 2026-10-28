@@ -173,11 +173,12 @@
 
             <div class="form-row">
               <div class="field-group">
-                <label class="field-label" for="garmentSelect">Prenda</label>
-                <select id="garmentSelect" class="select-input">
-                <div id="garmentStaticLabel" class="single-garment-badge" style="display:none; font-family:var(--font-mono); font-size:12px; font-weight:600; padding:6px 10px; background:var(--surface-high); border:1px solid var(--border-subtle); color:var(--text-primary);">Polera</div>
-                  <option value="polera">Polera</option>
+                <label class="field-label" for="altSizeSelect">Talla Alternativa</label>
+                <select id="altSizeSelect" class="select-input" disabled aria-label="Talla alternativa o línea de tallas adicional" title="Línea de tallas adicional (próximamente)">
+                  <option value="base">Base estándar (por defecto)</option>
                 </select>
+                <select id="garmentSelect" style="display:none;" aria-hidden="true"><option value="polera">Polera</option></select>
+                <div id="garmentStaticLabel" style="display:none;" aria-hidden="true">Polera</div>
               </div>
 
               <div class="field-group">
@@ -415,7 +416,10 @@
                 <span class="section-step-badge">03</span>
                 <span>PILA DE CAPAS</span>
               </h2>
-              <span id="layersCountBadge" class="tag-chip">0 CAPAS</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <button type="button" id="pasteLayerBtn" class="btn-micro" title="Pegar elemento copiado (Ctrl+V)" aria-label="Pegar elemento copiado" style="display:none;">PEGAR</button>
+                <span id="layersCountBadge" class="tag-chip">0 CAPAS</span>
+              </div>
             </div>
 
             <!-- Lista interactiva de capas -->
@@ -500,22 +504,22 @@
           <div class="ribbon-group" aria-label="Alineación">
             <span class="ribbon-label">ALINEAR:</span>
             <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda de la zona" aria-label="Alinear a la izquierda" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="6" x="6" y="5" rx="1"/><rect width="10" height="6" x="6" y="13" rx="1"/><path d="M2 2v20"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="14" x="6" y="5" rx="2"/><rect width="6" height="10" x="16" y="7" rx="2"/><path d="M2 2v20"/></svg>
             </button>
             <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente (eje central)" aria-label="Centrar horizontalmente" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="2" y2="22"/><rect width="10" height="6" x="7" y="5" rx="1"/><rect width="16" height="6" x="4" y="13" rx="1"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="14" x="2" y="5" rx="2"/><rect width="6" height="10" x="16" y="7" rx="2"/><path d="M12 2v20"/></svg>
             </button>
             <button type="button" class="btn-icon" data-align="right" title="Alinear a la derecha de la zona" aria-label="Alinear a la derecha" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="6" x="2" y="5" rx="1"/><rect width="10" height="6" x="8" y="13" rx="1"/><path d="M22 2v20"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="14" x="2" y="5" rx="2"/><rect width="6" height="10" x="12" y="7" rx="2"/><path d="M22 2v20"/></svg>
             </button>
             <button type="button" class="btn-icon" data-align="top" title="Alinear arriba (tope zona impresión)" aria-label="Alinear arriba" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="16" x="5" y="6" rx="1"/><rect width="6" height="10" x="13" y="12" rx="1"/><path d="M2 2h20"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="6" x="5" y="16" rx="2"/><rect width="10" height="6" x="7" y="6" rx="2"/><path d="M2 2h20"/></svg>
             </button>
             <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente en la zona" aria-label="Centrar verticalmente" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" x2="22" y1="12" y2="12"/><rect width="6" height="10" x="5" y="7" rx="1"/><rect width="6" height="16" x="13" y="4" rx="1"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="6" x="5" y="16" rx="2"/><rect width="10" height="6" x="7" y="2" rx="2"/><path d="M2 12h20"/></svg>
             </button>
             <button type="button" class="btn-icon" data-align="bottom" title="Alinear abajo (fondo zona impresión)" aria-label="Alinear abajo" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="16" x="5" y="2" rx="1"/><rect width="6" height="10" x="13" y="2" rx="1"/><path d="M2 22h20"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="6" x="5" y="12" rx="2"/><rect width="10" height="6" x="7" y="2" rx="2"/><path d="M2 22h20"/></svg>
             </button>
             <button type="button" class="btn-icon" data-align="center-zone" title="Centrar en zona de impresión" aria-label="Centrar en zona de impresión" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="6"/><line x1="12" x2="12" y1="18" y2="22"/></svg>
@@ -545,10 +549,10 @@
           <!-- Herramientas de Mesa: Mano, Imanes, Cuadrícula, Cotas y Ajustar a Pantalla (Lucide Oficiales) -->
           <div class="stage-view-tools" aria-label="Herramientas de vista">
             <button type="button" id="toolHandBtn" class="btn-icon" title="Herramienta Mano para mover la mesa" aria-label="Mover mesa" aria-pressed="false">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
             </button>
             <button type="button" id="toggleSnapBtn" class="btn-icon active" title="Activar / desactivar guías magnéticas" aria-label="Guías magnéticas" aria-pressed="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15-3-3 6.7-6.7a4 4 0 0 1 5.6 0l2.4 2.4a4 4 0 0 1 0 5.6L11 23l-3-3 4.7-4.7a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0Z"/><path d="m9 9 3 3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 15 4 4"/><path d="M2.352 10.648a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l6.029-6.029a1 1 0 1 1 3 3l-6.029 6.029a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l6.365-6.367A1 1 0 0 0 8.716 4.282z"/><path d="m5 8 4 4"/></svg>
             </button>
             <button type="button" id="toggleGridBtn" class="btn-icon" title="Mostrar / ocultar rejilla" aria-label="Rejilla" aria-pressed="false">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
@@ -557,7 +561,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
             </button>
             <button type="button" id="fitScreenBtn" class="btn-icon" title="Ajustar prenda a pantalla" aria-label="Ajustar a pantalla">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/></svg>
             </button>
           </div>
         </div>
@@ -584,6 +588,8 @@
               <button type="button" id="floatTextIncBtn" class="btn-micro" title="Aumentar tamaño de letra (A+)">A+</button>
             </div>
             <button type="button" id="floatCenterBtn" class="btn-micro" title="Centrar elemento">CENTRAR</button>
+            <button type="button" id="floatCopyBtn" class="btn-micro" title="Copiar elemento (Ctrl+C)">COPIAR</button>
+            <button type="button" id="floatCutBtn" class="btn-micro" title="Cortar elemento (Ctrl+X)">CORTAR</button>
             <button type="button" id="floatDupBtn" class="btn-micro" title="Duplicar elemento">DUPLICAR</button>
             <button type="button" id="floatLockBtn" class="btn-micro" title="Bloquear / Desbloquear">BLOQUEAR</button>
             <button type="button" id="floatDeleteBtn" class="btn-micro btn-danger" title="Eliminar elemento">ELIMINAR</button>
