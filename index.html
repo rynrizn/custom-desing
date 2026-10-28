@@ -484,8 +484,8 @@
       <!-- MESA DE TRABAJO CENTRAL -->
       <section class="stage-container" aria-label="Lienzo de diseño interactivo">
         <!-- Barra Superior de Herramientas de Mesa -->
-        <div class="stage-toolbar-top">
-          <!-- Alineación rápida respecto a la silueta y zona de impresión -->
+        <div class="stage-toolbar-top" role="toolbar" aria-label="Herramientas del lienzo de diseño">
+          <!-- Historial rápido para escritorio (en móvil pasa a pastilla flotante) -->
           <div class="ribbon-group desktop-undo-group" aria-label="Historial">
             <button type="button" id="undoBtn" class="btn-icon" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
@@ -496,67 +496,68 @@
           </div>
           <div class="ribbon-divider desktop-undo-divider"></div>
 
+          <!-- Alineación de precisión (Lucide Icons Oficiales) -->
           <div class="ribbon-group" aria-label="Alineación">
             <span class="ribbon-label">ALINEAR:</span>
-            <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda de la zona" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="4" y2="20"/><rect x="8" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
+            <button type="button" class="btn-icon" data-align="left" title="Alinear a la izquierda de la zona" aria-label="Alinear a la izquierda" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="6" x="6" y="5" rx="1"/><rect width="10" height="6" x="6" y="13" rx="1"/><path d="M2 2v20"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente (eje central)" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><rect x="6" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
+            <button type="button" class="btn-icon" data-align="center-h" title="Centrar horizontalmente (eje central)" aria-label="Centrar horizontalmente" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="2" y2="22"/><rect width="10" height="6" x="7" y="5" rx="1"/><rect width="16" height="6" x="4" y="13" rx="1"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="right" title="Alinear a la derecha de la zona" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="20" y1="4" x2="20" y2="20"/><rect x="4" y="7" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg>
+            <button type="button" class="btn-icon" data-align="right" title="Alinear a la derecha de la zona" aria-label="Alinear a la derecha" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="6" x="2" y="5" rx="1"/><rect width="10" height="6" x="8" y="13" rx="1"/><path d="M22 2v20"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="top" title="Alinear arriba (tope zona impresión)" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="20" y2="4"/><rect x="7" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
+            <button type="button" class="btn-icon" data-align="top" title="Alinear arriba (tope zona impresión)" aria-label="Alinear arriba" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="16" x="5" y="6" rx="1"/><rect width="6" height="10" x="13" y="12" rx="1"/><path d="M2 2h20"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente en la zona" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><rect x="7" y="6" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
+            <button type="button" class="btn-icon" data-align="center-v" title="Centrar verticalmente en la zona" aria-label="Centrar verticalmente" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" x2="22" y1="12" y2="12"/><rect width="6" height="10" x="5" y="7" rx="1"/><rect width="6" height="16" x="13" y="4" rx="1"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="bottom" title="Alinear abajo (fondo zona impresión)" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="20"/><rect x="7" y="4" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg>
+            <button type="button" class="btn-icon" data-align="bottom" title="Alinear abajo (fondo zona impresión)" aria-label="Alinear abajo" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="6" height="16" x="5" y="2" rx="1"/><rect width="6" height="10" x="13" y="2" rx="1"/><path d="M2 22h20"/></svg>
             </button>
-            <button type="button" class="btn-icon" data-align="center-zone" title="Centrar en zona de impresión" disabled>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="2"/></svg>
+            <button type="button" class="btn-icon" data-align="center-zone" title="Centrar en zona de impresión" aria-label="Centrar en zona de impresión" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="6"/><line x1="12" x2="12" y1="18" y2="22"/></svg>
             </button>
           </div>
 
           <div class="ribbon-divider"></div>
 
-          <!-- Barra Rápida de Personalización de Mangas (Visible en Manga Izq / Der) -->
+          <!-- Barra Rápida de Personalización de Mangas (Lucide Oficiales) -->
           <div id="mangaQuickBar" style="display:none; align-items:center; gap:6px;">
-            <button type="button" id="switchSleeveSideBtn" class="btn-micro" title="Cambiar a la otra manga">
-              <span id="switchSleeveSideLabel" style="display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> A MANGA DER</span>
+            <button type="button" id="switchSleeveSideBtn" class="btn-micro" title="Cambiar a la otra manga" aria-label="Cambiar a la otra manga">
+              <span id="switchSleeveSideLabel" style="display:inline-flex; align-items:center; gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> A MANGA DER</span>
             </button>
-            <button type="button" id="quickMirrorBtn" class="btn-micro" title="Activar/Desactivar modo espejo entre mangas">
-              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/></svg> ESPEJO: OFF</span>
+            <button type="button" id="quickMirrorBtn" class="btn-micro" title="Activar/Desactivar modo espejo entre mangas" aria-label="Modo espejo entre mangas">
+              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7 5 5-5 5V7"/><path d="m21 7-5 5 5 5V7"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/></svg> ESPEJO: OFF</span>
             </button>
-            <button type="button" id="sleevePresetCenterBtn" class="btn-micro" title="Centrar diseño en la manga">
-              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> CENTRO</span>
+            <button type="button" id="sleevePresetCenterBtn" class="btn-micro" title="Centrar diseño en la manga" aria-label="Centrar diseño en manga">
+              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="6"/><line x1="12" x2="12" y1="18" y2="22"/></svg> CENTRO</span>
             </button>
-            <button type="button" id="mangaModeBtn" class="btn-micro" title="Alternar entre ver como patrón plano o sobre la polera">
-              <span>PATRÓN PLANO</span>
+            <button type="button" id="mangaModeBtn" class="btn-micro" title="Alternar entre ver como patrón plano o sobre la polera" aria-label="Alternar vista de manga">
+              <span style="display:inline-flex; align-items:center; gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg> <span>PATRÓN PLANO</span></span>
             </button>
           </div>
 
           <div class="ribbon-divider" id="mangaDivider" style="display:none;"></div>
 
-          <!-- Herramientas de Mesa: Mano, Imanes, Cuadrícula, Cotas y Ajustar a Pantalla -->
-          <div style="display:flex; align-items:center; gap:4px;">
+          <!-- Herramientas de Mesa: Mano, Imanes, Cuadrícula, Cotas y Ajustar a Pantalla (Lucide Oficiales) -->
+          <div class="stage-view-tools" aria-label="Herramientas de vista">
             <button type="button" id="toolHandBtn" class="btn-icon" title="Herramienta Mano para mover la mesa" aria-label="Mover mesa" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
             </button>
             <button type="button" id="toggleSnapBtn" class="btn-icon active" title="Activar / desactivar guías magnéticas" aria-label="Guías magnéticas" aria-pressed="true">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 15-3-3 6.7-6.7a4 4 0 0 1 5.6 0l2.4 2.4a4 4 0 0 1 0 5.6L11 23l-3-3 4.7-4.7a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0Z"/><path d="m9 9 3 3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15-3-3 6.7-6.7a4 4 0 0 1 5.6 0l2.4 2.4a4 4 0 0 1 0 5.6L11 23l-3-3 4.7-4.7a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0Z"/><path d="m9 9 3 3"/></svg>
             </button>
             <button type="button" id="toggleGridBtn" class="btn-icon" title="Mostrar / ocultar rejilla" aria-label="Rejilla" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
             </button>
             <button type="button" id="toggleCotasBtn" class="btn-icon" title="Mostrar / ocultar cotas" aria-label="Cotas" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20"/><path d="M6 8v8"/><path d="M12 10v4"/><path d="M18 8v8"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
             </button>
             <button type="button" id="fitScreenBtn" class="btn-icon" title="Ajustar prenda a pantalla" aria-label="Ajustar a pantalla">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
             </button>
           </div>
         </div>
@@ -640,19 +641,19 @@
     <!-- BARRA DE NAVEGACIÓN INFERIOR EXCLUSIVA PARA MÓVIL (100dvh + Safe Area) -->
     <nav class="mobile-bottom-bar" id="mobileBottomBar" role="tablist" aria-label="Menú principal móvil">
       <button type="button" class="mobile-nav-item active" id="mobileTabPrenda" data-sheet="prenda">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
         <span>Prenda</span>
       </button>
       <button type="button" class="mobile-nav-item" id="mobileTabDiseno" data-sheet="diseno">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
         <span>Diseño</span>
       </button>
       <button type="button" class="mobile-nav-item" id="mobileTabCapas" data-sheet="capas">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
         <span>Capas</span>
       </button>
       <button type="button" class="mobile-nav-item" id="mobileTabPedido" data-sheet="pedido">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <span>Pedido</span>
       </button>
     </nav>
