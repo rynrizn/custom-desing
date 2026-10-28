@@ -44,7 +44,7 @@
           <button type="button" id="projectMenuBtn" class="btn btn-ghost" title="Menú de proyecto" aria-haspopup="true" aria-expanded="false" style="min-height:34px; padding:0 10px; font-size:11px; gap:4px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg>
             <span>PROYECTO</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dropdown-menu" id="projectDropdownMenu" role="menu" aria-label="Menú de proyecto" style="display:none;">
             <button type="button" class="dropdown-item" id="menuSaveProjectBtn" role="menuitem">
@@ -136,7 +136,7 @@
             <button type="button" id="sheetExpandBtn" class="sheet-btn-toggle" title="Alternar entre altura media y completa" aria-label="Expandir o reducir hoja">
               <span id="sheetExpandIcon">⤢</span>
             </button>
-            <button type="button" id="sheetCloseBtn" class="sheet-btn-toggle" title="Cerrar hoja de herramientas" aria-label="Cerrar hoja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            <button type="button" id="sheetCloseBtn" class="sheet-btn-toggle" title="Cerrar hoja de herramientas" aria-label="Cerrar hoja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
           </div>
         </div>
 
@@ -592,12 +592,12 @@
           <!-- Barra de Ajuste Fino para Móvil y Táctil (Flechas 1 mm, Escala, Giro 1° y 15°) -->
           <div class="fine-tune-bar" id="fineTuneBar" style="display:none;" role="toolbar" aria-label="Ajuste fino de precisión">
             <div class="fine-tune-group" title="Mover 1 mm">
-              <button type="button" id="nudgeLeftBtn" class="btn-tune" title="1 mm Izquierda" aria-label="1 mm Izquierda"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+              <button type="button" id="nudgeLeftBtn" class="btn-tune" title="1 mm Izquierda" aria-label="1 mm Izquierda"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
               <div class="fine-tune-v">
-                <button type="button" id="nudgeUpBtn" class="btn-tune" title="1 mm Arriba" aria-label="1 mm Arriba"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
-                <button type="button" id="nudgeDownBtn" class="btn-tune" title="1 mm Abajo" aria-label="1 mm Abajo"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                <button type="button" id="nudgeUpBtn" class="btn-tune" title="1 mm Arriba" aria-label="1 mm Arriba"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
+                <button type="button" id="nudgeDownBtn" class="btn-tune" title="1 mm Abajo" aria-label="1 mm Abajo"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
               </div>
-              <button type="button" id="nudgeRightBtn" class="btn-tune" title="1 mm Derecha" aria-label="1 mm Derecha"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+              <button type="button" id="nudgeRightBtn" class="btn-tune" title="1 mm Derecha" aria-label="1 mm Derecha"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
             </div>
 
             <div class="tune-divider" id="fineTuneSizeDivider"></div>
@@ -667,7 +667,7 @@
     <div class="modal-card">
       <div class="modal-title">
         <span id="settingsModalTitle">Configuración y Ajustes</span>
-        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar ventana"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar ventana"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div style="display:flex; flex-direction:column; gap:12px;">
         <div class="field-group">
@@ -729,7 +729,7 @@
     <div class="modal-card">
       <div class="modal-title">
         <span id="exportModalTitle">Confirmar Pedido</span>
-        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="btn-icon modal-close-btn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div id="exportModalNotice" style="font-size:12px; color:var(--text-secondary);"></div>
       <div>
@@ -748,7 +748,7 @@
     <div class="modal-card">
       <div class="modal-title">
         <span id="restoreSessionModalTitle" style="display:inline-flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Diseño anterior detectado</span>
-        <button type="button" class="btn-icon modal-close-btn" id="restoreModalCloseBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="btn-icon modal-close-btn" id="restoreModalCloseBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
         Se encontró un proyecto guardado automáticamente en tu navegador. ¿Deseas retomar tu diseño o empezar una nueva prenda desde cero?
@@ -768,7 +768,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
           Compartir CustomyTee
         </span>
-        <button type="button" class="btn-icon modal-close-btn" id="closeShareModalBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="btn-icon modal-close-btn" id="closeShareModalBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
 
       <div class="qr-canvas-wrapper" style="display:flex; justify-content:center; align-items:center; padding:16px 0;">
@@ -812,7 +812,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-6h13l-2.5 8H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4.5l2 2h6a2 2 0 0 1 2 2v2"/></svg>
           Abrir Proyecto
         </span>
-        <button type="button" class="btn-icon modal-close-btn" id="closeImportModalBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="btn-icon modal-close-btn" id="closeImportModalBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div id="importModalBody" style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
         ¿Cómo deseas abrir este proyecto? Puedes reemplazar tu diseño actual o añadirlo como una nueva polera independiente.
@@ -832,7 +832,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           Archivo Cifrado para ZAIRENLAB
         </span>
-        <button type="button" class="btn-icon modal-close-btn" id="closeZrnNoticeBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="btn-icon modal-close-btn" id="closeZrnNoticeBtn" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div style="font-size:13px; color:var(--text-secondary); line-height:1.5; margin-top:4px;">
         El archivo <strong>.zrn</strong> que intentas abrir es un paquete cifrado exclusivo para confección en el taller de <strong>ZAIRENLAB</strong>.

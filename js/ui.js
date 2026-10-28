@@ -723,6 +723,17 @@ export class ControladorUI {
       estado.notificar('zoom', this.mesa.zoom);
     });
 
+    // Desplazamiento horizontal fluido con rueda del ratón en la barra de mesa
+    const stageToolbar = document.querySelector('.stage-toolbar-top');
+    if (stageToolbar) {
+      stageToolbar.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0 && !e.shiftKey) {
+          e.preventDefault();
+          stageToolbar.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
+
     // Herramienta Mano para mover la mesa
     const handBtn = document.getElementById('toolHandBtn');
     handBtn?.addEventListener('click', () => {
