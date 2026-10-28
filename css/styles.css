@@ -784,13 +784,39 @@ input:checked + .toggle-slider:before {
 .stage-toolbar-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 4px 12px;
-  height: 38px;
+  height: 44px;
+  min-height: 44px;
   background: var(--surface-solid);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
   z-index: 10;
+  overflow-x: auto;
+  overflow-y: hidden !important;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
+}
+
+.stage-toolbar-top::-webkit-scrollbar {
+  display: none;
+}
+
+.stage-toolbar-top > * {
+  flex-shrink: 0;
+}
+
+.stage-view-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .ribbon-group {
@@ -1314,12 +1340,61 @@ input:checked + .toggle-slider:before {
   }
 
   .stage-toolbar-top {
+    height: 52px;
+    min-height: 52px;
+    padding: 4px 8px;
+    gap: 6px;
     overflow-x: auto;
+    overflow-y: hidden !important;
+    touch-action: pan-x !important;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
   }
 
   .stage-toolbar-top::-webkit-scrollbar {
     display: none;
+  }
+
+  .stage-toolbar-top .desktop-undo-group,
+  .stage-toolbar-top .desktop-undo-divider {
+    display: none !important;
+  }
+
+  .stage-toolbar-top .ribbon-label {
+    display: none;
+  }
+
+  .stage-toolbar-top .btn-icon {
+    min-height: 44px;
+    min-width: 44px;
+    height: 44px;
+    width: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+  }
+
+  .stage-toolbar-top .btn-micro {
+    min-height: 44px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+  }
+
+  .stage-view-tools {
+    margin-left: 0;
   }
 
   .btn-icon, .zoom-btn {
@@ -1546,7 +1621,7 @@ input:checked + .toggle-slider:before {
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .stage-floating-undo {
     display: flex;
   }
