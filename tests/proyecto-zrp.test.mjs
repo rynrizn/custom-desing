@@ -189,6 +189,8 @@ assert.strictEqual(estado.datos.poleras[0].nombre, 'Polera Principal', 'Nombre d
 assert.strictEqual(estado.datos.poleras[0].color, '#0A0A0A', 'Color restaurado');
 assert.strictEqual(estado.datos.poleras[0].superficies.anverso.capas[0].texto, 'CustomyTee\nEdición 2026', 'Texto multilínea restaurado');
 assert.strictEqual(estado.datos.poleras[0].superficies.manga_derecha.capas[0].tipo, 'imagen', 'Capa de imagen restaurada');
+assert(estado.datos.poleras[0].superficies.manga_derecha.capas[0].originalFile instanceof Blob, 'Capa debe conservar originalFile como Blob');
+assert(estado.datos.poleras[0].superficies.manga_derecha.capas[0].dataUrl, 'Capa debe tener dataUrl válida');
 assert.strictEqual(estado.datos.poleras[1].superficies.reverso.capas[0].texto, 'STAFF 2026', 'Texto de polera 2 restaurado');
 assert.strictEqual(estado.datos.clienteWhatsApp, '+56912345678', 'WhatsApp restaurado');
 assert.strictEqual(estado.datos.indicaciones, 'Coser etiquetas con hilo reforzado', 'Indicaciones restauradas');

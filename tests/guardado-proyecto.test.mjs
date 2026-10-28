@@ -178,6 +178,54 @@ assert.strictEqual(blobConvertido.type, 'image/png', 'MIME type debe ser image/p
 assert(blobConvertido.size > 0, 'Tamaño de blob debe ser > 0');
 console.log('   ✓ Conversión de DataURL a Blob nativo verificada');
 
+// 6. Validar reiniciarEstado() ("Empezar de cero")
+console.log('6. Verificando reiniciarEstado()...');
+estado.datos.poleras = [{ id: 'p-1', superficies: { anverso: { capas: [{ id: 'c-1' }] } } }, { id: 'p-2' }];
+estado.datos.poleraActivaIndex = 1;
+estado.datos.capaSeleccionadaId = 'c-1';
+estado.reiniciarEstado();
+
+assert.strictEqual(estado.datos.poleras.length, 1, 'Debe quedar exactamente 1 polera');
+assert.strictEqual(estado.datos.poleraActivaIndex, 0, 'La polera activa debe ser la primera (índice 0)');
+assert.strictEqual(estado.datos.capaSeleccionadaId, null, 'No debe haber capa seleccionada');
+assert.strictEqual(estado.capasSuperficieActiva.length, 0, 'La polera limpia no debe tener capas');
+console.log('   ✓ reiniciarEstado() limpia poleras, capas y restablece selección correctamente');
+
+// 7. Validar robustez de dibujarCapa contra capas con imgElement corrupto ({})
+console.log('7. Verificando que dibujarCapa no lance TypeError con imgElement corrupto ({}) ...');
+import { GestorImagenes } from '../js/imagenes.js';
+const gestorImg = new GestorImagenes();
+const mockCtx = {
+  save() {},
+  restore() {},
+  translate() {},
+  rotate() {},
+  scale() {},
+  drawImage() {
+    throw new TypeError("Failed to execute 'drawImage' on 'CanvasRenderingContext2D': The provided value is not of type...");
+  }
+};
+const mockMesa = {
+  mundoACanvas() { return { cx: 100, cy: 100 }; },
+  pxPorCmBase: 10,
+  zoom: 1
+};
+const capaCorrupta = {
+  tipo: 'imagen',
+  visible: true,
+  imgElement: {}, // Simula el objeto {} deserializado por JSON.parse
+  xCm: 0,
+  yCm: 20,
+  widthCm: 10,
+  heightCm: 10
+};
+
+// No debe lanzar excepción
+assert.doesNotThrow(() => {
+  gestorImg.dibujarCapa(mockCtx, capaCorrupta, mockMesa);
+}, 'dibujarCapa no debe propagar TypeError con imgElement no válido');
+console.log('   ✓ dibujarCapa maneja imgElement corrupto de forma segura sin romper el render loop');
+
 // Restaurar entorno
 Object.defineProperty(globalThis, 'window', { value: ventanaOriginal, configurable: true, writable: true });
 Object.defineProperty(globalThis, 'navigator', { value: navigatorOriginal, configurable: true, writable: true });
