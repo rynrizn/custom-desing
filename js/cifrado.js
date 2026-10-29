@@ -237,9 +237,10 @@ export class MotorCifradoZRN {
   /**
    * Gestiona el envío del archivo cifrado a ZAIRENLAB vía Web Share API o WhatsApp.
    */
-  async enviarPedidoAZairenLab(zrnBlob, metadataPedido, codigoPedido = null) {
+  async enviarPedidoAZairenLab(zrnBlob, metadataPedido, codigoPedido = null, opciones = {}) {
     const codigo = codigoPedido || metadataPedido?.codigoPedido || gestorAlmacenamiento.generarCodigoPedido();
-    const nombreArchivo = `${codigo}.zrn`;
+    const nombreArchivo = `pedido-${codigo}.zrn`;
+    const { descargarLocal = false } = opciones;
     const archivoZrn = new File([zrnBlob], nombreArchivo, { type: 'application/octet-stream' });
 
     // Intento 1: Web Share API con archivo adjunto (móviles modernos)
@@ -257,7 +258,8 @@ export class MotorCifradoZRN {
       }
     }
 
-    // Intento 2: Descargar .zrn localmente y abrir WhatsApp con mensaje pre-rellenado
+    // Intento 2: Descargar .zrn localmente si se solicita y abrir WhatsApp con mensaje pre-rellenado
+    if (descargarLocal) {
     const url = URL.createObjectURL(zrnBlob);
     const a = document.createElement('a');
     a.href = url;
@@ -266,10 +268,11 @@ export class MotorCifradoZRN {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
 
     const telefonoLimpio = (CONFIG.WHATSAPP_NEGOCIO || '').replace(/[^\d+]/g, '');
     const contactoWA = metadataPedido?.cliente?.whatsapp || 'Mismo número';
-    const mensajeWA = `¡Hola ZAIRENLAB! Acabo de generar mi pedido con código ${codigo} desde el editor. Les adjunto el archivo ${codigo}.zrn a continuación para confección. WhatsApp de contacto: ${contactoWA}.`;
+    const mensajeWA = `¡Hola ZAIRENLAB! Acabo de generar mi pedido con código ${codigo} desde el editor. Les adjunto el archivo ${nombreArchivo} a continuación para confección. WhatsApp de contacto: ${contactoWA}.`;
     const urlWA = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(mensajeWA)}`;
 
     window.open(urlWA, '_blank');

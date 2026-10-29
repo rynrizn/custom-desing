@@ -683,7 +683,7 @@ export class ControladorUI {
       }
     });
 
-    // Botón Enviar Pedido Cifrado (.ZRN)
+    // Botón Enviar Pedido (.ZRN)
     const btnZrn = document.getElementById('submitOrderZrnBtn');
     btnZrn?.addEventListener('click', async () => {
       this.abrirModalConfirmacionPedido();
@@ -1032,7 +1032,7 @@ export class ControladorUI {
       const btn = document.getElementById('confirmDownloadBtn');
       const txt = btn.textContent;
       btn.disabled = true;
-      btn.textContent = 'Cifrando pedido...';
+      btn.textContent = 'Preparando pedido...';
 
       try {
         const codigo = gestorAlmacenamiento.generarCodigoPedido();
@@ -1040,32 +1040,19 @@ export class ControladorUI {
         const zrnBlob = await motorCifradoZRN.cifrarPaqueteZRN(zipArrayBuffer);
         const metadata = gestorPedido.generarObjetoPedidoJSON(codigo);
 
-        // Guardar respaldo .zrp para el cliente con el mismo código de pedido
-        const { blob: zrpBlob } = await gestorAlmacenamiento.guardarProyectoZRP(estado, codigo, false);
+        // 1. Descargar Vista Previa (.zip)
+        await exportadorArchivos.generarZipVistaPreviaCliente(codigo);
 
-        let compartido = false;
-        if (typeof navigator !== 'undefined' && typeof File !== 'undefined' && navigator.canShare) {
-          try {
-            const fileZrn = new File([zrnBlob], `pedido-${codigo}.zrn`, { type: 'application/octet-stream' });
-            const fileZrp = new File([zrpBlob], `proyecto-${codigo}.zrp`, { type: 'application/zip' });
-            if (navigator.canShare({ files: [fileZrn, fileZrp] })) {
-              await navigator.share({
-                title: `Pedido CustomyTee ${codigo}`,
-                text: `Archivos de confección y respaldo del pedido ${codigo}.`,
-                files: [fileZrn, fileZrp]
-              });
-              compartido = true;
-            }
-          } catch (_) {}
-        }
+        // Breve pausa para que el navegador procese ambas descargas consecutivas
+        await new Promise(r => setTimeout(r, 350));
 
-        if (!compartido) {
-          exportadorArchivos.descargarBlobEnNavegador(zrnBlob, `pedido-${codigo}.zrn`);
-          exportadorArchivos.descargarBlobEnNavegador(zrpBlob, `proyecto-${codigo}.zrp`);
-        }
+        // 2. Descargar Archivo del Pedido (.zrn)
+        exportadorArchivos.descargarBlobEnNavegador(zrnBlob, `pedido-${codigo}.zrn`);
 
-        await motorCifradoZRN.enviarPedidoAZairenLab(zrnBlob, metadata, codigo);
-        this.mostrarNotificacion(`¡Pedido ${codigo} generado con éxito! Se descargaron tu .zrn y .zrp.`);
+
+        // Notificar y abrir enlace de WhatsApp para enviar el pedido al taller (sin re-descargar el .zrn)
+        await motorCifradoZRN.enviarPedidoAZairenLab(zrnBlob, metadata, codigo, { descargarLocal: false });
+        this.mostrarNotificacion(`¡Pedido ${codigo} generado con éxito! Se descargaron tu vista previa (.zip) y pedido (.zrn).`);
         document.getElementById('exportModalBackdrop').classList.remove('open');
       } catch (err) {
         this.mostrarNotificacion(`Error: ${err.message}`);
@@ -1172,7 +1159,7 @@ export class ControladorUI {
       notice.innerHTML = `<span style="color:var(--error); font-weight:600;">Aviso: Aún no has colocado ningún estampado en tus prendas. Sube un gráfico o texto para poder enviar el pedido.</span>`;
       confirmBtn.disabled = true;
     } else {
-      notice.innerHTML = `<span>Se empaquetarán artes a 300 DPI, archivos originales sin pérdida y ficha técnica en el archivo protegido <strong>.zrn</strong>.</span>`;
+      notice.innerHTML = `<span>Se empaquetarán artes a 300 DPI, archivos originales sin pérdida y ficha técnica en el archivo protegido <strong>.zrn</strong> junto con la vista previa <strong>.zip</strong>.</span>`;
       confirmBtn.disabled = false;
     }
 
