@@ -138,13 +138,17 @@ export class GestorPedido {
     if (p.cantidades && p.cantidades.length) {
       for (const fila of p.cantidades) {
         const infoT = CONFIG.TALLAS_CUERPO[fila.talla];
-        const marca = infoT?.estimada ? ' (estimada)' : ' (medida real de taller)';
-        lineas.push(`  - Talla ${fila.talla} (${infoT?.ancho || 53} × ${infoT?.largo || 71} cm): ${fila.cantidad} unidad(es)${marca}`);
+        const infoM = CONFIG.TALLAS_MANGAS[fila.talla];
+        const marca = infoT?.estimada ? ' (estimada)' : ' (medida real)';
+        const mangaTxt = infoM ? `, manga ${infoM.boca} × ${infoM.alto} cm` : '';
+        lineas.push(`  - Talla ${fila.talla} (${infoT?.ancho || 52} × ${infoT?.largo || 69} cm${mangaTxt}): ${fila.cantidad} unidad(es)${marca}`);
       }
     } else {
       const infoT = CONFIG.TALLAS_CUERPO[p.tallaVista];
-      const marca = infoT?.estimada ? ' (estimada)' : ' (medida real de taller)';
-      lineas.push(`  - Talla ${p.tallaVista} (${infoT?.ancho || 53} × ${infoT?.largo || 71} cm): 1 unidad${marca}`);
+      const infoM = CONFIG.TALLAS_MANGAS[p.tallaVista];
+      const marca = infoT?.estimada ? ' (estimada)' : ' (medida real)';
+      const mangaTxt = infoM ? `, manga ${infoM.boca} × ${infoM.alto} cm` : '';
+      lineas.push(`  - Talla ${p.tallaVista} (${infoT?.ancho || 52} × ${infoT?.largo || 69} cm${mangaTxt}): 1 unidad${marca}`);
     }
     lineas.push(`Continuidad envolvente lateral: ${p.envolvente ? 'SÍ' : 'NO'}`);
     lineas.push(`Sincronización espejo de mangas: ${p.mangasEspejo ? 'SÍ' : 'NO'}\n`);

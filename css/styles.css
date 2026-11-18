@@ -245,6 +245,32 @@ button, select, input, textarea {
   gap: 6px;
 }
 
+.nav-catalog-btn {
+  min-height: 34px;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 11px;
+  gap: 5px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-catalog-btn:hover {
+  border-color: var(--accent-crimson);
+  color: var(--accent-crimson);
+}
+
+.nav-catalog-arrow {
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.nav-catalog-btn:hover .nav-catalog-arrow {
+  transform: translate(1px, -1px);
+  opacity: 1;
+}
+
 /* ==========================================================================
    3. BOTONES, ENTRADAS Y FORMULARIOS
    ========================================================================== */
@@ -516,8 +542,9 @@ button, select, input, textarea {
 }
 
 .size-specs-pill {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
   padding: 8px 10px;
   background: var(--surface-low);
   border: 1px solid var(--border-subtle);
@@ -525,6 +552,14 @@ button, select, input, textarea {
   font-size: 10px;
   letter-spacing: 0.04em;
   color: var(--text-secondary);
+}
+
+.size-specs-pill span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .size-specs-pill strong {
@@ -1201,6 +1236,18 @@ input:checked + .toggle-slider:before {
     font-size: 10px !important;
   }
 
+  .nav-actions .nav-catalog-btn {
+    min-height: 32px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .nav-actions .nav-catalog-arrow {
+    display: none;
+  }
+
   .sub-hide-mobile {
     display: none;
   }
@@ -1655,11 +1702,27 @@ input:checked + .toggle-slider:before {
 }
 
 @media (max-width: 420px) {
+  .brand-logo {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
   .nav-more-wrapper {
     display: inline-block !important;
   }
-  #openSettingsBtn, #themeSwitchGroup {
+  #openSettingsBtn, #themeSwitchGroup, #topShareBtn {
     display: none !important;
+  }
+  .nav-actions #projectMenuBtn {
+    padding: 0 7px !important;
+    font-size: 10px !important;
+  }
+  .nav-actions .nav-catalog-btn {
+    padding: 0 7px;
+    font-size: 10px;
+  }
+  .nav-actions .nav-catalog-btn svg {
+    width: 12px;
+    height: 12px;
   }
 }
 

@@ -357,15 +357,20 @@ export class ControladorUI {
     if (sizeSelect) {
       sizeSelect.addEventListener('change', (e) => {
         estado.poleraActiva.tallaVista = e.target.value;
-        const info = CONFIG.TALLAS_CUERPO[e.target.value];
-        const infoManga = CONFIG.TALLAS_MANGAS[e.target.value];
+        const info = CONFIG.TALLAS_CUERPO[e.target.value] || CONFIG.TALLAS_CUERPO.M;
+        const infoManga = CONFIG.TALLAS_MANGAS[e.target.value] || CONFIG.TALLAS_MANGAS.M;
 
-        document.getElementById('specAncho').textContent = `${info.ancho.toFixed(1)} cm`;
-        document.getElementById('specLargo').textContent = `${info.largo.toFixed(1)} cm`;
-        document.getElementById('specBoca').textContent = `${infoManga.boca.toFixed(1)} cm`;
+        const elAncho = document.getElementById('specAncho');
+        const elLargo = document.getElementById('specLargo');
+        const elBoca = document.getElementById('specBoca');
+        const elLargoManga = document.getElementById('specLargoManga');
+        if (elAncho) elAncho.textContent = `${info.ancho.toFixed(1)} cm`;
+        if (elLargo) elLargo.textContent = `${info.largo.toFixed(1)} cm`;
+        if (elBoca) elBoca.textContent = `${infoManga.boca.toFixed(1)} cm`;
+        if (elLargoManga) elLargoManga.textContent = `${infoManga.alto.toFixed(1)} cm`;
 
         const estBadge = document.getElementById('sizeEstBadge');
-        estBadge.textContent = info.estimada ? '(ESTIMADA)' : '';
+        if (estBadge) estBadge.textContent = info.estimada ? '(ESTIMADA)' : '';
 
         estado.guardarSnapshotHistorial(`Cambio de talla a ${e.target.value}`);
         estado.notificar('cambio-talla');
@@ -1250,8 +1255,8 @@ export class ControladorUI {
     const cuelloY = estado.datos.superficieActiva === 'anverso' ? 8.0 : 2.0;
 
     const distCuello = Math.max(0, (capa.yCm - capa.heightCm / 2) - cuelloY);
-    const distRuedo = Math.max(0, (largoCm || 71.0) - (capa.yCm + capa.heightCm / 2));
-    const distLateral = Math.max(0, (anchoCm || 53.0) / 2 - (Math.abs(capa.xCm) + capa.widthCm / 2));
+    const distRuedo = Math.max(0, (largoCm || 69.0) - (capa.yCm + capa.heightCm / 2));
+    const distLateral = Math.max(0, (anchoCm || 52.0) / 2 - (Math.abs(capa.xCm) + capa.widthCm / 2));
 
     if (hudNeck) hudNeck.textContent = UNIDADES.formatear(distCuello, unidad, 1);
     if (hudBottom) hudBottom.textContent = UNIDADES.formatear(distRuedo, unidad, 1);
@@ -1417,7 +1422,6 @@ export class ControladorUI {
           <option value="M" ${fila.talla === 'M' ? 'selected' : ''}>Talla M</option>
           <option value="L" ${fila.talla === 'L' ? 'selected' : ''}>Talla L</option>
           <option value="XL" ${fila.talla === 'XL' ? 'selected' : ''}>Talla XL</option>
-          <option value="XXL" ${fila.talla === 'XXL' ? 'selected' : ''}>Talla XXL</option>
         </select>
         <input type="number" class="ribbon-input row-qty-input" min="1" max="500" value="${fila.cantidad}" style="width:70px;">
         <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted);">uds.</span>

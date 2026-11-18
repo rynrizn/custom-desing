@@ -106,8 +106,8 @@ export class MesaDeTrabajo {
 
     if (esManga && modoManga === 'plana') {
       const { altoMangaCm, unionMangaCm, bocaMangaCm } = motorPoleraSVG.obtenerEscalasTalla();
-      const patronW = Math.max(unionMangaCm || 18.5, bocaMangaCm || 16.5);
-      const patronH = altoMangaCm || 19.0;
+      const patronW = Math.max(unionMangaCm || 19.5, bocaMangaCm || 17.5);
+      const patronH = altoMangaCm || 20.0;
 
       // El patrón plano de manga ocupa ~75% del ancho y alto de la mesa
       const zoomX = (w * 0.75) / (patronW * this.pxPorCmBase);
@@ -115,8 +115,8 @@ export class MesaDeTrabajo {
       this.zoom = Math.max(0.35, Math.min(3.5, Math.min(zoomX, zoomY)));
     } else {
       const { anchoCm, largoCm } = motorPoleraSVG.obtenerEscalasTalla();
-      const anchoPrenda = Math.max((anchoCm || 53.0) + 35.0, 88.0); // Abarcar mangas en perspectiva
-      const altoPrenda = (largoCm || 71.0) + 7.0;  // De cuello (-2.5 cm) a ruedo (71.5 cm) con margen
+      const anchoPrenda = Math.max((anchoCm || 52.0) + 35.0, 87.0); // Abarcar mangas en perspectiva
+      const altoPrenda = (largoCm || 69.0) + 7.0;  // De cuello (-2.5 cm) a ruedo (69.5 cm) con margen
 
       const zoomX = (w * 0.90) / (anchoPrenda * this.pxPorCmBase);
       const zoomY = (h * 0.88) / (altoPrenda * this.pxPorCmBase);
@@ -392,9 +392,9 @@ export class MesaDeTrabajo {
 
     if (esManga && modoManga === 'plana') {
       // Cotas de manga plana: ALTO, BOCA, UNIÓN
-      const semiBoca = (bocaMangaCm || 16.5) / 2;
-      const semiUnion = (unionMangaCm || 18.5) / 2;
-      const alto = altoMangaCm || 19.0;
+      const semiBoca = (bocaMangaCm || 17.5) / 2;
+      const semiUnion = (unionMangaCm || 19.5) / 2;
+      const alto = altoMangaCm || 20.0;
 
       // Cota de alto (lateral derecha)
       const { cx: xA, cy: yA } = this.mundoACanvas(semiUnion + 2.5, 0);
@@ -498,7 +498,7 @@ export class MesaDeTrabajo {
 
     if (!esManga) {
       // Costados del torso
-      const semiAncho = (anchoCuerpo || 53.0) / 2;
+      const semiAncho = (anchoCuerpo || 52.0) / 2;
       const bordeIzq = xCm - anchoCm / 2;
       const bordeDer = xCm + anchoCm / 2;
 
@@ -533,24 +533,24 @@ export class MesaDeTrabajo {
 
     // 2. Imanes Horizontales (Eje Y)
     if (esManga) {
-      const altoTotal = altoMangaCm || 19.0;
-      // Mitad de la manga / centro de zona útil (y = 9.5 cm)
-      if (Math.abs(yCm - 9.5) < umbral) {
-        nuevoY = 9.5;
-        this.guiasActivas.push({ tipo: 'horizontal', yCm: 9.5, label: 'Centro Manga' });
+      const altoTotal = altoMangaCm || 20.0;
+      // Mitad de la manga / centro de zona útil (y = 10.0 cm)
+      if (Math.abs(yCm - 10.0) < umbral) {
+        nuevoY = 10.0;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 10.0, label: 'Centro Manga' });
       }
-      // Límites de zona de impresión manga (y = 3.5 y y = 15.5)
+      // Límites de zona de impresión manga (y = 4.0 y y = 16.0)
       const bordeSuperior = yCm - altoCm / 2;
       const bordeInferior = yCm + altoCm / 2;
-      if (Math.abs(bordeSuperior - 3.5) < umbral) {
-        nuevoY = 3.5 + altoCm / 2;
-        this.guiasActivas.push({ tipo: 'horizontal', yCm: 3.5, label: 'Tope Zona' });
-      } else if (Math.abs(bordeInferior - 15.5) < umbral) {
-        nuevoY = 15.5 - altoCm / 2;
-        this.guiasActivas.push({ tipo: 'horizontal', yCm: 15.5, label: 'Base Zona' });
+      if (Math.abs(bordeSuperior - 4.0) < umbral) {
+        nuevoY = 4.0 + altoCm / 2;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 4.0, label: 'Tope Zona' });
+      } else if (Math.abs(bordeInferior - 16.0) < umbral) {
+        nuevoY = 16.0 - altoCm / 2;
+        this.guiasActivas.push({ tipo: 'horizontal', yCm: 16.0, label: 'Base Zona' });
       }
     } else {
-      const largoTotal = largoCm || 71.0;
+      const largoTotal = largoCm || 69.0;
       const esAnverso = superficie === 'anverso';
       const cuelloY = esAnverso ? 8.0 : 2.0;
 

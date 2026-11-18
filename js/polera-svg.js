@@ -92,15 +92,15 @@ export class MotorPoleraSVG {
 
   /**
    * Obtiene los factores de escala de la silueta según la talla activa de la polera.
-   * La silueta se escala anclada en (0,0): sx = ancho/53, sy = largo/71.
+   * La silueta se escala anclada en (0,0): sx = ancho/52, sy = largo/69.
    * Los estampados de usuario NO usan este factor; conservan sus centímetros reales 1:1.
    */
   obtenerEscalasTalla(talla = estado.poleraActiva.tallaVista, superficie = estado.datos.superficieActiva) {
     const t = CONFIG.TALLAS_CUERPO[talla] || CONFIG.TALLAS_CUERPO.M;
     const m = CONFIG.TALLAS_MANGAS[talla] || CONFIG.TALLAS_MANGAS.M;
 
-    const baseAncho = 53.0; // Talla M medida real en cm
-    const baseLargo = 71.0; // Talla M medida real en cm
+    const baseAncho = 52.0; // Talla M medida real en cm
+    const baseLargo = 69.0; // Talla M medida real en cm
 
     return {
       sx: t.ancho / baseAncho,
@@ -148,7 +148,7 @@ export class MotorPoleraSVG {
           ancho: z.ancho,
           alto: z.alto,
           centroX: 0,
-          centroY: 9.5, // Centrado en la pieza de manga plana (alto 19 cm)
+          centroY: 10.0, // Centrado en la pieza de manga plana (alto 20 cm)
           label: z.label
         };
       } else {
@@ -352,13 +352,13 @@ export class MotorPoleraSVG {
 
   /**
    * Renderizado de la pieza plana paramétrica de la manga.
-   * Talla M: alto 19 cm, boca 16.5 cm, unión 18.5 cm.
+   * Talla M: alto 20 cm, boca 17.5 cm, unión 19.5 cm.
    */
   dibujarMangaPlanaEnCanvas(ctx, colorHex, talla, superficie) {
     const { sx, sy, altoMangaCm, bocaMangaCm, unionMangaCm } = this.obtenerEscalasTalla(talla, superficie);
-    const semiUnion = (unionMangaCm || 18.5) / 2.0;
-    const semiBoca = (bocaMangaCm || 16.5) / 2.0;
-    const altoCm = altoMangaCm || 19.0;
+    const semiUnion = (unionMangaCm || 19.5) / 2.0;
+    const semiBoca = (bocaMangaCm || 17.5) / 2.0;
+    const altoCm = altoMangaCm || 20.0;
 
     ctx.save();
     ctx.beginPath();
@@ -407,9 +407,9 @@ export class MotorPoleraSVG {
   trazarContornoRecorte(ctx, superficie, talla, modoManga = 'plana') {
     if ((superficie === 'manga_izquierda' || superficie === 'manga_derecha') && modoManga === 'plana') {
       const { altoMangaCm, bocaMangaCm, unionMangaCm, sy } = this.obtenerEscalasTalla(talla, superficie);
-      const semiUnion = (unionMangaCm || 18.5) / 2.0;
-      const semiBoca = (bocaMangaCm || 16.5) / 2.0;
-      const altoCm = altoMangaCm || 19.0;
+      const semiUnion = (unionMangaCm || 19.5) / 2.0;
+      const semiBoca = (bocaMangaCm || 17.5) / 2.0;
+      const altoCm = altoMangaCm || 20.0;
       ctx.beginPath();
       ctx.moveTo(-semiUnion, 1.8 * sy);
       ctx.quadraticCurveTo(0, -0.4 * sy, semiUnion, 1.8 * sy);

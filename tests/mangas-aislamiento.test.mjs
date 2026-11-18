@@ -62,12 +62,12 @@ assert.strictEqual(estado.datos.superficieActiva, 'manga_izquierda');
 mesa.modoManga = 'plana';
 mesa.ajustarAPantalla();
 
-// Alto de manga M = 19 cm, Unión = 18.5 cm. pxPorCmBase = 28.0.
-// Alto en px = 19 * 28 = 532 px.
-// Con zoomX = (1000 * 0.75) / (18.5 * 28) = 1.447
-// Con zoomY = (800 * 0.75) / (19.0 * 28) = 1.1278
-// El zoom limitante (min) es zoomY = 1.1278, ocupando exactamente (532 * 1.1278) = 600 px = 75% de 800 px.
-const altoPatronPx = 19.0 * mesa.pxPorCmBase * mesa.zoom;
+// Alto de manga M = 20 cm, Unión = 19.5 cm. pxPorCmBase = 28.0.
+// Alto en px = 20 * 28 = 560 px.
+// Con zoomX = (1000 * 0.75) / (19.5 * 28) = 1.3736
+// Con zoomY = (800 * 0.75) / (20.0 * 28) = 1.0714
+// El zoom limitante (min) es zoomY = 1.0714, ocupando exactamente (560 * 1.0714) = 600 px = 75% de 800 px.
+const altoPatronPx = 20.0 * mesa.pxPorCmBase * mesa.zoom;
 const ocupacionAlto = altoPatronPx / mesa.altoLogico;
 console.log(`   Zoom calculado: ${mesa.zoom.toFixed(4)} | Ocupación del alto: ${(ocupacionAlto * 100).toFixed(1)} %`);
 assert(Math.abs(ocupacionAlto - 0.75) < 0.02, `El patrón plano debe ocupar ~75% de la mesa (obtenido: ${(ocupacionAlto * 100).toFixed(1)}%)`);
@@ -193,14 +193,14 @@ gestorMangas.dibujarProyeccionEnTorso(ctxTest, 'reverso', mesa);
 assert(transforms.length > 0, 'La proyección en reverso debe ejecutarse correctamente');
 console.log('   ✓ Mapeo anatómico en reverso verificado');
 
-// Probar en todas las tallas paramétricas (S a XXL)
-for (const talla of ['S', 'M', 'L', 'XL', 'XXL']) {
+// Probar en todas las tallas paramétricas (S a XL)
+for (const talla of ['S', 'M', 'L', 'XL']) {
   estado.poleraActiva.tallaVista = talla;
   assert.doesNotThrow(() => {
     gestorMangas.dibujarProyeccionEnTorso(ctxTest, 'anverso', mesa);
   }, `Proyección en talla ${talla} debe ejecutarse sin errores`);
 }
-console.log('   ✓ Proyección validada para tallas S, M, L, XL, XXL');
+console.log('   ✓ Proyección validada para tallas S, M, L, XL');
 
 console.log('\n===============================================================');
 console.log('TODAS LAS PRUEBAS DE LA FASE 5 Y MANGAS PASARON CON ÉXITO');

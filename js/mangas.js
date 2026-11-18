@@ -119,7 +119,7 @@ export class GestorMangas {
 
     // Mock mesa para escalar la silueta dentro del cuadro PiP
     const polera = estado.poleraActiva;
-    const pxPorCmPiP = (anchoPiP * 0.70) / 53.0; // Polera de 53 cm escalada
+    const pxPorCmPiP = (anchoPiP * 0.70) / 52.0; // Polera de 52 cm escalada
     const centroPiPX = xPiP + anchoPiP / 2.0;
     const centroPiPY = yPiP + 26.0;
 

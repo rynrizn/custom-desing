@@ -127,7 +127,7 @@ export class TourGuiado {
           id: 'paso-prenda',
           popover: {
             title: '6. Talla Real y Colores',
-            description: 'Elige la talla en vista (S a XXL anclada a medidas reales de confección), cambia el color de la tela con la paleta Zenith y añade múltiples prendas si lo deseas.',
+            description: 'Elige la talla en vista (S a XL anclada a medidas reales de confección), cambia el color de la tela con la paleta Zenith y añade múltiples prendas si lo deseas.',
             side: esMovil ? 'top' : 'right',
             align: 'start'
           }

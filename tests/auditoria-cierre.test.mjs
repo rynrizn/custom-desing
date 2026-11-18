@@ -76,13 +76,14 @@ console.log(`   ✓ Las ${fuentesEsperadas.length} fuentes WOFF2 están presente
 
 // 4. Verificación de medidas reales Talla M en CONFIG
 console.log('4. Verificando medidas reales de confección en CONFIG...');
-assert.strictEqual(CONFIG.TALLAS_CUERPO.M.ancho, 53, 'Talla M debe tener 53 cm de ancho');
-assert.strictEqual(CONFIG.TALLAS_CUERPO.M.largo, 71, 'Talla M debe tener 71 cm de largo');
+assert.strictEqual(CONFIG.TALLAS_CUERPO.M.ancho, 52, 'Talla M debe tener 52 cm de ancho');
+assert.strictEqual(CONFIG.TALLAS_CUERPO.M.largo, 69, 'Talla M debe tener 69 cm de largo');
 assert.strictEqual(CONFIG.TALLAS_CUERPO.M.estimada, false, 'Talla M es medida real');
-assert.strictEqual(CONFIG.TALLAS_MANGAS.M.alto, 19, 'Manga M debe tener 19 cm de largo');
-assert.strictEqual(CONFIG.TALLAS_MANGAS.M.boca, 16.5, 'Manga M debe tener 16.5 cm de boca');
-assert.strictEqual(CONFIG.TALLAS_MANGAS.M.union, 18.5, 'Manga M debe tener 18.5 cm de unión');
-console.log('   ✓ Medidas reales de confección validadas');
+assert.strictEqual(CONFIG.TALLAS_MANGAS.M.alto, 20, 'Manga M debe tener 20 cm de largo');
+assert.strictEqual(CONFIG.TALLAS_MANGAS.M.boca, 17.5, 'Manga M debe tener 17.5 cm de boca');
+assert.strictEqual(CONFIG.TALLAS_MANGAS.M.union, 19.5, 'Manga M debe tener 19.5 cm de unión');
+assert.strictEqual(CONFIG.CATALOG_URL, 'https://zairenlab.pages.dev', 'CATALOG_URL debe apuntar a zairenlab.pages.dev');
+console.log('   ✓ Medidas reales de confección y enlace a catálogo validados');
 
 // 5. Verificación de Functions en Cloudflare Pages
 console.log('5. Verificando existencia de Cloudflare Pages Functions...');

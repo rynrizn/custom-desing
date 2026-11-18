@@ -10,6 +10,7 @@ export const CONFIG = {
   // Información de Marca y Negocio
   APP_NAME: 'CustomyTee',
   URL_PUBLICA: 'https://customytee.pages.dev',
+  CATALOG_URL: 'https://zairenlab.pages.dev',
   INSTAGRAM_URL: 'https://www.instagram.com/zairen.lab',
   APP_VERSION: 'v2.0',
   WHATSAPP_NEGOCIO: '+59174522654', // Número del taller para recibir pedidos
@@ -19,26 +20,24 @@ export const CONFIG = {
   // Este campo queda vacío por seguridad; solo se usa como fallback en desarrollo local offline.
   RSA_PUBLIC_KEY: '',
 
-  // Tabla de Tallas del Cuerpo (en centímetros reales, Talla M base: 53 × 71 cm)
-  // Medidas: ancho de sisa a sisa (bajo axila) / largo desde punto alto del hombro (y=0) al ruedo
+  // Tabla de Tallas del Cuerpo (en centímetros reales, Talla M base: 52 × 69 cm)
+  // Medidas: X = ancho de sisa a sisa (bajo axila) / Y = largo desde punto alto del hombro (y=0) al ruedo
   TALLAS_CUERPO: {
-    S:   { ancho: 50, largo: 69, estimada: true },
-    M:   { ancho: 53, largo: 71, estimada: false }, // Medida real física de taller (fuente de verdad)
-    L:   { ancho: 54, largo: 72, estimada: false }, // Medida real física de taller
-    XL:  { ancho: 57, largo: 74, estimada: true },
-    XXL: { ancho: 60, largo: 76, estimada: true }
+    S:  { ancho: 51, largo: 68.5, estimada: false },
+    M:  { ancho: 52, largo: 69,   estimada: false }, // Medida real física (fuente de verdad)
+    L:  { ancho: 54, largo: 70,   estimada: false },
+    XL: { ancho: 55, largo: 72,   estimada: false }
   },
 
   // Dimensiones Paramétricas de las Mangas Planas (en centímetros)
-  // alto: largo de la manga por el borde superior
-  // boca: ancho real plano de la abertura (puño)
+  // alto: Θ largo de la manga por el borde superior
+  // boca: T ancho real plano de la abertura (puño)
   // union: ancho en la costura de unión con el cuerpo
   TALLAS_MANGAS: {
-    S:   { alto: 18, boca: 15.5, union: 17.5, estimada: true },
-    M:   { alto: 19, boca: 16.5, union: 18.5, estimada: false },
-    L:   { alto: 21, boca: 18.5, union: 20.5, estimada: false }, // Manga +2 cm respecto a M
-    XL:  { alto: 22, boca: 19.5, union: 21.5, estimada: true },
-    XXL: { alto: 23, boca: 20.5, union: 22.5, estimada: true }
+    S:  { alto: 20,   boca: 17,   union: 19,   estimada: false },
+    M:  { alto: 20,   boca: 17.5, union: 19.5, estimada: false },
+    L:  { alto: 21,   boca: 18,   union: 20,   estimada: false },
+    XL: { alto: 22.5, boca: 19,   union: 21,   estimada: false }
   },
 
   // Zonas Máximas de Estampado Recomendadas (en centímetros)
