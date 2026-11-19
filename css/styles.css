@@ -141,6 +141,9 @@ button, select, input, textarea {
   background: var(--surface-solid);
   z-index: 40;
   flex-shrink: 0;
+  box-sizing: border-box;
+  max-width: 100vw;
+  overflow: hidden;
 }
 
 .brand-group {
@@ -243,6 +246,11 @@ button, select, input, textarea {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+}
+
+.nav-more-wrapper {
+  display: none;
 }
 
 .nav-catalog-btn {
@@ -1234,6 +1242,8 @@ input:checked + .toggle-slider:before {
     min-height: 32px !important;
     padding: 0 8px !important;
     font-size: 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
 
   .nav-actions .nav-catalog-btn {
@@ -1701,28 +1711,75 @@ input:checked + .toggle-slider:before {
   }
 }
 
-@media (max-width: 420px) {
-  .brand-logo {
-    font-size: 12px;
-    letter-spacing: 0.08em;
-  }
+/* Responsive Navbar Adaptativo para Móviles y Tablets */
+@media (max-width: 768px) {
   .nav-more-wrapper {
-    display: inline-block !important;
+    display: inline-flex !important;
   }
   #openSettingsBtn, #themeSwitchGroup, #topShareBtn {
     display: none !important;
   }
-  .nav-actions #projectMenuBtn {
-    padding: 0 7px !important;
-    font-size: 10px !important;
-  }
+}
+
+@media (max-width: 580px) {
   .nav-actions .nav-catalog-btn {
-    padding: 0 7px;
-    font-size: 10px;
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    justify-content: center;
   }
-  .nav-actions .nav-catalog-btn svg {
-    width: 12px;
-    height: 12px;
+  .nav-actions .nav-catalog-btn span {
+    display: none;
+  }
+  .brand-logo {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (max-width: 420px) {
+  .top-navbar {
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .brand-logo {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .nav-actions {
+    gap: 3px;
+  }
+  .nav-actions #projectMenuBtn {
+    padding: 0 6px !important;
+    font-size: 10px !important;
+    min-height: 32px;
+    gap: 2px;
+  }
+  .nav-actions #topExportBtn {
+    min-height: 32px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 360px) {
+  .top-navbar {
+    padding: 0 4px;
+    gap: 3px;
+  }
+  .brand-logo {
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+  .nav-actions #projectMenuBtn span {
+    display: none;
+  }
+  .nav-actions #projectMenuBtn {
+    width: 30px;
+    min-width: 30px;
+    padding: 0 !important;
+    justify-content: center;
   }
 }
 
